@@ -1,0 +1,15 @@
+export 'splash/splash.dart';
+export 'widgets/widgets.dart';
+export 'routers.dart';
+export 'theme_switcher.dart';
+export 'teacher_presentation/teacher_presentation.dart';
+export 'student_presentation/student_presentation.dart';
+export 'base/base.dart';
+export 'support/support.dart';
+export 'choose_role/choose_role.dart';
+export 'otp/otp.dart';
+export 'forgot_password/forgot_password.dart';
+export 'welcome/welcome.dart';
+export 'schedule/schedule.dart';
+export 'assignments_detail/assignment_detail.dart';
+export 'news_board_detail/news_board_detail.dart';

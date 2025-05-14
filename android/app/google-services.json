@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "586640603414",
+    "project_id": "learning-management-syst-122b5",
+    "storage_bucket": "learning-management-syst-122b5.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:586640603414:android:34e6d476f2f4cd35e9b837",
+        "android_client_info": {
+          "package_name": "com.vn.lms"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "586640603414-f9fp48kb634f5hu9gduls5qo3cc139dv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.vn.lms",
+            "certificate_hash": "a2eb204460d2a31d21b031fe273c1564b8e92726"
+          }
+        },
+        {
+          "client_id": "586640603414-i75m3ugn5nvq4qsmld6omqksns73ia50.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCDbArvsxaIrPTHWbP6D9L_9tWV_LQIcvA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "586640603414-i75m3ugn5nvq4qsmld6omqksns73ia50.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

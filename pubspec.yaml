@@ -1,0 +1,154 @@
+name: lms
+description: A new Flutter application.
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ">=3.0.0 <4.0.0"
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+
+  # Common
+  get: ^4.6.5
+  get_storage: ^2.0.3
+  responsive_builder: ^0.7.1
+  provider: ^6.0.3
+  cached_network_image: ^3.3.0
+  overlay_support: ^2.1.0
+  flutter_svg: ^2.0.0
+  flutter_lints: ^5.0.0
+
+
+  #  Network
+  dio: ^5.8.0+1
+  connectivity_plus: ^6.1.3
+  logger: ^2.5.0
+
+  # Notification
+  flutter_local_notifications: ^18.0.1
+  firebase_messaging: ^15.2.2
+
+  # Firebase
+  firebase_analytics: ^11.4.2
+  firebase_core: ^3.11.0
+  firebase_auth: ^5.4.2
+  cloud_firestore: ^5.6.5
+
+  #Animated
+  flutter_staggered_animations: ^1.0.0
+  confetti: ^0.8.0
+  shimmer: ^3.0.0
+
+  #Other
+  flutter_slidable: ^4.0.0
+  device_info_plus: ^11.2.1
+  equatable: ^2.0.3
+  loading_animation_widget: ^1.3.0
+  keyboard_dismisser: ^3.0.0
+  upgrader: ^11.3.1
+  flutter_keyboard_visibility: ^6.0.0
+  flutter_animated_dialog: ^2.0.1
+  flutter_launcher_icons: ^0.14.3
+  font_awesome_flutter: ^10.8.0
+  persistent_bottom_nav_bar: ^6.2.1
+  image_picker: ^1.1.2
+  local_auth: ^2.3.0
+  badges: ^3.1.2
+  permission_handler:
+  timeago: ^3.7.0
+  pin_code_fields: ^8.0.1
+  custom_timer: ^0.2.3
+  flutter_dotenv: ^5.2.1
+  flutter_math_fork: ^0.7.3
+  flutter_ai_toolkit: ^0.7.0
+  animations: ^2.0.0
+  flutter_cache_manager: ^3.0.0
+  openai_dart: ^0.4.5
+  toastification: ^3.0.2
+  video_player: ^2.9.5
+  chewie: ^1.11.3
+  syncfusion_flutter_pdfviewer: ^29.1.38
+  flutter_cached_pdfview: ^0.4.2
+  url_launcher: ^6.2.5
+  http: ^1.2.0
+  flutter_pdfview: ^1.4.0+1
+  path_provider: ^2.1.5
+  pdf: ^3.11.3
+  docx_viewer: 0.2.1
+  open_file: 3.5.10
+  flutter_html: ^3.0.0
+  draggable_float_widget: ^0.1.0
+  google_sign_in: ^6.3.0
+  web_socket_channel: ^3.0.3
+  stomp_dart_client: 2.1.3
+  file_picker: ^10.1.2
+  flutter_inappwebview: ^6.1.5
+  webview_flutter: ^4.11.0
+  printing: ^5.14.2
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+dependency_overrides:
+  modal_bottom_sheet:
+    git:
+      url: https://github.com/danReynolds/modal_bottom_sheet.git
+      path: modal_bottom_sheet
+
+
+flutter:
+  uses-material-design: true
+
+  assets:
+    - assets/images/png/
+#    - assets/images/svg/
+    - assets/images/jpg/
+    - .env
+
+  fonts:
+    - family: Inter
+      fonts:
+        - asset: assets/fonts/inter/Inter-Black.ttf
+          weight: 900
+        - asset: assets/fonts/inter/Inter-Black.ttf
+          weight: 800
+        - asset: assets/fonts/inter/Inter-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/inter/Inter-Bold.ttf
+          weight: 600
+        - asset: assets/fonts/inter/Inter-Medium.ttf
+          weight: 500
+        - asset: assets/fonts/inter/Inter-Medium.ttf
+          weight: 400
+        - asset: assets/fonts/inter/Inter-Regular.ttf
+          weight: 300
+        - asset: assets/fonts/inter/Inter-Light.ttf
+          weight: 200
+        - asset: assets/fonts/inter/Inter-Light.ttf
+          weight: 100
+    - family: Roboto
+      fonts:
+        - asset: assets/fonts/roboto/Roboto-Black.ttf
+          weight: 900
+        - asset: assets/fonts/roboto/Roboto-Black.ttf
+          weight: 800
+        - asset: assets/fonts/roboto/Roboto-Bold.ttf
+          weight: 700
+        - asset: assets/fonts/roboto/Roboto-Bold.ttf
+          weight: 600
+        - asset: assets/fonts/roboto/Roboto-Regular.ttf
+          weight: 500
+        - asset: assets/fonts/roboto/Roboto-Regular.ttf
+          weight: 400
+        - asset: assets/fonts/roboto/Roboto-Light.ttf
+          weight: 300
+        - asset: assets/fonts/roboto/Roboto-Light.ttf
+          weight: 200
+        - asset: assets/fonts/roboto/Roboto-Light.ttf
+          weight: 100

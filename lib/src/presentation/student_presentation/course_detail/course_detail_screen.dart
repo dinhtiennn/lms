@@ -366,7 +366,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       builder: (context) {
         return Padding(
           padding: EdgeInsets.only(
-              bottom: MediaQuery.paddingOf(context).bottom + 20),
+              bottom: MediaQuery.paddingOf(context).bottom),
           child: commentWidget,
         );
       },

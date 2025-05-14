@@ -14,7 +14,7 @@ void showAddChapterBottomSheet(BuildContext context, LessonModel lesson,
     backgroundColor: Colors.white,
     builder: (context) => Container(
       height: MediaQuery.of(context).size.height * 0.7,
-      padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom + 20),
+      padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),

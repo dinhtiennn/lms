@@ -203,7 +203,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
       ),
       builder: (context) {
         return Container(
-          padding: EdgeInsets.symmetric(vertical: 20).copyWith(bottom: MediaQuery.paddingOf(context).bottom + 20),
+          padding: EdgeInsets.symmetric(vertical: 20).copyWith(bottom: MediaQuery.paddingOf(context).bottom),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

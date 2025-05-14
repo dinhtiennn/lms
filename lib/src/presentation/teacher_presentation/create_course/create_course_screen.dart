@@ -323,7 +323,7 @@ class _CreateCourseScreenState extends State<CreateCourseScreen> {
           mainAxisSize: MainAxisSize.min,
           children: [
             Container(
-              padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom + 20),
+              padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
               decoration: BoxDecoration(
                 border: Border(bottom: BorderSide(color: grey)),
               ),
@@ -375,7 +375,7 @@ class _CreateCourseScreenState extends State<CreateCourseScreen> {
       ),
       backgroundColor: white,
       builder: (context) => Container(
-        padding: EdgeInsets.all(16).copyWith(bottom: MediaQuery.paddingOf(context).bottom + 20),
+        padding: EdgeInsets.all(16).copyWith(bottom: MediaQuery.paddingOf(context).bottom),
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [

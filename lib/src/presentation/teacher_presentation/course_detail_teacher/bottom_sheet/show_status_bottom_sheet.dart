@@ -12,7 +12,7 @@ void showStatusBottomSheet(
     backgroundColor: white,
     useSafeArea: true,
     builder: (context) => Container(
-      padding: const EdgeInsets.all(16).copyWith(bottom: MediaQuery.paddingOf(context).bottom + 20),
+      padding: const EdgeInsets.all(16).copyWith(bottom: MediaQuery.paddingOf(context).bottom),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

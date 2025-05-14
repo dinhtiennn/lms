@@ -136,13 +136,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
   String _getNotificationType(NotificationType? type) {
     switch (type) {
       case NotificationType.COMMENT:
-        return 'course';
+        return 'comment';
       case NotificationType.MESSAGE:
         return 'system';
       case NotificationType.COMMENT_REPLY:
-        return 'grade';
+        return 'reply';
       case NotificationType.CHAT_MESSAGE:
-        return 'schedule';
+        return 'chat';
       default:
         return 'system';
     }
@@ -195,17 +195,17 @@ class _NotificationScreenState extends State<NotificationScreen> {
     IconData iconData;
 
     switch (type) {
-      case 'course':
+      case 'comment':
         accentColor = Colors.green;
-        iconData = Icons.book;
+        iconData = Icons.comment;
         break;
-      case 'schedule':
+      case 'reply':
         accentColor = Colors.orange;
-        iconData = Icons.schedule;
+        iconData = Icons.reply_all;
         break;
-      case 'grade':
+      case 'chat':
         accentColor = Colors.purple;
-        iconData = Icons.grade;
+        iconData = Icons.chat;
         break;
       case 'system':
       default:

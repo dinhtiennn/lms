@@ -35,7 +35,6 @@ abstract class BaseViewModel extends ChangeNotifier {
   final AuthRepository authRepository = AuthRepository();
   final OtherRepository otherRepository = OtherRepository();
   final FirebaseRepository firebaseRepository = FirebaseRepository();
-  final ChatAiService chatAiService = ChatAiService();
   final StudentRepository studentRepository = StudentRepository();
   final TeacherRepository teacherRepository = TeacherRepository();
   final CourseRepository courseRepository = CourseRepository();

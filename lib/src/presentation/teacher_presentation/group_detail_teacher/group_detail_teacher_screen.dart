@@ -219,7 +219,7 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
       ),
       builder: (context) {
         return Padding(
-          padding: EdgeInsets.symmetric(vertical: 24).copyWith(bottom: MediaQuery.paddingOf(context).bottom + 20),
+          padding: EdgeInsets.symmetric(vertical: 24).copyWith(bottom: MediaQuery.paddingOf(context).bottom),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -919,7 +919,7 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
       useSafeArea: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Container(
-        padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom + 20),
+        padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
         decoration: const BoxDecoration(
           color: Colors.white,
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),

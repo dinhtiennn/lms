@@ -44,7 +44,7 @@ class NotificationModel {
     receivedAccountId: json["receivedAccountId"],
     commentId: json["commentId"],
     commentReplyId: json["commentReplyId"],
-    notificationType: notificationTypeValues.map[json["notificationType"]]!,
+    notificationType: notificationTypeValues.map[json["notificationType"]] ?? NotificationType.MESSAGE,
     isRead: json["isRead"],
     description: json["description"],
     createdAt: json["createdAt"] == null ? null : DateTime.parse(json["createdAt"]),

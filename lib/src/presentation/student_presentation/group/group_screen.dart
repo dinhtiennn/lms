@@ -66,7 +66,7 @@ class _GroupScreenState extends State<GroupScreen> {
 
             return ListView.builder(
               physics: const AlwaysScrollableScrollPhysics(),
-              padding: const EdgeInsets.all(16).copyWith(bottom: MediaQuery.paddingOf(context).bottom + 40),
+              padding: const EdgeInsets.all(16).copyWith(bottom: MediaQuery.paddingOf(context).bottom),
               itemCount: groups?.length,
               controller: _viewModel.scrollController,
               itemBuilder: (context, index) {

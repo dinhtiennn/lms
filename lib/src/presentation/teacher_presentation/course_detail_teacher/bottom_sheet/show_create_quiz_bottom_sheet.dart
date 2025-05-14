@@ -13,7 +13,7 @@ void showCreateQuizBottomSheet(BuildContext context, LessonModel lesson,
     useSafeArea: true,
     builder: (context) => Container(
       height: MediaQuery.of(context).size.height * 0.9,
-      padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom + 20),
+      padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -335,7 +335,7 @@ void showCreateQuizBottomSheet(BuildContext context, LessonModel lesson,
           ),
           Container(
             padding: EdgeInsets.all(16).copyWith(
-              bottom: MediaQuery.paddingOf(context).bottom + 16,
+              bottom: MediaQuery.paddingOf(context).bottom,
             ),
             child: SizedBox(
               width: double.infinity,

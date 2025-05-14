@@ -12,7 +12,7 @@ void showAddStudentBottomSheet(
     useSafeArea: true,
     backgroundColor: Colors.transparent,
     builder: (context) => Container(
-      padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom + 20),
+      padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),

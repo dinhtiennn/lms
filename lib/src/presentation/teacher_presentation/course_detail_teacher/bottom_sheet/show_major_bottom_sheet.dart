@@ -13,7 +13,7 @@ void showMajorBottomSheet(BuildContext context, List<MajorModel> majors,
       borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
     ),
     builder: (context) => Container(
-      padding: const EdgeInsets.all(16).copyWith(bottom: MediaQuery.paddingOf(context).bottom + 20),
+      padding: const EdgeInsets.all(16).copyWith(bottom: MediaQuery.paddingOf(context).bottom),
       child: Column(
         mainAxisSize: MainAxisSize.min,
         children: [

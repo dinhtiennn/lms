@@ -3,7 +3,6 @@ import 'package:lms/src/utils/app_utils.dart';
 
 export 'network_State.dart';
 export 'verify_model.dart';
-export 'gemini_model.dart';
 export 'course_model.dart';
 export 'major_model.dart';
 export 'student_model.dart';

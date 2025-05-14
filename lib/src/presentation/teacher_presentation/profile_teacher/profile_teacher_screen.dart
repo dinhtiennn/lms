@@ -250,7 +250,7 @@ class _EditProfileTeacherScreenState extends State<EditProfileTeacherScreen> {
             children: [
               Container(
                 margin: const EdgeInsets.only(top: 12),
-                padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom + 20),
+                padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
                 width: 40,
                 height: 4,
                 decoration: BoxDecoration(

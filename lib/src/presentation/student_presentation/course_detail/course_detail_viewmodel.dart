@@ -18,26 +18,20 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
   ValueNotifier<StudentModel?> student = ValueNotifier(null);
   late StompService stompService;
   TextEditingController commentController = TextEditingController();
-  ValueNotifier<CourseDetailModel?> courseDetail =
-      ValueNotifier<CourseDetailModel?>(null);
+  ValueNotifier<CourseDetailModel?> courseDetail = ValueNotifier<CourseDetailModel?>(null);
   ValueNotifier<CurrentContent?> currentContent = ValueNotifier(null);
   ValueNotifier<LessonModel?> lessonCurrent = ValueNotifier(null);
   ValueNotifier<List<CommentModel>?> comments = ValueNotifier(null);
   ValueNotifier<CommentModel?> commentSelected = ValueNotifier(null);
-  ValueNotifier<VideoPlayerHelper> videoPlayerHelper =
-      ValueNotifier(VideoPlayerHelper());
+  ValueNotifier<VideoPlayerHelper> videoPlayerHelper = ValueNotifier(VideoPlayerHelper());
   final ValueNotifier<String?> animatedCommentId = ValueNotifier(null);
   final ValueNotifier<String?> animatedReplyId = ValueNotifier(null);
 
   // Thêm flag để kiểm tra trạng thái socket
   bool _isSocketConnected = false;
 
-  bool _isDisposed = false;
-
   init() async {
     try {
-      _isDisposed = false; // Reset trạng thái disposed mỗi khi init
-
       course = Get.arguments['course'];
       await refreshStudent();
       await _loadCourseDetail();
@@ -59,13 +53,11 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
   }
 
   void safelyUpdateNotifier<T>(ValueNotifier<T> notifier, T value) {
-    if (!_isDisposed) {
-      notifier.value = value;
-      try {
-        notifier.notifyListeners();
-      } catch (e) {
-        logger.e("Lỗi update ValueNotifier: $e");
-      }
+    notifier.value = value;
+    try {
+      notifier.notifyListeners();
+    } catch (e) {
+      logger.e("Lỗi update ValueNotifier: $e");
     }
   }
 
@@ -82,11 +74,6 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
 
   Future<void> setupSocket() async {
     try {
-      if (_isDisposed) {
-        logger.w("Không thể thiết lập socket vì ViewModel đã bị hủy");
-        return;
-      }
-
       // Khởi tạo hoặc lấy instance của StompService
       stompService = await StompService.instance();
 
@@ -94,73 +81,60 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
       logger.i("Bắt đầu đăng ký các listener cho socket");
 
       try {
-        stompService.registerListener(
-            type: StompListenType.comment, listener: this);
+        stompService.registerListener(type: StompListenType.comment, listener: this);
         logger.i("✅ Đăng ký thành công listener cho StompListenType.comment");
       } catch (e) {
         logger.e("❌ Lỗi khi đăng ký listener cho StompListenType.comment: $e");
       }
 
       try {
-        stompService.registerListener(
-            type: StompListenType.editComment, listener: this);
-        logger
-            .i("✅ Đăng ký thành công listener cho StompListenType.editComment");
+        stompService.registerListener(type: StompListenType.editComment, listener: this);
+        logger.i("✅ Đăng ký thành công listener cho StompListenType.editComment");
       } catch (e) {
-        logger.e(
-            "❌ Lỗi khi đăng ký listener cho StompListenType.editComment: $e");
+        logger.e("❌ Lỗi khi đăng ký listener cho StompListenType.editComment: $e");
       }
 
       try {
-        stompService.registerListener(
-            type: StompListenType.reply, listener: this);
+        stompService.registerListener(type: StompListenType.reply, listener: this);
         logger.i("✅ Đăng ký thành công listener cho StompListenType.reply");
       } catch (e) {
         logger.e("❌ Lỗi khi đăng ký listener cho StompListenType.reply: $e");
       }
 
       try {
-        stompService.registerListener(
-            type: StompListenType.editReply, listener: this);
+        stompService.registerListener(type: StompListenType.editReply, listener: this);
         logger.i("✅ Đăng ký thành công listener cho StompListenType.editReply");
       } catch (e) {
-        logger
-            .e("❌ Lỗi khi đăng ký listener cho StompListenType.editReply: $e");
+        logger.e("❌ Lỗi khi đăng ký listener cho StompListenType.editReply: $e");
       }
 
       _isSocketConnected = true;
-      logger
-          .i("🚀 Socket đã được kết nối và đăng ký tất cả listener thành công");
+      logger.i("🚀 Socket đã được kết nối và đăng ký tất cả listener thành công");
     } catch (e) {
       logger.e("⛔ Lỗi khi thiết lập kết nối socket: $e");
       _isSocketConnected = false;
 
       // Thử kết nối lại sau một khoảng thời gian nếu việc thiết lập thất bại
-      if (!_isDisposed) {
-        Future.delayed(Duration(seconds: 3), () {
-          if (!_isDisposed && !_isSocketConnected) {
-            logger.i("🔄 Đang thử kết nối lại socket sau khi thất bại");
-            setupSocket();
-          }
-        });
-      }
+      Future.delayed(Duration(seconds: 3), () {
+        if (!_isSocketConnected) {
+          logger.i("🔄 Đang thử kết nối lại socket sau khi thất bại");
+          setupSocket();
+        }
+      });
     }
   }
 
   Future<void> _loadCourseDetail() async {
-    NetworkState<CourseDetailModel> resultCourseDetail =
-        await courseRepository.getCourseDetail(courseId: course?.id);
+    NetworkState<CourseDetailModel> resultCourseDetail = await courseRepository.getCourseDetail(courseId: course?.id);
 
-    if (!resultCourseDetail.isSuccess || resultCourseDetail.result == null)
-      return;
+    if (!resultCourseDetail.isSuccess || resultCourseDetail.result == null) return;
 
     courseDetail.value = resultCourseDetail.result;
     List<LessonModel> originalLessons = resultCourseDetail.result!.lesson ?? [];
     List<LessonModel> updatedLessons = <LessonModel>[];
 
     for (final lesson in originalLessons) {
-      NetworkState<ProgressModel> progressResult =
-          await courseRepository.getProgressLesson(lessonId: lesson.id);
+      NetworkState<ProgressModel> progressResult = await courseRepository.getProgressLesson(lessonId: lesson.id);
 
       LessonModel updatedLesson = lesson;
       if (progressResult.isSuccess && progressResult.result != null) {
@@ -175,10 +149,8 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
         NetworkState<ProgressModel> chapterProgressResult =
             await courseRepository.getProgressChapter(chapterId: chapter.id);
         ChapterModel updatedChapter = chapter;
-        if (chapterProgressResult.isSuccess &&
-            chapterProgressResult.result != null) {
-          updatedChapter =
-              chapter.copyWith(progress: chapterProgressResult.result);
+        if (chapterProgressResult.isSuccess && chapterProgressResult.result != null) {
+          updatedChapter = chapter.copyWith(progress: chapterProgressResult.result);
         }
         updatedChapters.add(updatedChapter);
       }
@@ -247,8 +219,7 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
 
     //Không tìm được gì thì thông báo
     if (lessonCurrent == null) {
-      showToast(
-          type: ToastificationType.warning, title: 'Không tìm thấy bài học');
+      showToast(type: ToastificationType.warning, title: 'Không tìm thấy bài học');
       return;
     }
 
@@ -257,8 +228,7 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
     //Xử lý các chapter
     if (chapters.isNotEmpty) {
       //Kiểm tra nếu tất cả chapter có progress.isCompleted = true
-      bool allCompleted =
-          chapters.every((chapter) => chapter.progress?.isCompleted == true);
+      bool allCompleted = chapters.every((chapter) => chapter.progress?.isCompleted == true);
       if (allCompleted) {
         // Nếu tất cả chapter đã hoàn thành -> hiển thị quiz
         final quizzes = lessonCurrent.lessonQuizs ?? [];
@@ -269,8 +239,7 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
       }
 
       //Kiểm tra nếu tất cả chapter có progress = null
-      bool allNull =
-          chapters.every((chapter) => chapter.progress?.isCompleted == null);
+      bool allNull = chapters.every((chapter) => chapter.progress?.isCompleted == null);
       if (allNull) {
         // Nếu tất cả progress là null, hiển thị material nếu có
         final materials = lessonCurrent.lessonMaterials ?? [];
@@ -284,8 +253,7 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
       ChapterModel? chapterNotCompleted;
       try {
         chapterNotCompleted = chapters.firstWhere(
-          (chapter) =>
-              chapter.progress?.isCompleted == false && chapter.id != null,
+          (chapter) => chapter.progress?.isCompleted == false && chapter.id != null,
         );
       } catch (e) {
         chapterNotCompleted = null;
@@ -300,8 +268,7 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
       ChapterModel? chapterCompleted;
       try {
         chapterCompleted = chapters.lastWhere(
-          (chapter) =>
-              chapter.progress?.isCompleted == true && chapter.id != null,
+          (chapter) => chapter.progress?.isCompleted == true && chapter.id != null,
         );
       } catch (e) {
         chapterCompleted = null;
@@ -332,8 +299,7 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
     }
 
     // Không có gì thì báo lỗi
-    showToast(
-        type: ToastificationType.warning, title: 'Bài học không có nội dung');
+    showToast(type: ToastificationType.warning, title: 'Bài học không có nội dung');
   }
 
   void setMaterialContent(LessonMaterialModel material, LessonModel lesson) {
@@ -354,9 +320,7 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
     //sẽ không cho select quiz nếu chưa học xong chapters
     bool complete = lesson.chapters?.last.progress?.isCompleted ?? false;
     if (complete == false) {
-      showToast(
-          title: 'Vui lòng học xong các bài học!',
-          type: ToastificationType.warning);
+      showToast(title: 'Vui lòng học xong các bài học!', type: ToastificationType.warning);
       return;
     }
     //set id lesson current
@@ -405,8 +369,7 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
         orElse: () => ChapterModel(),
       );
 
-      final canAccess =
-          prevChapter.id == null || prevChapter.progress?.isCompleted == true;
+      final canAccess = prevChapter.id == null || prevChapter.progress?.isCompleted == true;
       if (canAccess) {
         return _setChapter(chapterSelected, lessonSelected);
       }
@@ -437,8 +400,7 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
       orElse: () => ChapterModel(),
     );
 
-    final canAccess =
-        isFirstChapter || prevChapter.progress?.isCompleted == true;
+    final canAccess = isFirstChapter || prevChapter.progress?.isCompleted == true;
     if (!canAccess) {
       return showToast(
         type: ToastificationType.warning,
@@ -466,11 +428,9 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
     final path = (chapter.path ?? '').toLowerCase();
     if (path.isNotEmpty && path.endsWith('.mp4')) {
       logger.e(chapter.progress?.isCompleted);
-      final url =
-          AppUtils.pathMediaToUrl("${AppEndpoint.baseImageUrl}${chapter.path}");
+      final url = AppUtils.pathMediaToUrl("${AppEndpoint.baseImageUrl}${chapter.path}");
       try {
-        final success = await videoPlayerHelper.value
-            .initialize(url, !(chapter.progress?.isCompleted ?? false));
+        final success = await videoPlayerHelper.value.initialize(url, !(chapter.progress?.isCompleted ?? false));
         if (!success) {
           showToast(
             type: ToastificationType.error,
@@ -502,8 +462,7 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
   }
 
   void courseReview() {
-    Get.toNamed(Routers.courseReview,
-        arguments: {'course': course, 'review': true});
+    Get.toNamed(Routers.courseReview, arguments: {'course': course, 'review': true});
   }
 
   void _setupVideoListeners(ChapterModel chapter) {
@@ -572,19 +531,13 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
 
     final bool allCompletedExceptLast = chapters.length <= 1
         ? false
-        : chapters
-            .sublist(0, chapters.length - 1)
-            .every((c) => c.progress?.isCompleted == true);
+        : chapters.sublist(0, chapters.length - 1).every((c) => c.progress?.isCompleted == true);
 
     final bool isLastChapter = chapterCompleted.id == chapters.last.id;
-    final bool lessonHasNoQuiz =
-        lesson.lessonQuizs == null || lesson.lessonQuizs!.isEmpty;
+    final bool lessonHasNoQuiz = lesson.lessonQuizs == null || lesson.lessonQuizs!.isEmpty;
     final bool lessonNotYetCompleted = lesson.progress?.isCompleted != true;
 
-    if (isLastChapter &&
-        allCompletedExceptLast &&
-        lessonNotYetCompleted &&
-        lessonHasNoQuiz) {
+    if (isLastChapter && allCompletedExceptLast && lessonNotYetCompleted && lessonHasNoQuiz) {
       await setCompletedLesson(lesson, toast: false);
       await _loadCurrentContent();
     }
@@ -603,31 +556,22 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
 
     // Lưu progress mới
     try {
-      final result =
-          await courseRepository.setChapterProgress(chapterId: chapterNew.id);
+      final result = await courseRepository.setChapterProgress(chapterId: chapterNew.id);
 
       if (result.isSuccess && result.result != null) {
         _loadCourseDetail();
       } else {
-        showToast(
-            title: 'Lỗi khi lưu tiến độ chương',
-            type: ToastificationType.error);
+        showToast(title: 'Lỗi khi lưu tiến độ chương', type: ToastificationType.error);
       }
     } catch (e) {
-      showToast(
-          title: 'Lỗi hệ thống: ${e.toString()}',
-          type: ToastificationType.error);
+      showToast(title: 'Lỗi hệ thống: ${e.toString()}', type: ToastificationType.error);
     }
   }
 
   Future<void> setCompletedChapter(String idChapter) async {
-    NetworkState resultCompleteChapter =
-        await courseRepository.setCompleteChapterProgress(chapterId: idChapter);
-    if (resultCompleteChapter.isSuccess &&
-        resultCompleteChapter.result != null) {
-      showToast(
-          title: 'Bạn có thể chuyển qua bài học tiếp theo!',
-          type: ToastificationType.success);
+    NetworkState resultCompleteChapter = await courseRepository.setCompleteChapterProgress(chapterId: idChapter);
+    if (resultCompleteChapter.isSuccess && resultCompleteChapter.result != null) {
+      showToast(title: 'Bạn có thể chuyển qua bài học tiếp theo!', type: ToastificationType.success);
       _loadCourseDetail();
     }
   }
@@ -640,18 +584,11 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
     _loadCourseDetail();
   }
 
-  Future<void> setCompletedLesson(LessonModel lesson,
-      {bool toast = true}) async {
+  Future<void> setCompletedLesson(LessonModel lesson, {bool toast = true}) async {
     if (lesson.progress?.isCompleted == false) {
-      NetworkState resultCompleteLesson =
-          await courseRepository.setCompleteLessonProgress(lessonId: lesson.id);
-      if (resultCompleteLesson.isSuccess &&
-          resultCompleteLesson.result != null) {
-        toast
-            ? showToast(
-                title: 'Bạn có thể chuyển qua bài học tiếp theo!',
-                type: ToastificationType.success)
-            : null;
+      NetworkState resultCompleteLesson = await courseRepository.setCompleteLessonProgress(lessonId: lesson.id);
+      if (resultCompleteLesson.isSuccess && resultCompleteLesson.result != null) {
+        toast ? showToast(title: 'Bạn có thể chuyển qua bài học tiếp theo!', type: ToastificationType.success) : null;
         _loadCourseDetail();
         if (Get.isRegistered<HomeViewModel>()) {
           Get.find<HomeViewModel>().getMyCourses();
@@ -663,17 +600,9 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
     }
   }
 
-  void loadComment(
-      {required ChapterModel chapter,
-      int pageSize = 10,
-      int pageNumber = 0}) async {
-    if (_isDisposed) return;
-
-    NetworkState<List<CommentModel>> resultCommentChapter =
-        await commentRepository.commentInChapter(
-            chapterId: chapter.id ?? '',
-            pageSize: pageSize,
-            pageNumber: pageNumber);
+  void loadComment({required ChapterModel chapter, int pageSize = 10, int pageNumber = 0}) async {
+    NetworkState<List<CommentModel>> resultCommentChapter = await commentRepository.commentInChapter(
+        chapterId: chapter.id ?? '', pageSize: pageSize, pageNumber: pageNumber);
     if (resultCommentChapter.isSuccess && resultCommentChapter.result != null) {
       if (pageNumber > 0 && comments.value != null) {
         final currentComments = List<CommentModel>.from(comments.value!);
@@ -689,7 +618,12 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
   void onStompCommentReceived(dynamic body) {
     logger.i('↩️ STOMP COMMENT RECEIVED: $body');
 
-    if (body == null || _isDisposed) return;
+    if (body == null) {
+      if (!_isSocketConnected) {
+        setupSocket();
+      }
+    }
+    ;
 
     try {
       final Map<String, dynamic> data = jsonDecode(body);
@@ -752,8 +686,7 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
             logger.i("Comment đã được chỉnh sửa với lastUpdate: $lastUpdate");
 
             // Tìm comment cũ trong danh sách để cập nhật
-            int existingIndex =
-                currentComments.indexWhere((c) => c.commentId == commentId);
+            int existingIndex = currentComments.indexWhere((c) => c.commentId == commentId);
 
             if (existingIndex != -1) {
               // Lấy comment cũ
@@ -794,7 +727,12 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
   void onStompReplyReceived(dynamic body) {
     logger.i('↩️ STOMP REPLY RECEIVED: $body');
 
-    if (body == null || _isDisposed) return;
+    if (body == null) {
+      if (!_isSocketConnected) {
+        setupSocket();
+      }
+    }
+    ;
 
     try {
       final Map<String, dynamic> data = jsonDecode(body);
@@ -862,16 +800,14 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
         if (commentsList[i].commentId == parentCommentId) {
           // Tìm thấy comment cha
           CommentModel parentComment = commentsList[i];
-          List<ReplyModel> currentReplies =
-              List<ReplyModel>.from(parentComment.commentReplyResponses ?? []);
+          List<ReplyModel> currentReplies = List<ReplyModel>.from(parentComment.commentReplyResponses ?? []);
 
           if (lastUpdate != null) {
             // Reply đã được chỉnh sửa
             logger.i("Reply đã được chỉnh sửa với lastUpdate: $lastUpdate");
 
             // Tìm reply cũ trong danh sách để cập nhật
-            int existingReplyIndex =
-                currentReplies.indexWhere((r) => r.commentReplyId == replyId);
+            int existingReplyIndex = currentReplies.indexWhere((r) => r.commentReplyId == replyId);
 
             if (existingReplyIndex != -1) {
               // Lấy reply cũ
@@ -885,8 +821,7 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
               );
 
               // Cập nhật comment với danh sách replies mới
-              commentsList[i] =
-                  parentComment.copyWith(commentReplyResponses: currentReplies);
+              commentsList[i] = parentComment.copyWith(commentReplyResponses: currentReplies);
 
               updated = true;
               logger.i("Đã cập nhật reply có ID: $replyId");
@@ -903,8 +838,7 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
             commentsList[i] = parentComment.copyWith(countOfReply: newCount);
 
             updated = true;
-            logger.i(
-                "Đã cập nhật số lượng replies cho comment có ID: $parentCommentId");
+            logger.i("Đã cập nhật số lượng replies cho comment có ID: $parentCommentId");
           }
 
           break;
@@ -913,8 +847,7 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
 
       if (updated) {
         safelyUpdateNotifier(comments, commentsList);
-        logger.i(
-            "Đã cập nhật/thêm mới reply cho comment có ID: $parentCommentId");
+        logger.i("Đã cập nhật/thêm mới reply cho comment có ID: $parentCommentId");
       } else {
         logger.w("Không tìm thấy comment cha có ID: $parentCommentId");
       }
@@ -923,18 +856,12 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
     }
   }
 
-  void loadReply(
-      {required String commentId, int pageSize = 3, int pageNumber = 0}) async {
-    if (_isDisposed) return;
-
+  void loadReply({required String commentId, int pageSize = 3, int pageNumber = 0}) async {
     logger.w(currentContent.value.toString());
     logger.w(courseDetail.value.toString());
 
     NetworkState<List<ReplyModel>> resultReply =
-        await commentRepository.getReplies(
-            commentId: commentId,
-            replyPageSize: pageSize,
-            pageNumber: pageNumber);
+        await commentRepository.getReplies(commentId: commentId, replyPageSize: pageSize, pageNumber: pageNumber);
     if (resultReply.isSuccess && resultReply.result != null) {
       if (comments.value != null) {
         final currentComments = List<CommentModel>.from(comments.value!);
@@ -947,13 +874,9 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
               );
             } else {
               // Nếu là loadMore, thêm replies mới vào danh sách hiện có
-              final currentReplies =
-                  currentComments[i].commentReplyResponses ?? [];
+              final currentReplies = currentComments[i].commentReplyResponses ?? [];
               currentComments[i] = currentComments[i].copyWith(
-                commentReplyResponses: [
-                  ...currentReplies,
-                  ...resultReply.result!
-                ],
+                commentReplyResponses: [...currentReplies, ...resultReply.result!],
               );
             }
             break;
@@ -965,8 +888,6 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
   }
 
   Future<void> send({CommentModel? comment}) async {
-    if (_isDisposed) return;
-
     // Đảm bảo STOMP đã được kết nối
     if (stompService == null || !_isSocketConnected) {
       logger.i("STOMP chưa kết nối, thiết lập kết nối...");
@@ -974,9 +895,7 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
 
       if (!_isSocketConnected) {
         logger.e("Không thể kết nối STOMP, hủy gửi tin nhắn");
-        showToast(
-            title: "Không thể kết nối đến máy chủ, vui lòng thử lại sau",
-            type: ToastificationType.error);
+        showToast(title: "Không thể kết nối đến máy chủ, vui lòng thử lại sau", type: ToastificationType.error);
         return;
       }
     }
@@ -1012,8 +931,7 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
           showToast(title: "Gửi thất bại!!!", type: ToastificationType.error);
         }
       } else {
-        logger.i(
-            'Đang gửi reply cho comment: ${commentSelected.value?.username}');
+        logger.i('Đang gửi reply cho comment: ${commentSelected.value?.username}');
         try {
           logger.i('Comment được chọn: ${commentSelected.value}');
           final payload = {
@@ -1033,19 +951,14 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
           commentController.clear();
         } catch (e) {
           logger.e("Lỗi khi gửi reply: $e");
-          showToast(
-              title: "Gửi phản hồi thất bại!!!",
-              type: ToastificationType.error);
+          showToast(title: "Gửi phản hồi thất bại!!!", type: ToastificationType.error);
         }
       }
     }
     setCommentSelected();
   }
 
-  Future<void> editComment(
-      {required String commentId, required String detail}) async {
-    if (_isDisposed) return;
-
+  Future<void> editComment({required String commentId, required String detail}) async {
     await StompService.instance();
     if (currentContent.value == null) {
       return;
@@ -1064,20 +977,13 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
           }),
         );
       } catch (e) {
-        showToast(
-            title: "Chỉnh sửa bình luận thất bại!",
-            type: ToastificationType.error);
+        showToast(title: "Chỉnh sửa bình luận thất bại!", type: ToastificationType.error);
         logger.e("Lỗi khi chỉnh sửa comment: $e");
       }
     }
   }
 
-  Future<void> editReply(
-      {required String replyId,
-      required String parentCommentId,
-      required String detail}) async {
-    if (_isDisposed) return;
-
+  Future<void> editReply({required String replyId, required String parentCommentId, required String detail}) async {
     await StompService.instance();
     if (currentContent.value == null) {
       return;
@@ -1096,25 +1002,19 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
           }),
         );
       } catch (e) {
-        showToast(
-            title: "Chỉnh sửa phản hồi thất bại!",
-            type: ToastificationType.error);
+        showToast(title: "Chỉnh sửa phản hồi thất bại!", type: ToastificationType.error);
         logger.e("Lỗi khi chỉnh sửa reply: $e");
       }
     }
   }
 
   setCommentSelected({CommentModel? comment}) {
-    if (_isDisposed) return;
-
     safelyUpdateNotifier(commentSelected, comment);
     logger.w(commentSelected.value.toString());
   }
 
   @override
   void dispose() async {
-    _isDisposed = true;
-
     // Dispose VideoPlayer
     disposeVideoPlayer();
 
@@ -1122,14 +1022,10 @@ class CourseDetailViewModel extends BaseViewModel with StompListener {
     if (_isSocketConnected) {
       try {
         logger.i("Hủy đăng ký listener khi thoát màn hình");
-        stompService.unregisterListener(
-            type: StompListenType.comment, listener: this);
-        stompService.unregisterListener(
-            type: StompListenType.editComment, listener: this);
-        stompService.unregisterListener(
-            type: StompListenType.reply, listener: this);
-        stompService.unregisterListener(
-            type: StompListenType.editReply, listener: this);
+        stompService.unregisterListener(type: StompListenType.comment, listener: this);
+        stompService.unregisterListener(type: StompListenType.editComment, listener: this);
+        stompService.unregisterListener(type: StompListenType.reply, listener: this);
+        stompService.unregisterListener(type: StompListenType.editReply, listener: this);
         _isSocketConnected = false;
       } catch (e) {
         logger.e("Lỗi khi hủy đăng ký listener trong dispose: $e");

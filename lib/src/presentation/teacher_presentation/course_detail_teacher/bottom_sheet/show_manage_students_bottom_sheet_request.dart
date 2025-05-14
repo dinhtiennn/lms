@@ -18,7 +18,7 @@ void showManageStudentsBottomSheetRequest(BuildContext context, CourseDetailTeac
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(16).copyWith(bottom: MediaQuery.paddingOf(context).bottom + 20),
+            padding: const EdgeInsets.all(16).copyWith(bottom: MediaQuery.paddingOf(context).bottom),
             decoration: BoxDecoration(
               color: primary2,
               borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),

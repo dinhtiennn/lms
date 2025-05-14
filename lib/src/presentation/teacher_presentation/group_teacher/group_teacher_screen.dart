@@ -73,7 +73,7 @@ class _GroupTeacherScreenState extends State<GroupTeacherScreen> {
             }
 
             return ListView.builder(
-              padding: const EdgeInsets.all(16).copyWith(bottom: MediaQuery.paddingOf(context).bottom + 40),
+              padding: const EdgeInsets.all(16).copyWith(bottom: MediaQuery.paddingOf(context).bottom),
               itemCount: groups?.length,
               controller: _viewModel.scrollController,
               itemBuilder: (context, index) {

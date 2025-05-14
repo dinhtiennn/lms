@@ -181,7 +181,7 @@ class _CourseQuizDetailTeacherScreenState
             color: white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20).copyWith(bottom: MediaQuery.paddingOf(context).bottom + 20),
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 20).copyWith(bottom: MediaQuery.paddingOf(context).bottom),
           child: SingleChildScrollView(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

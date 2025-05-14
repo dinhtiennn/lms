@@ -119,8 +119,8 @@ class StompService {
     required StompListener listener,
   }) {
     // Use runtimeType and hashCode for more accurate instance comparison
-    final existingIndex = _listeners.indexWhere(
-            (e) => e.listener == listener && e.listener.runtimeType == listener.runtimeType);
+    final existingIndex =
+        _listeners.indexWhere((e) => e.listener == listener && e.listener.runtimeType == listener.runtimeType);
 
     if (existingIndex != -1) {
       final existing = _listeners[existingIndex];
@@ -154,9 +154,12 @@ class StompService {
     } else {
       _logger.w("STOMP not connected or destination is null when registering for $type");
     }
-    _listeners.forEach(
-          (element) => _logger.e(element.toString()),
-    );
+    for (var element in _listeners) {
+      _logger.e(element.toString());
+      for (var element2 in element.events) {
+        _logger.w(_getDestination(element2));
+      }
+    }
   }
 
   void unregisterListener({

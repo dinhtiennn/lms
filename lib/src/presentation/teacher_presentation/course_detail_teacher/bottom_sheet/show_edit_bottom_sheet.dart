@@ -19,7 +19,7 @@ void showEditBottomSheet(
     backgroundColor: Colors.white,
     builder: (context) => Container(
       height: MediaQuery.of(context).size.height * 0.9,
-      padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom + 20),
+      padding: EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
       decoration: const BoxDecoration(
         color: Colors.white,
         borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
@@ -59,7 +59,7 @@ void showEditBottomSheet(
           Expanded(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16)
-                  .copyWith(bottom: MediaQuery.paddingOf(context).bottom + 12),
+                  .copyWith(bottom: MediaQuery.paddingOf(context).bottom),
               child: Form(
                 key: viewModel.formKey,
                 child: Column(

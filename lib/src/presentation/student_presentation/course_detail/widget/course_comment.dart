@@ -129,18 +129,20 @@ class _CourseCommentState extends State<CourseComment> {
     if (!mounted) return;
 
     if (_lastScrollPosition != null && _scrollController.hasClients) {
+      // Lưu giá trị _lastScrollPosition vào biến cục bộ để tránh giá trị null
+      final double savedPosition = _lastScrollPosition!;
+      _lastScrollPosition =
+          null; // Xóa giá trị ngay lập tức để tránh sử dụng lại
+
       WidgetsBinding.instance.addPostFrameCallback((_) {
         if (mounted && _scrollController.hasClients) {
           // Đảm bảo rằng vị trí scroll không vượt quá kích thước mới của danh sách
           final double maxScrollExtent =
               _scrollController.position.maxScrollExtent;
-          final double scrollTo = _lastScrollPosition! < maxScrollExtent
-              ? _lastScrollPosition!
-              : maxScrollExtent;
+          final double scrollTo =
+              savedPosition < maxScrollExtent ? savedPosition : maxScrollExtent;
 
           _scrollController.jumpTo(scrollTo);
-          // Xóa vị trí đã lưu sau khi đã sử dụng
-          _lastScrollPosition = null;
         }
       });
     }
@@ -642,8 +644,7 @@ class _CourseCommentState extends State<CourseComment> {
                               ],
                             ),
                             Text(
-                              AppUtils.getTimeAgo(
-                                  comment.createdDate),
+                              AppUtils.getTimeAgo(comment.createdDate),
                               style: styleVerySmall.copyWith(
                                 color: grey3,
                                 fontSize: 10,
@@ -752,7 +753,7 @@ class _CourseCommentState extends State<CourseComment> {
                               color: primary.withAlpha((255 * 0.7).round()),
                             ),
                             label: Text(
-                              "Xem thêm ${remainingReplies} phản hồi",
+                              "Xem thêm $remainingReplies phản hồi",
                               style: styleVerySmall.copyWith(
                                 color: primary.withAlpha((255 * 0.7).round()),
                                 fontWeight: FontWeight.w500,
@@ -1043,13 +1044,15 @@ class _CourseCommentState extends State<CourseComment> {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
+      useSafeArea: true,
       builder: (context) {
         return Container(
           decoration: BoxDecoration(
             color: white,
             borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
           ),
-          padding: EdgeInsets.symmetric(vertical: 20),
+          padding: EdgeInsets.symmetric(vertical: 20)
+              .copyWith(bottom: MediaQuery.paddingOf(context).bottom),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [

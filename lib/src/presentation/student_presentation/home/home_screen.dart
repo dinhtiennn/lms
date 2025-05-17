@@ -379,7 +379,7 @@ class _HomeScreenState extends State<HomeScreen> {
     final utilities = [
       {
         'image': 'documentation',
-        'name': 'document'.tr,
+        'name': 'Tài liệu',
         'route': Routers.document,
       },
     ];

@@ -8,4 +8,3 @@ export 'show_major_bottom_sheet.dart';
 export 'show_manage_students_bottom_sheet.dart';
 export 'show_manage_students_bottom_sheet_request.dart';
 export 'show_status_bottom_sheet.dart';
-export 'show_comments_chapter_bottom_sheet.dart';

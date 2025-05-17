@@ -1,50 +1,20 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lms/src/configs/configs.dart';
-
 import 'package:lms/src/presentation/presentation.dart';
+import 'package:lms/src/resource/model/model.dart' as app_model;
+import 'package:lms/src/utils/app_utils.dart';
 
 class NotificationTeacherScreen extends StatefulWidget {
   const NotificationTeacherScreen({Key? key}) : super(key: key);
 
   @override
-  State<NotificationTeacherScreen> createState() => _NotificationTeacherScreenState();
+  State<NotificationTeacherScreen> createState() =>
+      _NotificationTeacherScreenState();
 }
 
 class _NotificationTeacherScreenState extends State<NotificationTeacherScreen> {
   late NotificationTeacherViewModel _viewModel;
-
-  //Dữ liệu mẫu để demo
-  final notifications = [
-    {
-      'title': 'Hệ thống',
-      'message': 'Tài khoản của bạn đang được đăng nhập trên thiết bị khác',
-      'time': 'Vừa xong',
-      'isRead': false,
-      'type': 'system'
-    },
-    {
-      'title': 'Khóa học',
-      'message': 'Bạn có bài tập mới trong khóa học "Thiết kế cơ sở dữ liệu"',
-      'time': '2 giờ trước',
-      'isRead': false,
-      'type': 'course'
-    },
-    {
-      'title': 'Lịch học',
-      'message': 'Lớp học "Lập trình Java" vào ngày mai đã được chuyển sang phòng A305',
-      'time': '10:30 AM',
-      'isRead': true,
-      'type': 'schedule'
-    },
-    {
-      'title': 'Điểm số',
-      'message': 'Điểm kiểm tra giữa kỳ môn "An toàn thông tin" đã được cập nhật',
-      'time': 'Hôm qua',
-      'isRead': true,
-      'type': 'grade'
-    },
-  ];
 
   @override
   Widget build(BuildContext context) {
@@ -53,20 +23,19 @@ class _NotificationTeacherScreenState extends State<NotificationTeacherScreen> {
         onViewModelReady: (viewModel) {
           _viewModel = viewModel..init();
         },
-        // child: WidgetBackground(),
         builder: (context, viewModel, child) {
           return Scaffold(
             appBar: AppBar(
               backgroundColor: primary2,
               title: Text(
-                'notification'.tr,
+                'Thông báo',
                 style: styleLargeBold.copyWith(color: white),
               ),
               centerTitle: true,
               actions: [
                 TextButton(
-                    onPressed: () {},
-                    child: Text('read_all'.tr,
+                    onPressed: () => _viewModel.markAllAsRead(),
+                    child: Text('Đọc tất cả',
                         style: styleVerySmall.copyWith(
                             fontWeight: FontWeight.w500,
                             color: white,
@@ -85,60 +54,108 @@ class _NotificationTeacherScreenState extends State<NotificationTeacherScreen> {
   Widget _buildBody() {
     return RefreshIndicator(
       onRefresh: () async {
-        // Thêm logic refresh dữ liệu thông báo ở đây
-        await Future.delayed(Duration(milliseconds: 800));
+        _viewModel.refresh();
+        return;
       },
-      child: ListView.builder(
-        physics: AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-        padding: EdgeInsets.symmetric(vertical: 16).copyWith(bottom: Get.height / 15),
-        itemBuilder: (context, index) {
-          return _buildItemNotification(
-            title: '${notifications[index]['title']}',
-            message: '${notifications[index]['message']}',
-            time: '${notifications[index]['time']}',
-            isRead: notifications[index]['isRead'] as bool? ?? false,
-            type: '${notifications[index]['type']}',
-            onTap: () {
-              Get.toNamed(Routers.notificationDetailTeacher, arguments: notifications[index]);
+      child: ValueListenableBuilder<app_model.NotificationView?>(
+        valueListenable: _viewModel.notifications,
+        builder: (context, notificationView, _) {
+          if (notificationView == null && _viewModel.isLoading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final notifications = notificationView?.notifications ?? [];
+
+          if (notifications.isEmpty) {
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height *
+                    0.8, // Đảm bảo chiều cao đủ để kéo
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.notifications_off_outlined,
+                        size: 70,
+                        color: grey4,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Bạn chưa có thông báo nào',
+                        style: styleMedium.copyWith(color: grey3),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            );
+          }
+
+          return ListView.builder(
+            controller: _viewModel.scrollController,
+            physics:
+                AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+            padding: EdgeInsets.symmetric(vertical: 16)
+                .copyWith(bottom: Get.height / 15),
+            itemCount:
+                notifications.length + (_viewModel.isLoadingMore.value ? 1 : 0),
+            itemBuilder: (context, index) {
+              if (index == notifications.length) {
+                return Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: CircularProgressIndicator(),
+                  ),
+                );
+              }
+
+              final notification = notifications[index];
+              return _buildItemNotification(notification);
             },
           );
         },
-        itemCount: notifications.length,
       ),
     );
   }
 
-  Widget _buildItemNotification({
-    required String title,
-    required String message,
-    required String time,
-    required bool isRead,
-    required String type,
-    Function()? onTap,
-  }) {
+  Widget _buildItemNotification(app_model.NotificationModel notification) {
     // Xác định màu và biểu tượng dựa trên loại thông báo
     Color accentColor;
     IconData iconData;
+    String title = '';
+    String message = '';
+    String time = '';
 
-    switch (type) {
-      case 'course':
-        accentColor = Colors.green;
-        iconData = Icons.book;
+    // Xác định thông tin hiển thị dựa trên loại thông báo
+    switch (notification.notificationType) {
+      case app_model.NotificationType.COMMENT:
+        accentColor = success;
+        iconData = Icons.comment;
+        title = 'Bình luận mới';
         break;
-      case 'schedule':
+      case app_model.NotificationType.COMMENT_REPLY:
         accentColor = Colors.orange;
-        iconData = Icons.schedule;
+        iconData = Icons.reply;
+        title = 'Phản hồi bình luận';
         break;
-      case 'grade':
-        accentColor = Colors.purple;
-        iconData = Icons.grade;
-        break;
-      case 'system':
-      default:
+      case app_model.NotificationType.CHAT_MESSAGE:
         accentColor = Colors.blue;
+        iconData = Icons.chat;
+        title = 'Tin nhắn mới';
+        break;
+      case app_model.NotificationType.MESSAGE:
+      default:
+        accentColor = primary3;
         iconData = Icons.notifications;
+        title = 'Thông báo hệ thống';
         break;
     }
+
+    // Lấy nội dung và thời gian
+    message = notification.description ?? 'Không có nội dung';
+    time = AppUtils.getTimeAgo(notification.createdAt ?? DateTime.now());
 
     return Container(
       margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
@@ -156,7 +173,7 @@ class _NotificationTeacherScreenState extends State<NotificationTeacherScreen> {
       child: Material(
         color: transparent,
         child: InkWell(
-          onTap: onTap,
+          onTap: () => _viewModel.notificationDetail(notification),
           borderRadius: BorderRadius.circular(16),
           child: Container(
             padding: EdgeInsets.all(16),
@@ -166,7 +183,9 @@ class _NotificationTeacherScreenState extends State<NotificationTeacherScreen> {
                 begin: Alignment.centerLeft,
                 end: Alignment.centerRight,
                 colors: [
-                  isRead ? transparent : accentColor.withAlpha(10),
+                  notification.isRead == true
+                      ? transparent
+                      : accentColor.withAlpha(10),
                   transparent,
                 ],
               ),
@@ -204,7 +223,9 @@ class _NotificationTeacherScreenState extends State<NotificationTeacherScreen> {
                             title,
                             style: styleSmallBold.copyWith(
                               color: black,
-                              fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
+                              fontWeight: notification.isRead == true
+                                  ? FontWeight.normal
+                                  : FontWeight.bold,
                             ),
                           ),
                           Text(
@@ -219,8 +240,11 @@ class _NotificationTeacherScreenState extends State<NotificationTeacherScreen> {
                       Text(
                         message,
                         style: styleSmall.copyWith(
-                          color: isRead ? grey4 : blackLight,
-                          fontWeight: isRead ? FontWeight.normal : FontWeight.w500,
+                          color:
+                              notification.isRead == true ? grey4 : blackLight,
+                          fontWeight: notification.isRead == true
+                              ? FontWeight.normal
+                              : FontWeight.w500,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,

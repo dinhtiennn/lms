@@ -19,13 +19,12 @@ class NavigationTeacherScreen extends StatefulWidget {
 class _NavigationTeacherScreenState extends State<NavigationTeacherScreen>
     with TickerProviderStateMixin {
   late NavigationTeacherViewModel _viewModel;
-  int notificationCount = 5; // Số thông báo cần hiển thị
 
   List<Widget> screens() {
     return [
       HomeTeacherScreen(),
       GroupTeacherScreen(),
-      SizedBox(),
+      ChatBoxTeacherScreen(),
       NotificationTeacherScreen(),
       AccountTeacherScreen(),
     ];
@@ -47,16 +46,27 @@ class _NavigationTeacherScreenState extends State<NavigationTeacherScreen>
       ),
       PersistentBottomNavBarItem(
         icon: Image(image: AssetImage(AppImages.png('chat'))),
-        title: "chat_box",
+        title: "Chat",
         activeColorPrimary: Colors.blue,
         activeColorSecondary: black,
       ),
       PersistentBottomNavBarItem(
         icon: badges.Badge(
-          badgeContent: Text(
-            notificationCount.toString(),
-            style: styleVerySmall.copyWith(color: white),
-          ),
+          // badgeContent: ValueListenableBuilder(
+          //   valueListenable: _viewModel.notificationView,
+          //   builder: (context, notificationView, child) {
+          //     final count = notificationView?.countUnreadNotification ?? 0;
+          //     final displayText = count > 99 ? '99+' : count.toString();
+          //     return Text(
+          //       displayText,
+          //       style: styleVerySmall.copyWith(color: white, fontSize: 8),
+          //     );
+          //   },
+          // ),
+          badgeContent: ValueListenableBuilder(valueListenable: _viewModel.notificationView, builder: (context, notificationView, child) => Text(
+            (notificationView?.countUnreadNotification ?? 0).toString(),
+            style: styleVerySmall.copyWith(color: white, fontSize: 8),
+          ),),
           badgeStyle: badges.BadgeStyle(
             badgeColor: Colors.red,
             shape: badges.BadgeShape.circle,

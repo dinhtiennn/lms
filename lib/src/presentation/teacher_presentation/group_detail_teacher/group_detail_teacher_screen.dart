@@ -1,4 +1,5 @@
 import 'dart:io';
+import 'package:android_path_provider/android_path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:lms/src/configs/constanst/constants.dart';
 import 'package:lms/src/presentation/presentation.dart';
@@ -531,23 +532,8 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
 
       late final String savePath;
       if (Platform.isAndroid) {
-        final directory = await getExternalStorageDirectory();
-        if (directory == null) {
-          toastification.show(
-            autoCloseDuration: const Duration(seconds: 3),
-            alignment: Alignment.topCenter,
-            showIcon: true,
-            applyBlurEffect: true,
-            borderRadius: BorderRadius.circular(20),
-            borderSide: BorderSide.none,
-            style: ToastificationStyle.fillColored,
-            context: context,
-            title: const Text('Không thể truy cập bộ nhớ thiết bị'),
-            type: ToastificationType.error,
-          );
-          return;
-        }
-        savePath = '${directory.path}/Downloads/$fileName';
+        final downloadPath = await AndroidPathProvider.downloadsPath;
+        savePath = '$downloadPath/$fileName';
       } else {
         final directory = await getApplicationDocumentsDirectory();
         savePath = '${directory.path}/$fileName';

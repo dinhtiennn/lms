@@ -1,23 +1,33 @@
-import 'package:get/get.dart';
+import 'dart:convert';
+import 'package:flutter/material.dart';
 import 'package:lms/src/resource/resource.dart';
 import 'package:persistent_bottom_nav_bar/persistent_bottom_nav_bar.dart';
 
 import 'package:lms/src/presentation/presentation.dart';
-import 'package:web_socket_channel/web_socket_channel.dart';
 
 class NavigationViewModel extends BaseViewModel with StompListener {
   final PersistentTabController controller = PersistentTabController(initialIndex: 0);
+  ValueNotifier<NotificationView?> notificationView = ValueNotifier(null);
   bool _isSocketConnected = false;
   bool _isDisposed = false;
   StompService? stompService;
 
   init() async {
+    await _loadNotificationUnRead();
     setupSocket();
     // Kiểm tra trạng thái kết nối và thiết lập lại nếu cần
     if (!_isSocketConnected) {
       logger.w("Kết nối socket chưa được thiết lập, đang thử lại...");
       await Future.delayed(Duration(seconds: 1));
       setupSocket();
+    }
+  }
+
+  Future<void> _loadNotificationUnRead() async {
+    NetworkState<NotificationView> resultNotifications =
+    await authRepository.getNotifications(pageSize: 1, pageNumber: 0);
+    if (resultNotifications.isSuccess && resultNotifications.result != null) {
+      notificationView.value = resultNotifications.result;
     }
   }
 
@@ -30,6 +40,9 @@ class NavigationViewModel extends BaseViewModel with StompListener {
 
       // Khởi tạo hoặc lấy instance của StompService
       stompService = await StompService.instance();
+      // Đăng ký listener
+      logger.i("Đăng ký listener thông báo");
+      stompService?.registerListener(type: StompListenType.notification, listener: this);
 
       _isSocketConnected = true;
       logger.i("Socket đã được kết nối thành công");
@@ -54,11 +67,29 @@ class NavigationViewModel extends BaseViewModel with StompListener {
   }
 
   @override
+  void onStompNotificationReceived(dynamic data) {
+    try {
+      logger.i("Nhận thông báo mới từ socket: $data");
+
+      if (data != null) {
+        // Parse JSON dữ liệu từ socket
+        final Map<String, dynamic> notificationData = jsonDecode(data);
+        if (notificationData['countUnreadNotification'] != null) {
+          notificationView.value =
+              notificationView.value?.copyWith(countUnreadNotification: notificationData['countUnreadNotification']);
+        }
+      }
+    } catch (e) {
+      logger.e("Lỗi khi xử lý thông báo từ socket: $e");
+    }
+  }
+
+  @override
   void dispose() {
     _isDisposed = true;
     stompService?.disconnect();
     controller.dispose();
     super.dispose();
-    logger.i("🏁 NavigationViewModel đã được dispose");
+    logger.i("NavigationViewModel đã được dispose");
   }
 }

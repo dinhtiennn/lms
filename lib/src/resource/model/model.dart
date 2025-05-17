@@ -1,5 +1,4 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:lms/src/utils/app_utils.dart';
+import 'package:flutter/cupertino.dart';
 
 export 'network_State.dart';
 export 'verify_model.dart';
@@ -14,61 +13,22 @@ export 'comment_model.dart';
 export 'request_to_course.dart';
 export 'group_model.dart';
 export 'notification_model.dart';
+export 'document_model.dart';
+export 'chat_box_model.dart';
 
-class MessageModel {
-  final String? id;
-  final String senderType;
-  final String content;
-  final DateTime sentAt;
-  final int timestamp;
-  final bool isRead;
+// Lớp hỗ trợ cho nút hành động
+class ActionButton {
+  final String label;
+  final IconData icon;
+  final Color color;
+  final Function onTap;
+  final bool outlined;
 
-  MessageModel({
-    this.id,
-    required this.senderType,
-    required this.content,
-    required this.sentAt,
-    required this.timestamp,
-    required this.isRead,
+  ActionButton({
+    required this.label,
+    required this.icon,
+    required this.color,
+    required this.onTap,
+    this.outlined = false,
   });
-
-  factory MessageModel.fromJson(Map<String, dynamic> json) {
-    return MessageModel(
-      id: json['id'],
-      senderType: json['senderType'],
-      content: json['content'] ?? '',
-      sentAt: (json['timestamp'] as Timestamp?)?.toDate() ?? DateTime.now(),
-      timestamp: (json['timestamp'] as Timestamp?)?.millisecondsSinceEpoch ??
-          DateTime.now().millisecondsSinceEpoch,
-      isRead: json['isRead'] ?? false,
-    );
-  }
-
-  Map<String, dynamic> toJson() {
-    return {
-      'content': content,
-      'senderType': senderType,
-      'sentAt': AppUtils.toOffsetDateTimeString(sentAt),
-      'timestamp': FieldValue.serverTimestamp(),
-      'isRead': isRead,
-    };
-  }
-
-  MessageModel copyWith({
-    String? id,
-    String? senderType,
-    String? content,
-    DateTime? sentAt,
-    int? timestamp,
-    bool? isRead,
-  }) {
-    return MessageModel(
-      id: id ?? this.id,
-      senderType: senderType ?? this.senderType,
-      content: content ?? this.content,
-      sentAt: sentAt ?? this.sentAt,
-      timestamp: timestamp ?? this.timestamp,
-      isRead: isRead ?? this.isRead,
-    );
-  }
 }

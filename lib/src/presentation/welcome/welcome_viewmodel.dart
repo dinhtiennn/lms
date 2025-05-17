@@ -29,8 +29,8 @@ class WelcomeViewModel extends BaseViewModel {
     screenIndex.notifyListeners();
   }
 
-  void login(){
+  void chooseRole(){
     AppPrefs.onboardScreen = true;
-    Routers.login;
+    Get.toNamed(Routers.chooseRole);
   }
 }

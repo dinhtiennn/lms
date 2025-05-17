@@ -5,6 +5,7 @@ import 'package:lms/src/presentation/presentation.dart';
 import 'package:lms/src/resource/model/model.dart';
 import 'package:lms/src/utils/app_utils.dart';
 import 'package:logger/logger.dart';
+import 'package:provider/provider.dart';
 import 'dart:math';
 
 class CourseComment extends StatefulWidget {
@@ -15,8 +16,7 @@ class CourseComment extends StatefulWidget {
   final Function({CommentModel? comment}) setCommentSelected;
   final Function({required ChapterModel chapter, int pageSize, int pageNumber})
       onLoadMoreComments;
-  final Function({required String commentId, int pageSize, int pageNumber})
-      onLoadMoreRepLies;
+  final Function({required String commentId}) onLoadMoreReplies;
   final Function({required String commentId, required String detail})
       onEditComment;
   final Function(
@@ -25,13 +25,14 @@ class CourseComment extends StatefulWidget {
       required String detail}) onEditReply;
   final ValueNotifier<String?> animatedCommentId;
   final ValueNotifier<String?> animatedReplyId;
-  final String? email;
+  final String? avatarUrl;
   final ChapterModel? currentChapter;
+  final Function() onDispose;
+  final String? userEmail;
 
   CourseComment({
     Key? key,
     required this.comments,
-    required this.email,
     required this.commentSelected,
     required this.commentController,
     required this.onSendComment,
@@ -39,10 +40,13 @@ class CourseComment extends StatefulWidget {
     required this.animatedReplyId,
     required this.setCommentSelected,
     required this.onLoadMoreComments,
-    required this.onLoadMoreRepLies,
+    required this.onLoadMoreReplies,
     required this.onEditComment,
     required this.onEditReply,
+    required this.onDispose,
+    required this.userEmail,
     this.currentChapter,
+    this.avatarUrl,
   }) : super(key: key);
 
   @override
@@ -71,7 +75,8 @@ class _CourseCommentState extends State<CourseComment> {
   // Thêm ScrollController để theo dõi vị trí cuộn
   final ScrollController _scrollController = ScrollController();
 
-  // Trạng thái tải
+  // Số trang hiện tại và trạng thái tải
+  int _currentPage = 0;
   bool _isLoading = false;
 
   // Lưu vị trí scroll
@@ -89,29 +94,52 @@ class _CourseCommentState extends State<CourseComment> {
     // Thêm listener cho comments để rebuild khi có comment/reply thay đổi
     widget.comments.addListener(_onCommentsChanged);
 
+    // Thêm listener cho animatedCommentId và animatedReplyId
+    // để phát hiện khi có comment/reply mới được thêm vào
+    widget.animatedCommentId.addListener(_onNewCommentDetected);
+    widget.animatedReplyId.addListener(_onNewReplyDetected);
+
     // Thêm listener cho ScrollController để phát hiện khi cuộn tới gần cuối danh sách
     _scrollController.addListener(_scrollListener);
 
     // Theo dõi sự thay đổi của danh sách comments để duy trì vị trí cuộn
     widget.comments.addListener(_maintainScrollPosition);
+
+    // Load comments khi bottom sheet được hiển thị
+    if (widget.currentChapter != null) {
+      _loadInitialComments();
+    }
   }
 
-  // Xóa các hàm xử lý animation không cần thiết
-  void _onAnimatedCommentIdChanged() {
-    // Không cần thiết, bỏ trống
-  }
-
-  void _onAnimatedReplyIdChanged() {
-    // Không cần thiết, bỏ trống
+  void _loadInitialComments() {
+    _currentPage = 0;
+    _isLoading = false;
+    widget.onLoadMoreComments(
+        chapter: widget.currentChapter!,
+        pageSize: 20,
+        pageNumber: 0 // Luôn bắt đầu từ trang 0 khi tải lần đầu
+        );
   }
 
   // Thêm hàm mới để xử lý khi danh sách comments thay đổi
   void _onCommentsChanged() {
-    if (mounted) {
-      setState(() {
-        // Rebuild UI khi comments thay đổi
-      });
-    }
+    if (!mounted) return;
+
+    // Đảm bảo UI được rebuild khi có comment mới
+    setState(() {
+      // Force rebuild UI khi comments thay đổi
+    });
+
+    // Hoặc có thể sử dụng postFrameCallback để đảm bảo
+    // UI được cập nhật sau khi frame hiện tại hoàn thành
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        setState(() {
+          // Confirm rebuild was triggered
+          logger.i("Rebuilding UI after comments changed");
+        });
+      }
+    });
   }
 
   // Thêm hàm listener mới cho commentSelected
@@ -158,25 +186,6 @@ class _CourseCommentState extends State<CourseComment> {
     }
   }
 
-  @override
-  void dispose() {
-    widget.commentController.removeListener(_onTextChanged);
-    widget.animatedCommentId.removeListener(_onAnimatedCommentIdChanged);
-    widget.animatedReplyId.removeListener(_onAnimatedReplyIdChanged);
-    widget.commentSelected.removeListener(_onCommentSelectedChanged);
-    widget.comments.removeListener(_maintainScrollPosition);
-    widget.comments.removeListener(_onCommentsChanged);
-    _scrollController.removeListener(_scrollListener);
-    _scrollController.dispose();
-    _expandedComments.dispose();
-    _editingController.dispose();
-    super.dispose();
-  }
-
-  void _onTextChanged() {
-    setState(() {});
-  }
-
   // Hàm tải thêm comment
   void _loadMoreComments() {
     if (!mounted || !_scrollController.hasClients) return;
@@ -186,16 +195,15 @@ class _CourseCommentState extends State<CourseComment> {
         _isLoading = true;
       });
 
-      // Tính số lượng comment đã hiển thị để dùng làm offset
-      final int currentCommentsCount = widget.comments.value?.length ?? 0;
+      // Lấy kích thước comments hiện tại từ ViewModel
+      final commentsLength = widget.comments.value?.length ?? 0;
 
-      // Sử dụng số lượng comment hiện tại làm offset
-      logger.i("Tải thêm comments với offset $currentCommentsCount");
+      logger.i("Tải thêm comments, pageNumber: $commentsLength");
 
       widget.onLoadMoreComments(
           chapter: widget.currentChapter!,
-          pageSize: 10,
-          pageNumber: currentCommentsCount);
+          pageSize: 20,
+          pageNumber: commentsLength);
 
       Future.delayed(Duration(seconds: 1), () {
         if (mounted) {
@@ -217,24 +225,17 @@ class _CourseCommentState extends State<CourseComment> {
       _loadingReplies[commentId] = true;
     });
 
-    // Số lượng mỗi trang (mặc định 3)
-    const int defaultPageSize = 3;
-    final int remainingReplies = totalReplies - currentReplies;
-
-    // Sử dụng số lượng reply hiện tại làm offset
-    final int offset = currentReplies;
-    // Lấy số lượng tối đa là pageSize hoặc số lượng còn lại nếu ít hơn
-    final int pageSizeToUse = min(defaultPageSize, remainingReplies);
-
-    logger.i(
-        "Tải thêm replies cho comment $commentId offset: $offset, pageSize: $pageSizeToUse");
-
     try {
-      widget.onLoadMoreRepLies(
+      widget.onLoadMoreReplies(
         commentId: commentId,
-        pageNumber: offset,
-        pageSize: pageSizeToUse,
       );
+
+      // Thiết lập cờ đánh dấu đã mở rộng comment này
+      final currentExpanded = Set<String>.from(_expandedComments.value);
+      if (!currentExpanded.contains(commentId)) {
+        currentExpanded.add(commentId);
+        _expandedComments.value = currentExpanded;
+      }
     } catch (e) {
       logger.e("Error loading more replies: $e");
       if (mounted) {
@@ -254,7 +255,10 @@ class _CourseCommentState extends State<CourseComment> {
     });
   }
 
-  // CHỉnh sửa comment
+  void _onTextChanged() {
+    setState(() {});
+  }
+
   void _startEditComment(CommentModel comment) {
     setState(() {
       _isEditing = true;
@@ -406,8 +410,141 @@ class _CourseCommentState extends State<CourseComment> {
   }
 
   bool _canEdit(String? commentUsername) {
-    String currentUserEmail = widget.email ?? '';
+    String currentUserEmail = widget.userEmail ?? '';
     return commentUsername == currentUserEmail;
+  }
+
+  // Hàm để ẩn/thu gọn phản hồi
+  void _hideReplies(String commentId) {
+    if (!mounted) return;
+
+    if (widget.comments.value != null) {
+      final currentComments = List<CommentModel>.from(widget.comments.value!);
+      for (var i = 0; i < currentComments.length; i++) {
+        if (currentComments[i].commentId == commentId) {
+          // Tạo bản sao của comment hiện tại trước khi thay đổi
+          CommentModel updatedComment = currentComments[i].copyWith(
+            commentReplyResponses: [],
+          );
+
+          // Cập nhật lại comment trong danh sách
+          currentComments[i] = updatedComment;
+
+          // Reset trạng thái loading và tracking cho comment này
+          _loadingReplies[commentId] = false;
+          _replyPageNumbers[commentId] = 0; // Reset pageNumber về 0
+
+          setState(() {});
+          break;
+        }
+      }
+
+      if (mounted) {
+        widget.comments.value = currentComments;
+        try {
+          widget.comments.notifyListeners();
+        } catch (e) {
+          logger.e("Error notifying comments listeners: $e");
+        }
+      }
+
+      // Hiển thị thông báo nhỏ
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Đã ẩn các phản hồi'),
+            duration: Duration(milliseconds: 800),
+            backgroundColor: primary.withOpacity(0.8),
+            behavior: SnackBarBehavior.floating,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(10),
+            ),
+          ),
+        );
+      }
+    }
+  }
+
+  // Theo dõi khi có comment mới được thêm
+  void _onNewCommentDetected() {
+    if (widget.animatedCommentId.value != null) {
+      logger.i("Phát hiện comment mới: ${widget.animatedCommentId.value}");
+      setState(() {
+        // Rebuild UI
+      });
+    }
+  }
+
+  // Theo dõi khi có reply mới được thêm
+  void _onNewReplyDetected() {
+    if (widget.animatedReplyId.value != null && widget.comments.value != null) {
+      final replyId = widget.animatedReplyId.value;
+      logger.i("Phát hiện reply mới: $replyId");
+
+      // Với reply mới, chúng ta sẽ không tự động thêm vào danh sách
+      // Cập nhật UI để hiển thị animation nếu cần
+      setState(() {
+        // Rebuild UI
+        logger.i("Rebuild UI sau khi phát hiện reply mới");
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    widget.commentController.removeListener(_onTextChanged);
+    widget.animatedCommentId.removeListener(_onNewCommentDetected);
+    widget.animatedReplyId.removeListener(_onNewReplyDetected);
+    widget.commentSelected.removeListener(_onCommentSelectedChanged);
+    widget.comments.removeListener(_maintainScrollPosition);
+    widget.comments.removeListener(_onCommentsChanged);
+    _scrollController.removeListener(_scrollListener);
+    _scrollController.dispose();
+    _expandedComments.dispose();
+    _editingController.dispose();
+
+    widget.onDispose();
+
+    logger.i("CourseComment đã dispose");
+    super.dispose();
+  }
+
+  void _onAnimatedCommentIdChanged() {
+    // Chỉ xử lý animation khi có ID mới
+    if (widget.animatedCommentId.value != null) {
+      logger.i("Animation cho comment mới: ${widget.animatedCommentId.value}");
+      setState(() {
+        // Rebuild UI để hiển thị animation
+      });
+
+      // Xóa animation ID sau khi animation hoàn thành
+      Future.delayed(Duration(milliseconds: 500), () {
+        if (mounted) {
+          widget.animatedCommentId.value = null;
+        }
+      });
+    }
+  }
+
+  void _onAnimatedReplyIdChanged() {
+    // Chỉ xử lý animation khi có ID mới
+    if (widget.animatedReplyId.value != null) {
+      logger.i("Animation cho reply mới: ${widget.animatedReplyId.value}");
+
+      // Gỡ bỏ việc tự động cập nhật danh sách reply
+      // Để các API và socket server xử lý
+
+      setState(() {
+        // Rebuild UI để hiển thị animation
+      });
+
+      // Xóa animation ID sau khi animation hoàn thành
+      Future.delayed(Duration(milliseconds: 500), () {
+        if (mounted) {
+          widget.animatedReplyId.value = null;
+        }
+      });
+    }
   }
 
   @override
@@ -452,14 +589,38 @@ class _CourseCommentState extends State<CourseComment> {
                   builder: (context) {
                     if (!mounted) return Container();
                     final commentsList = widget.comments.value;
-                    if (commentsList == null || commentsList.isEmpty) {
-                      return Center(
-                        child: Text(
-                          "Chưa có bình luận nào",
-                          style: styleSmall.copyWith(color: grey3),
-                        ),
+                    if (commentsList == null) {
+                      return Column(
+                        children: [
+                          _buildCommentHeader(context, 0),
+                          Expanded(
+                            child: Center(
+                              child: CircularProgressIndicator(
+                                valueColor:
+                                    AlwaysStoppedAnimation<Color>(primary),
+                              ),
+                            ),
+                          ),
+                        ],
                       );
                     }
+
+                    if (commentsList.isEmpty) {
+                      return Column(
+                        children: [
+                          _buildCommentHeader(context, 0),
+                          Expanded(
+                            child: Center(
+                              child: Text(
+                                'Chưa có bình luận nào',
+                                style: styleSmall.copyWith(color: grey3),
+                              ),
+                            ),
+                          ),
+                        ],
+                      );
+                    }
+
                     return Column(
                       children: [
                         _buildCommentHeader(context, commentsList.length),
@@ -509,6 +670,55 @@ class _CourseCommentState extends State<CourseComment> {
     );
   }
 
+  Widget _buildCommentHeader(BuildContext context, int commentsCount) {
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+          child: Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                'Bình luận',
+                style: styleLargeBold.copyWith(
+                  color: primary,
+                  fontSize: 20,
+                ),
+              ),
+              InkWell(
+                onTap: () => Navigator.of(context).pop(),
+                child: Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade100,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withAlpha((255 * 0.05).round()),
+                        blurRadius: 5,
+                        spreadRadius: 1,
+                      ),
+                    ],
+                  ),
+                  child: Icon(
+                    Icons.close,
+                    size: 18,
+                    color: Colors.grey.shade700,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        Container(
+          height: 1,
+          color: Colors.grey.shade200,
+          margin: EdgeInsets.symmetric(horizontal: 16),
+        ),
+      ],
+    );
+  }
+
   Widget _buildCommentsSection(List<CommentModel> comments) {
     return ListView.builder(
       key: PageStorageKey<String>('comments_list'),
@@ -550,7 +760,6 @@ class _CourseCommentState extends State<CourseComment> {
     final currentReplies = comment.commentReplyResponses?.length ?? 0;
     final remainingReplies = replyCount - currentReplies;
 
-    // Đơn giản hóa, không sử dụng animation
     return Container(
       margin: const EdgeInsets.only(bottom: 24),
       child: Row(
@@ -811,7 +1020,6 @@ class _CourseCommentState extends State<CourseComment> {
       {required ReplyModel reply, required CommentModel comment}) {
     if (!mounted) return Container();
 
-    // Đơn giản hóa, không sử dụng animation
     return Container(
       margin: const EdgeInsets.only(top: 12, bottom: 4),
       child: Row(
@@ -935,106 +1143,6 @@ class _CourseCommentState extends State<CourseComment> {
           ),
         ],
       ),
-    );
-  }
-
-  Widget _buildInputArea(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        boxShadow: [
-          BoxShadow(
-            color: Colors.grey.withAlpha((255 * 0.1).round()),
-            spreadRadius: 0,
-            blurRadius: 10,
-            offset: const Offset(0, -2),
-          ),
-        ],
-      ),
-      child: Row(
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: [
-          Expanded(
-            child: WidgetInput(
-              controller: widget.commentController,
-              hintText: "Thêm bình luận...",
-              hintStyle: styleSmall.copyWith(color: grey4),
-              borderColor: grey5,
-              style: styleSmall.copyWith(color: grey2),
-              suffix: (widget.commentController.text.isNotEmpty)
-                  ? IconButton(
-                      icon: Icon(
-                        Icons.send_rounded,
-                        color: primary2,
-                        size: 22,
-                      ),
-                      onPressed: () {
-                        if (widget.commentSelected.value != null) {
-                          widget.onSendComment(
-                              comment: widget.commentSelected.value);
-                        } else {
-                          widget.onSendComment();
-                        }
-                        FocusScope.of(context).unfocus();
-                      },
-                    )
-                  : SizedBox(),
-              maxLines: 3,
-              minLines: 1,
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildCommentHeader(BuildContext context, int commentsCount) {
-    return Column(
-      children: [
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 16),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text(
-                'Bình luận',
-                style: styleLargeBold.copyWith(
-                  color: primary,
-                  fontSize: 20,
-                ),
-              ),
-              InkWell(
-                onTap: () => Navigator.of(context).pop(),
-                child: Container(
-                  padding: const EdgeInsets.all(8),
-                  decoration: BoxDecoration(
-                    color: Colors.grey.shade100,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.black.withAlpha((255 * 0.05).round()),
-                        blurRadius: 5,
-                        spreadRadius: 1,
-                      ),
-                    ],
-                  ),
-                  child: Icon(
-                    Icons.close,
-                    size: 18,
-                    color: Colors.grey.shade700,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        Container(
-          height: 1,
-          color: Colors.grey.shade200,
-          margin: EdgeInsets.symmetric(horizontal: 16),
-        ),
-      ],
     );
   }
 
@@ -1167,49 +1275,83 @@ class _CourseCommentState extends State<CourseComment> {
     );
   }
 
-  // Hàm để ẩn/thu gọn phản hồi
-  void _hideReplies(String commentId) {
-    if (!mounted) return;
+  Widget _buildInputArea(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.white,
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withAlpha((255 * 0.1).round()),
+            spreadRadius: 0,
+            blurRadius: 10,
+            offset: const Offset(0, -2),
+          ),
+        ],
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: [
+          Expanded(
+            child: WidgetInput(
+              controller: widget.commentController,
+              hintText: "Thêm bình luận...",
+              hintStyle: styleSmall.copyWith(color: grey4),
+              borderColor: grey5,
+              style: styleSmall.copyWith(color: grey2),
+              suffix: (widget.commentController.text.isNotEmpty)
+                  ? IconButton(
+                      icon: Icon(
+                        Icons.send_rounded,
+                        color: primary2,
+                        size: 22,
+                      ),
+                      onPressed: () {
+                        if (widget.commentSelected.value != null) {
+                          widget.onSendComment(
+                              comment: widget.commentSelected.value);
+                        } else {
+                          widget.onSendComment();
+                        }
+                        FocusScope.of(context).unfocus();
+                      },
+                    )
+                  : SizedBox(),
+              maxLines: 3,
+              minLines: 1,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
 
-    if (widget.comments.value != null) {
-      final currentComments = List<CommentModel>.from(widget.comments.value!);
-      for (var i = 0; i < currentComments.length; i++) {
-        if (currentComments[i].commentId == commentId) {
-          // Reset lại danh sách replies trong comment này
-          currentComments[i] = currentComments[i].copyWith(
-            commentReplyResponses: [],
-          );
+  // Cập nhật phương thức để xử lý việc cập nhật số lượng reply
+  void _updateReplyCount(String commentId, int newReplyCount) {
+    if (!mounted || widget.comments.value == null) return;
 
-          // Reset trạng thái loading và tracking cho comment này
-          _loadingReplies[commentId] = false;
+    final commentsList = List<CommentModel>.from(widget.comments.value!);
+    for (int i = 0; i < commentsList.length; i++) {
+      if (commentsList[i].commentId == commentId) {
+        // Cập nhật countOfReply và giữ lại các thuộc tính khác
+        CommentModel updatedComment =
+            commentsList[i].copyWith(countOfReply: newReplyCount);
 
-          setState(() {});
-          break;
-        }
-      }
+        commentsList[i] = updatedComment;
 
-      if (mounted) {
-        widget.comments.value = currentComments;
+        widget.comments.value = commentsList;
+        // Thông báo listeners để cập nhật UI
         try {
           widget.comments.notifyListeners();
         } catch (e) {
-          logger.e("Error notifying comments listeners: $e");
+          logger.e("Error notifying listeners on reply count update: $e");
         }
-      }
 
-      // Hiển thị thông báo nhỏ
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Đã ẩn các phản hồi'),
-            duration: Duration(seconds: 1),
-            backgroundColor: primary.withOpacity(0.8),
-            behavior: SnackBarBehavior.floating,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(10),
-            ),
-          ),
-        );
+        setState(() {
+          // Đảm bảo UI được cập nhật
+        });
+
+        break;
       }
     }
   }

@@ -124,7 +124,7 @@ class LoginViewModel extends BaseViewModel {
       );
     }
     if (checked && context.mounted) {
-      // Khởi tạo StompService với lazy = true để chỉ kết nối mà không đăng ký listener
+      // Khởi tạo StompService
       await StompService.instance();
 
       if (context.mounted) {

@@ -1,21 +1,31 @@
 class NotificationView {
+  final int? countUnreadNotification;
   final List<NotificationModel>? notifications;
-  final Page? page;
 
   NotificationView({
+    this.countUnreadNotification,
     this.notifications,
-    this.page,
   });
 
   factory NotificationView.fromJson(Map<String, dynamic> json) => NotificationView(
-    notifications: json["content"] == null ? [] : List<NotificationModel>.from(json["content"]!.map((x) => NotificationModel.fromJson(x))),
-    page: json["page"] == null ? null : Page.fromJson(json["page"]),
+    notifications: json["notificationDetails"] == null ? [] : List<NotificationModel>.from(json["notificationDetails"]!.map((x) => NotificationModel.fromJson(x))),
+    countUnreadNotification: json["countUnreadNotification"],
   );
 
   Map<String, dynamic> toJson() => {
     "content": notifications == null ? [] : List<dynamic>.from(notifications!.map((x) => x.toJson())),
-    "page": page?.toJson(),
+    "countUnreadNotification": countUnreadNotification,
   };
+
+  NotificationView copyWith({
+    int? countUnreadNotification,
+    List<NotificationModel>? notifications,
+  }) {
+    return NotificationView(
+      countUnreadNotification: countUnreadNotification ?? this.countUnreadNotification,
+      notifications: notifications ?? this.notifications,
+    );
+  }
 }
 
 class NotificationModel {
@@ -75,34 +85,6 @@ final notificationTypeValues = EnumValues({
   "COMMENT": NotificationType.COMMENT,
   "CHAT_MESSAGE": NotificationType.CHAT_MESSAGE
 });
-
-class Page {
-  final int? size;
-  final int? number;
-  final int? totalElements;
-  final int? totalPages;
-
-  Page({
-    this.size,
-    this.number,
-    this.totalElements,
-    this.totalPages,
-  });
-
-  factory Page.fromJson(Map<String, dynamic> json) => Page(
-    size: json["size"],
-    number: json["number"],
-    totalElements: json["totalElements"],
-    totalPages: json["totalPages"],
-  );
-
-  Map<String, dynamic> toJson() => {
-    "size": size,
-    "number": number,
-    "totalElements": totalElements,
-    "totalPages": totalPages,
-  };
-}
 
 class EnumValues<T> {
   Map<String, T> map;

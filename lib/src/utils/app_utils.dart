@@ -8,6 +8,7 @@ import 'package:get/get.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:lms/src/presentation/presentation.dart';
+import 'package:lms/src/resource/enum/course_enum.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -260,7 +261,6 @@ class AppUtils {
     return DateTime.now().isAfter(expiredAt);
   }
 
-
   static String? toOffsetDateTimeString(DateTime? dt) {
     if (dt == null) return null;
 
@@ -282,5 +282,11 @@ class AppUtils {
     }
   }
 
-
+  static String getLearningDurationTypeLabel(String type) {
+    if (type.contains('UNLIMITED')) {
+      return 'Không có thời hạn';
+    } else {
+      return 'Có thời hạn';
+    }
+  }
 }

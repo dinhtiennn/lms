@@ -41,6 +41,8 @@ abstract class BaseViewModel extends ChangeNotifier {
   final CommentRepository commentRepository = CommentRepository();
   final MajorRepository majorRepository = MajorRepository();
   final GroupRepository groupRepository = GroupRepository();
+  final DocumentRepository documentRepository = DocumentRepository();
+  final ChatBoxRepository chatBoxRepository = ChatBoxRepository();
 
   Logger logger = Logger();
 

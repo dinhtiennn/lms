@@ -15,3 +15,7 @@ export 'test_detail_teacher/test_detail_teacher.dart';
 export 'change_password_teacher/change_password_teacher.dart';
 export 'register_teacher/register_teacher.dart';
 export 'result_test_detail_teacher/result_test_detail_teacher.dart';
+export 'document_teacher/document_teacher.dart';
+export 'document_detail_teacher/document_detail_teacher.dart';
+export 'chat_box_teacher/chat_box_teacher.dart';
+export 'chat_box_teacher_detail/chat_box_teacher_detail.dart';

@@ -247,10 +247,16 @@ class _CreateCourseScreenState extends State<CreateCourseScreen> {
                       },
                     )
                   : null,
-              validator: (value) => AppValid.validateEndDate(
-                _viewModel.startDateController.text,
-                value,
-              ),
+              validator: (value) {
+                if (value == null || value.isEmpty) {
+                  return null;
+                }else{
+                  return AppValid.validateEndDate(
+                    _viewModel.startDateController.text,
+                    value,
+                  );
+                }
+              },
             ),
             const SizedBox(height: 24),
 

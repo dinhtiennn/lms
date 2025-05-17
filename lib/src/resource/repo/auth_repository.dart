@@ -196,4 +196,38 @@ class AuthRepository {
       return NetworkState.withError(e);
     }
   }
+
+  Future<NetworkState> markAsRead({String? notificationId}) async {
+    bool isDisconnect = await WifiService.isDisconnect();
+    if (isDisconnect) return NetworkState.withDisconnect();
+    try {
+      Response response = await AppClients()
+          .get(AppEndpoint.READNOTIFICATION,);
+      return NetworkState(
+        status: response.statusCode ?? AppEndpoint.success,
+        result: NotificationView.fromJson(response.data['result']),
+        message: response.data['message'] ?? '',
+        successCode: response.data['code'] == 0,
+      );
+    } catch (e) {
+      return NetworkState.withError(e);
+    }
+  }
+
+  Future<NetworkState> readAllNotification() async {
+    bool isDisconnect = await WifiService.isDisconnect();
+    if (isDisconnect) return NetworkState.withDisconnect();
+    try {
+      Response response = await AppClients()
+          .post(AppEndpoint.READALLNOTIFICATION,);
+      return NetworkState(
+        status: response.statusCode ?? AppEndpoint.success,
+        result: response.data['result'],
+        message: response.data['message'] ?? '',
+        successCode: response.data['code'] == 0,
+      );
+    } catch (e) {
+      return NetworkState.withError(e);
+    }
+  }
 }

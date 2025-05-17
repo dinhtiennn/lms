@@ -17,6 +17,7 @@ class Routers {
   static const String changePassword = "/changer-password";
   static const String assignmentDetail = "/assignment-detail";
   static const String document = "/document";
+  static const String documentDetail = "/document-detail";
   static const String notificationDetail = "/notification-detail";
   static const String newsBoardDetail = "/news-board-detail";
   static const String forgotPassword = "/forgot-password";
@@ -32,6 +33,8 @@ class Routers {
   static const String registerTeacher = "/register-teacher";
   static const String navigationTeacher = "/navigation-teacher";
   static const String homeTeacher = "/home-teacher";
+  static const String documentTeacher = "/document-teacher";
+  static const String documentDetailTeacher = "/document-detail-teacher";
   static const String searchTeacher = "/search-teacher";
   static const String notificationDetailTeacher = "/notification-detail-teacher";
   static const String editProfileTeacher = "/edit-profile-teacher";
@@ -45,6 +48,7 @@ class Routers {
   static const String createTest = "/create-test";
   static const String testDetailTeacher = "/test-detail-teacher";
   static const String resultTestDetailTeacher = "/result-test-detail-teacher";
+  static const String chatBoxDetailTeacher = "/chat-box-detail-teacher";
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     var arguments = settings.arguments;
@@ -80,6 +84,8 @@ class Routers {
             name: assignmentDetail, beginOffset: _right, arguments: arguments);
       case document:
         return animRoute(const DocumentScreen(), name: document, beginOffset: _right, arguments: arguments);
+      case documentDetail:
+        return animRoute(const DocumentDetailScreen(), name: documentDetail, beginOffset: _right, arguments: arguments);
       case notificationDetail:
         return animRoute(const NotificationDetailScreen(),
             name: notificationDetail, beginOffset: _right, arguments: arguments);
@@ -103,6 +109,12 @@ class Routers {
       //case for teacher
       case homeTeacher:
         return animRoute(const HomeTeacherScreen(), name: homeTeacher, beginOffset: _right, arguments: arguments);
+      case documentTeacher:
+        return animRoute(const DocumentTeacherScreen(),
+            name: documentTeacher, beginOffset: _right, arguments: arguments);
+      case documentDetailTeacher:
+        return animRoute(const DocumentDetailTeacherScreen(),
+            name: documentDetailTeacher, beginOffset: _right, arguments: arguments);
       case searchTeacher:
         return animRoute(const SearchTeacherScreen(), name: searchTeacher, beginOffset: _right, arguments: arguments);
       case navigationTeacher:
@@ -147,6 +159,9 @@ class Routers {
       case resultTestDetailTeacher:
         return animRoute(const ResultTestDetailTeacherScreen(),
             name: resultTestDetailTeacher, beginOffset: _right, arguments: arguments);
+      case chatBoxDetailTeacher:
+        return animRoute(const ChatBoxTeacherDetailScreen(),
+            name: chatBoxDetailTeacher, beginOffset: _right, arguments: arguments);
       //case default
       default:
         return animRoute(Center(child: Text('No route defined for ${settings.name}')), name: "/error");

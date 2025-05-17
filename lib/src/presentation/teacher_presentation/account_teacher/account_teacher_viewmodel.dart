@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:lms/src/presentation/presentation.dart';
 import 'package:lms/src/resource/model/model.dart';
+import 'package:lms/src/resource/resource.dart';
 import 'package:lms/src/utils/app_prefs.dart';
 import 'package:lms/src/utils/app_utils.dart';
 
@@ -25,11 +26,24 @@ class AccountTeacherViewModel extends BaseViewModel {
   }
 
   void logout() async {
-    NetworkState resultLogout = await authRepository.logout();
-    AppPrefs.setUser<TeacherModel>(null);
-    AppPrefs.password = null;
-    AppPrefs.accessToken = null;
-    Get.offAllNamed(Routers.chooseRole);
+    try {
+      final StompService stompService = await StompService.instance();
+      stompService.disconnect();
+
+      NetworkState resultLogout = await authRepository.logout();
+      AppPrefs.setUser<TeacherModel>(null);
+      AppPrefs.password = null;
+      AppPrefs.accessToken = null;
+
+      Get.offAllNamed(Routers.chooseRole);
+    } catch (e) {
+      logger.e("Lỗi khi đăng xuất: $e");
+      // Đảm bảo rằng người dùng vẫn có thể đăng xuất ngay cả khi có lỗi
+      AppPrefs.setUser<TeacherModel>(null);
+      AppPrefs.password = null;
+      AppPrefs.accessToken = null;
+      Get.offAllNamed(Routers.chooseRole);
+    }
   }
 
   void getUser() {

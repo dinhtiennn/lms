@@ -184,6 +184,12 @@ class StompService {
       _unsubscribeMap.remove(destination);
       _subscribedDestinations.remove(destination);
     }
+    for (var element in _listeners) {
+      _logger.e(element.toString());
+      for (var element2 in element.events) {
+        _logger.w(_getDestination(element2));
+      }
+    }
   }
 
   void _handleIncoming(StompListenType type, StompListener listener, String? body) {

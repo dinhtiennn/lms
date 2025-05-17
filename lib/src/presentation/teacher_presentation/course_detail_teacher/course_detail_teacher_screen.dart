@@ -3,6 +3,7 @@ import 'package:get/get.dart';
 import 'package:lms/src/configs/configs.dart';
 import 'package:lms/src/presentation/presentation.dart';
 import 'package:lms/src/resource/resource.dart';
+import 'package:lms/src/utils/app_prefs.dart';
 import 'package:lms/src/utils/app_utils.dart';
 import 'package:toastification/toastification.dart';
 
@@ -10,7 +11,8 @@ class CourseDetailTeacherScreen extends StatefulWidget {
   const CourseDetailTeacherScreen({Key? key}) : super(key: key);
 
   @override
-  State<CourseDetailTeacherScreen> createState() => _CourseDetailTeacherScreenState();
+  State<CourseDetailTeacherScreen> createState() =>
+      _CourseDetailTeacherScreenState();
 }
 
 class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
@@ -52,16 +54,19 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                           switch (value) {
                             case 'manage_students':
                               _viewModel.getStudentsOfCourse().then((_) {
-                                showManageStudentsBottomSheet(popupContext, _viewModel);
+                                showManageStudentsBottomSheet(
+                                    popupContext, _viewModel);
                               });
                               break;
                             case 'manage_students_request':
                               _viewModel.getAllRequestToCourse().then((_) {
-                                showManageStudentsBottomSheetRequest(popupContext, _viewModel);
+                                showManageStudentsBottomSheetRequest(
+                                    popupContext, _viewModel);
                               });
                               break;
                             case 'add_students':
-                              showAddStudentBottomSheet(popupContext, _viewModel);
+                              showAddStudentBottomSheet(
+                                  popupContext, _viewModel);
                               break;
                           }
                         });
@@ -83,13 +88,17 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                               ],
                             ),
                           ),
-                          if (!(courseDetail?.status?.toUpperCase().contains('PUBLIC') ?? false))
+                          if (!(courseDetail?.status
+                                  ?.toUpperCase()
+                                  .contains('PUBLIC') ??
+                              false))
                             PopupMenuItem(
                               value: 'manage_students_request',
                               child: Row(
                                 children: [
                                   Image(
-                                    image: AssetImage(AppImages.png('subscribe')),
+                                    image:
+                                        AssetImage(AppImages.png('subscribe')),
                                     width: 20,
                                     height: 20,
                                     color: primary3,
@@ -104,7 +113,10 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                                 ],
                               ),
                             ),
-                          if (!(courseDetail?.status?.toUpperCase().contains('PUBLIC') ?? false))
+                          if (!(courseDetail?.status
+                                  ?.toUpperCase()
+                                  .contains('PUBLIC') ??
+                              false))
                             PopupMenuItem(
                               value: 'add_students',
                               child: Row(
@@ -224,7 +236,7 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                       const SizedBox(width: 4),
                       Expanded(
                         child: Text(
-                          'Thời gian: ${course?.learningDurationType ?? ''}',
+                          'Thời gian: ${AppUtils.getLearningDurationTypeLabel(course?.learningDurationType ?? '')}',
                           style: styleSmall.copyWith(color: grey2),
                         ),
                       ),
@@ -253,7 +265,8 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                         style: styleMediumBold.copyWith(color: black),
                       ),
                       ElevatedButton.icon(
-                        onPressed: () => showAddLessonBottomSheet(context, _viewModel),
+                        onPressed: () =>
+                            showAddLessonBottomSheet(context, _viewModel),
                         icon: Icon(
                           Icons.add_circle_outline,
                           color: white,
@@ -265,7 +278,8 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primary3,
-                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding:
+                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -324,7 +338,8 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => showAddMaterialBottomSheet(context, lesson, _viewModel),
+                      onPressed: () => showAddMaterialBottomSheet(
+                          context, lesson, _viewModel),
                       icon: Icon(
                         Icons.add_circle_outline,
                         color: primary3,
@@ -340,7 +355,9 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                       (material.path ?? '').split('/').last,
                       style: styleSmall.copyWith(color: grey2),
                     ),
-                    onTap: () => Get.toNamed(Routers.courseMaterialDetailTeacher, arguments: {'material': material}),
+                    onTap: () => Get.toNamed(
+                        Routers.courseMaterialDetailTeacher,
+                        arguments: {'material': material}),
                   ),
                 ),
               ],
@@ -363,7 +380,8 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => showAddChapterBottomSheet(context, lesson, _viewModel),
+                      onPressed: () => showAddChapterBottomSheet(
+                          context, lesson, _viewModel),
                       icon: Icon(
                         Icons.add_circle_outline,
                         color: primary3,
@@ -378,23 +396,31 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                       Expanded(
                         child: ListTile(
                           leading: Icon(
-                            chapter.type == 'file' ? Icons.file_present : Icons.video_library,
+                            chapter.type == 'file'
+                                ? Icons.file_present
+                                : Icons.video_library,
                             color: primary2,
                           ),
                           title: Text(
                             chapter.name ?? '',
                             style: styleSmall.copyWith(color: grey2),
                           ),
-                          onTap: () => Get.toNamed(Routers.courseFileDetailTeacher, arguments: {'chapter': chapter}),
+                          onTap: () => Get.toNamed(
+                              Routers.courseFileDetailTeacher,
+                              arguments: {'chapter': chapter}),
                         ),
                       ),
-                      // InkWell(
-                      //   child: Padding(
-                      //     padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                      //     child: Icon(Icons.comment_outlined, color: primary2),
-                      //   ),
-                      //   onTap: () => showCommentsChapterBottomSheet(context, chapter),
-                      // ),
+                      InkWell(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 12, vertical: 8),
+                          child: Icon(Icons.comment_outlined, color: primary2),
+                        ),
+                        onTap: () {
+                          _viewModel.setChapter(chapter);
+                          _showCommentBottomSheet(context);
+                        },
+                      ),
                     ],
                   ),
                 ),
@@ -422,11 +448,13 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                             onPressed: () {
                               if (lesson.chapters?.isEmpty ?? false) {
                                 _viewModel.showToast(
-                                    title: 'Vui lòng thêm chương học trước khi thêm bài kiểm tra!',
+                                    title:
+                                        'Vui lòng thêm chương học trước khi thêm bài kiểm tra!',
                                     type: ToastificationType.warning);
                                 return;
                               }
-                              showCreateQuizBottomSheet(context, lesson, _viewModel);
+                              showCreateQuizBottomSheet(
+                                  context, lesson, _viewModel);
                             },
                             icon: Icon(
                               Icons.add_circle_outline,
@@ -444,7 +472,8 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                       quiz.question ?? '',
                       style: styleSmall.copyWith(color: grey2),
                     ),
-                    onTap: () => Get.toNamed(Routers.courseQuizsDetailTeacher, arguments: {'lesson' : lesson}),
+                    onTap: () => Get.toNamed(Routers.courseQuizsDetailTeacher,
+                        arguments: {'lesson': lesson}),
                   ),
                 ),
               ],
@@ -452,6 +481,53 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
           ),
         ],
       ),
+    );
+  }
+
+  void _showCommentBottomSheet(BuildContext context) {
+    // Lấy chapter hiện tại từ chapterSelected
+    ChapterModel? currentChapter = _viewModel.chapterSelected.value;
+
+    Widget commentWidget = CourseCommentTeacher(
+      comments: _viewModel.comments,
+      commentSelected: _viewModel.commentSelected,
+      commentController: _viewModel.commentController,
+      onSendComment: ({CommentModel? comment}) async {
+        if (context.mounted) {
+          // Gửi comment hoặc reply
+          await _viewModel.send(comment: comment);
+        }
+      },
+      setCommentSelected: _viewModel.setCommentSelected,
+      onLoadMoreComments: (
+          {required ChapterModel chapter,
+          int pageSize = 20,
+          int pageNumber = 0}) {
+        _viewModel.loadComments(isReset: pageNumber == 0, pageSize: pageSize);
+      },
+      currentChapter: currentChapter,
+      animatedCommentId: _viewModel.animatedCommentId,
+      animatedReplyId: _viewModel.animatedReplyId,
+      avatarUrl: _viewModel.teacher.value?.avatar,
+      onLoadMoreReplies: _viewModel.loadMoreReplies,
+      onEditComment: _viewModel.editComment,
+      onEditReply: _viewModel.editReply,
+      onDispose: _viewModel.resetCommentState,
+      userEmail: _viewModel.teacher.value?.email,
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      scrollControlDisabledMaxHeightRatio: 0.6,
+      backgroundColor: Colors.white,
+      useSafeArea: true,
+      builder: (context) {
+        return commentWidget;
+      },
     );
   }
 }

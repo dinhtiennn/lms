@@ -286,11 +286,20 @@ void showEditBottomSheet(
                               )
                             : SizedBox(),
                       ),
-                      validator: (value) => AppValid.validateEndDate(
-                        AppUtils.formatDateToDDMMYYYY(
-                            viewModel.course?.startDate.toString() ?? ''),
-                        value,
-                      ),
+                      validator: (value) {
+                        if (value == null || value.isEmpty) {
+                          return null; // Không nhập ngày kết thúc thì hợp lệ
+                        }
+
+                        final startDate = viewModel.course?.startDate;
+                        if (startDate == null) {
+                          return 'Vui lòng chọn ngày bắt đầu trước';
+                        }
+
+                        final formattedStartDate = AppUtils.formatDateToDDMMYYYY(startDate.toString());
+                        return AppValid.validateEndDate(formattedStartDate, value);
+                      },
+
                     ),
                     const SizedBox(height: 24),
 

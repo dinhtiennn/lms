@@ -326,16 +326,16 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
   }
 
   void _showCommentBottomSheet(BuildContext context) {
-    // Lấy chapter hiện tại từ currentContent nếu có
+    CurrentContent? content = _viewModel.currentContent.value;
     ChapterModel? currentChapter;
-    if (_viewModel.currentContent.value is ChapterContent) {
-      currentChapter =
-          (_viewModel.currentContent.value as ChapterContent).chapter;
+
+    if(content != null && content is ChapterContent){
+      currentChapter = content.chapter;
     }
+    // Lấy chapter hiện tại từ chapterSelected
 
     Widget commentWidget = CourseComment(
       comments: _viewModel.comments,
-      email: _viewModel.student.value?.email,
       commentSelected: _viewModel.commentSelected,
       commentController: _viewModel.commentController,
       onSendComment: ({CommentModel? comment}) async {
@@ -345,13 +345,21 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
         }
       },
       setCommentSelected: _viewModel.setCommentSelected,
-      onLoadMoreComments: _viewModel.loadComment,
-      onLoadMoreRepLies: _viewModel.loadReply,
+      onLoadMoreComments: (
+          {required ChapterModel chapter,
+            int pageSize = 20,
+            int pageNumber = 0}) {
+        _viewModel.loadComments(isReset: pageNumber == 0, pageSize: pageSize);
+      },
       currentChapter: currentChapter,
       animatedCommentId: _viewModel.animatedCommentId,
       animatedReplyId: _viewModel.animatedReplyId,
+      avatarUrl: _viewModel.student.value?.avatar,
+      onLoadMoreReplies: _viewModel.loadMoreReplies,
       onEditComment: _viewModel.editComment,
       onEditReply: _viewModel.editReply,
+      onDispose: _viewModel.resetCommentState,
+      userEmail: _viewModel.student.value?.email,
     );
 
     showModalBottomSheet(
@@ -364,11 +372,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
       backgroundColor: Colors.white,
       useSafeArea: true,
       builder: (context) {
-        return Padding(
-          padding: EdgeInsets.only(
-              bottom: MediaQuery.paddingOf(context).bottom),
-          child: commentWidget,
-        );
+        return commentWidget;
       },
     );
   }

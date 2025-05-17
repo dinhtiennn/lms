@@ -82,7 +82,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                   borderRadius: BorderRadius.circular(10),
                   child: InkWell(
                     onTap: () {
-                      _viewModel.login();
+                      _viewModel.chooseRole();
                     },
                     splashColor: primary3,
                     borderRadius: BorderRadius.circular(10),
@@ -90,7 +90,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
                       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                       child: Center(
                         child: Text(
-                          'SKIP'.tr,
+                          'Bỏ qua',
                           style: styleVerySmall.copyWith(color: black),
                         ),
                       ),

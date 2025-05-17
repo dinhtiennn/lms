@@ -36,18 +36,18 @@ class CreateCourseViewModel extends BaseViewModel {
   ];
 
   List<LearningDurationTypeOption> learningDurationOptions = [
-    LearningDurationTypeOption(LearningDurationType.LIMIT, 'Có thời hạn', 'LIMIT'),
-    LearningDurationTypeOption(LearningDurationType.NOLIMIT, 'Không có thời hạn', 'NOLIMIT'),
+    LearningDurationTypeOption(LearningDurationType.LIMITED, 'Có thời hạn', 'LIMITED'),
+    LearningDurationTypeOption(LearningDurationType.UNLIMITED, 'Không có thời hạn', 'UNLIMITED'),
   ];
 
   String getStatusLabel(Status status) => statusOptions.firstWhere((e) => e.value == status).label;
 
   String getLearningDurationTypeLabel(LearningDurationType type) =>
-      learningDurationOptions.firstWhere((e) => e.value == type).label;
+      learningDurationOptions.firstWhere((e) => e.value == type).apiValue;
 
   void addCourse() async {
     String learningDurationTypeString = getLearningDurationTypeLabel(
-        endDateController.text.isEmpty ? LearningDurationType.NOLIMIT : LearningDurationType.LIMIT);
+        endDateController.text.isEmpty ? LearningDurationType.UNLIMITED : LearningDurationType.LIMITED);
     setLoading(false);
     if (majorSelected.value == null) {
       showToast(title: 'Vui lòng chọn ngành học');

@@ -266,9 +266,9 @@ class _HomeTeacherScreenState extends State<HomeTeacherScreen> {
             children: [
               _buildItemUtil(
                   image: 'documentation',
-                  name: 'materials'.tr,
+                  name: 'Tài liệu',
                   onTap: () {
-                    // Get.toNamed(Routers.learningMaterials);
+                    Get.toNamed(Routers.documentTeacher);
                   }),
             ],
           ),

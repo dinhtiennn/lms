@@ -124,7 +124,9 @@ class LoginTeacherViewModel extends BaseViewModel {
       );
     }
     if (checked && context.mounted) {
+      // Khởi tạo StompService
       await StompService.instance();
+
       if(context.mounted){
         Navigator.of(context).pushNamedAndRemoveUntil(
           Routers.navigationTeacher,

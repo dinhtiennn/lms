@@ -60,14 +60,23 @@ class _NavigationScreenState extends State<NavigationScreen> with TickerProvider
       ),
       PersistentBottomNavBarItem(
         icon: badges.Badge(
-          badgeContent: Container(
-            width: 0.5,
-            height: 0.5,
-            decoration: BoxDecoration(shape: BoxShape.circle, color: Colors.red),
-          ),
-          position: badges.BadgePosition.custom(top: 0, end: 0),
+          // badgeContent: ValueListenableBuilder(
+          //   valueListenable: _viewModel.notificationView,
+          //   builder: (context, notificationView, child) {
+          //     final count = notificationView?.countUnreadNotification ?? 0;
+          //     final displayText = count > 99 ? '99+' : count.toString();
+          //     return Text(
+          //       displayText,
+          //       style: styleVerySmall.copyWith(color: white, fontSize: 8),
+          //     );
+          //   },
+          // ),
+          badgeContent: ValueListenableBuilder(valueListenable: _viewModel.notificationView, builder: (context, notificationView, child) => Text(
+            (notificationView?.countUnreadNotification ?? 0).toString(),
+            style: styleVerySmall.copyWith(color: white, fontSize: 8),
+          ),),
           badgeStyle: badges.BadgeStyle(
-            badgeColor: error,
+            badgeColor: Colors.red,
             shape: badges.BadgeShape.circle,
           ),
           child: Image(image: AssetImage(AppImages.png('bell'))),

@@ -89,14 +89,12 @@ class _ChooseRoleScreenState extends State<ChooseRoleScreen> {
             // Phần chọn vai trò
             Expanded(
               child: Padding(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 40),
+                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 20),
                 child: Column(
                   children: [
-                    const SizedBox(height: 30),
+                    const SizedBox(height: 16),
                     Row(
                       children: [
-                        // Card Sinh viên
                         Expanded(
                           child: _buildRoleCard(
                             title: 'Sinh viên',

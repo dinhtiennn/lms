@@ -7,6 +7,7 @@ import 'package:lms/src/resource/model/model.dart' as app_model;
 import 'package:lms/src/resource/resource.dart';
 import 'package:lms/src/resource/websocket_stomp/websocket_stomp.dart';
 import 'package:lms/src/resource/websocket_stomp/websocket_stomp_service.dart';
+import 'package:lms/src/utils/app_utils.dart';
 
 class NotificationViewModel extends BaseViewModel with StompListener {
   ValueNotifier<app_model.NotificationView?> notifications = ValueNotifier(null);
@@ -24,7 +25,8 @@ class NotificationViewModel extends BaseViewModel with StompListener {
   init() async {
     scrollController.addListener(_onScroll);
     setupSocket();
-    refresh();
+    // Sử dụng Future.microtask để đảm bảo refresh() được gọi sau khi build hoàn tất
+    Future.microtask(() => refresh());
   }
 
   void setupSocket() async {
@@ -67,16 +69,25 @@ class NotificationViewModel extends BaseViewModel with StompListener {
       if (data != null) {
         // Parse JSON dữ liệu từ socket
         final Map<String, dynamic> notificationData = jsonDecode(data);
-
+        final typeStr = notificationData['type'];
+        final type = notificationTypeValues.map[typeStr] ?? NotificationType.MESSAGE;
         // Tạo model NotificationModel từ dữ liệu nhận được
-        final app_model.NotificationModel newNotification = app_model.NotificationModel.fromJson(notificationData);
+        final app_model.NotificationModel newNotification = app_model.NotificationModel(
+          notificationId: notificationData['notificationId'],
+          notificationType: type,
+          isRead: false,
+          createdAt: AppUtils.fromUtcStringToVnTime(notificationData['createdDate']),
+          description: notificationData['message'],
+          commentId: notificationData['parentCommentId'],
+          commentReplyId: notificationData['commentReplyId'],
+        );
 
         // Thêm thông báo mới vào đầu danh sách
         if (notifications.value != null) {
           final currentNotifications = notifications.value!.notifications ?? [];
 
           final app_model.NotificationView updatedNotificationView = app_model.NotificationView(
-            page: notifications.value!.page,
+            countUnreadNotification: notifications.value!.countUnreadNotification,
             notifications: [
               newNotification,
               ...currentNotifications,
@@ -89,12 +100,6 @@ class NotificationViewModel extends BaseViewModel with StompListener {
         } else {
           // Nếu danh sách rỗng, tạo mới với thông báo vừa nhận
           notifications.value = app_model.NotificationView(
-            page: app_model.Page(
-              size: 1,
-              number: 0,
-              totalElements: 1,
-              totalPages: 1,
-            ),
             notifications: [newNotification],
           );
           logger.i("Đã tạo danh sách mới với thông báo vừa nhận");
@@ -143,7 +148,7 @@ class NotificationViewModel extends BaseViewModel with StompListener {
       } else {
         if (notifications.value != null) {
           final app_model.NotificationView updatedNotificationView = app_model.NotificationView(
-            page: notifications.value!.page,
+            countUnreadNotification: notifications.value!.countUnreadNotification,
             notifications: [
               ...(notifications.value!.notifications ?? []),
               ...(resultNotifications.result!.notifications ?? [])
@@ -164,6 +169,20 @@ class NotificationViewModel extends BaseViewModel with StompListener {
     } else {
       isLoadingMore.value = false;
       isLoadingMore.notifyListeners();
+    }
+  }
+
+  void notificationDetail(NotificationModel notification) async {
+    // NetworkState resultMarkAsRead = await authRepository.markAsRead(notificationId: notification.notificationId);
+    // if(resultMarkAsRead.isSuccess){
+    Get.toNamed(Routers.notificationDetail, arguments: {'notification': notification});
+    // }
+  }
+
+  void readAllNotification() async {
+    NetworkState resultReadAllNotification = await authRepository.readAllNotification();
+    if(resultReadAllNotification.isSuccess){
+      refresh();
     }
   }
 

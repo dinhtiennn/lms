@@ -33,9 +33,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
               centerTitle: true,
               actions: [
                 TextButton(
-                    onPressed: () {
-                      // Xử lý đánh dấu tất cả là đã đọc
-                    },
+                    onPressed: () => showDialog(
+                          context: context,
+                          builder: (context) => WidgetDialogConfirm(
+                            titleStyle: styleMediumBold.copyWith(color: primary3),
+                            colorButtonAccept: primary3,
+                            title: 'Đánh dấu đọc tất cả',
+                            onTapConfirm: () {
+                              _viewModel.readAllNotification();
+                            },
+                            content: '',
+                          ),
+                        ),
                     child: Text('Đánh dấu đã đọc',
                         style: styleVerySmall.copyWith(
                             fontWeight: FontWeight.w500,
@@ -67,21 +76,27 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
           final notifications = notificationView?.notifications ?? [];
           if (notifications.isEmpty) {
-            return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.notifications_off_outlined,
-                    size: 70,
-                    color: grey4,
+            return SingleChildScrollView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.8, // Đảm bảo chiều cao đủ để kéo
+                child: Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.notifications_off_outlined,
+                        size: 70,
+                        color: grey4,
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'Bạn chưa có thông báo nào',
+                        style: styleMedium.copyWith(color: grey3),
+                      ),
+                    ],
                   ),
-                  const SizedBox(height: 16),
-                  Text(
-                    'Bạn chưa có thông báo nào',
-                    style: styleMedium.copyWith(color: grey3),
-                  ),
-                ],
+                ),
               ),
             );
           }
@@ -115,14 +130,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                 isRead: notification.isRead ?? false,
                 type: notificationType,
                 onTap: () {
-                  Get.toNamed(Routers.notificationDetail, arguments: {
-                    'title': _getNotificationTitle(notification),
-                    'message': notification.description,
-                    'time': _formatTime(notification.createdAt),
-                    'type': notificationType,
-                    'id': notification.notificationId,
-                    'isRead': notification.isRead
-                  });
+                  _viewModel.notificationDetail(notification);
                 },
               );
             },

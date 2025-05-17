@@ -20,3 +20,4 @@ export 'test_detail/test_detail.dart';
 export 'test_result/test_result.dart';
 export 'notification/notification.dart';
 export 'notification_detail/notification_detail.dart';
+export 'document_detail/document_detail.dart';

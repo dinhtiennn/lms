@@ -16,6 +16,7 @@ class TestDetailScreen extends StatefulWidget {
 
 class _TestDetailScreenState extends State<TestDetailScreen> {
   late TestDetailViewModel _viewModel;
+  bool _hasShownRules = false;
 
   @override
   Widget build(BuildContext context) {
@@ -25,6 +26,12 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
           _viewModel = viewModel;
           WidgetsBinding.instance.addPostFrameCallback((_) {
             _viewModel.init();
+
+            // Hiển thị thông báo nội quy nếu chưa hiển thị
+            if (!_hasShownRules) {
+              _showTestRules(context);
+              _hasShownRules = true;
+            }
           });
         },
         builder: (context, viewModel, child) {
@@ -39,78 +46,192 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
               final shouldPop = await _showExitConfirmation(context);
               return shouldPop ?? false;
             },
-            child: Scaffold(
-              appBar: AppBar(
-                title: Text(
-                  'Làm bài kiểm tra',
-                  style: styleLargeBold.copyWith(color: primary2),
-                ),
-                backgroundColor: white,
-                elevation: 0.5,
-                iconTheme: IconThemeData(color: primary2),
-                // Ghi đè hành vi nút back mặc định
-                leading: IconButton(
-                  icon: Icon(Icons.arrow_back),
-                  onPressed: () async {
-                    // Kiểm tra nếu bài kiểm tra đã hoàn thành thì cho phép thoát
-                    if (_viewModel.test.value?.isSuccess == true) {
-                      Navigator.of(context).pop();
-                      return;
+            child: ValueListenableBuilder<bool>(
+              valueListenable: _viewModel.violationDetected,
+              builder: (context, violationDetected, child) {
+                if (violationDetected) {
+                  // Nếu phát hiện vi phạm, hiển thị màn hình thông báo vi phạm
+                  WidgetsBinding.instance.addPostFrameCallback((_) {
+                    if (context.mounted) {
+                      _showViolationDialog(context);
                     }
+                  });
+                }
 
-                    // Nếu chưa hoàn thành, hiển thị dialog xác nhận
-                    final shouldPop = await _showExitConfirmation(context);
-                    if (shouldPop == true) {
-                      Navigator.of(context).pop();
-                    }
-                  },
-                ),
-              ),
-              backgroundColor: white,
-              body: SafeArea(child: _buildBody()),
-              bottomNavigationBar: ValueListenableBuilder<TestModel?>(
-                valueListenable: _viewModel.test,
-                builder: (context, test, _) {
-                  if (test?.isSuccess == true) {
-                    return SizedBox();
-                  }
-
-                  return Container(
-                    padding: const EdgeInsets.all(16.0),
-                    decoration: BoxDecoration(
-                      color: white,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withOpacity(0.05),
-                          spreadRadius: 1,
-                          blurRadius: 5,
-                          offset: Offset(0, -1),
-                        ),
-                      ],
+                return Scaffold(
+                  appBar: AppBar(
+                    title: Text(
+                      'Làm bài kiểm tra',
+                      style: styleLargeBold.copyWith(color: primary2),
                     ),
-                    child: ElevatedButton(
-                      onPressed: () {
-                        _showSubmitConfirmation(context);
+                    backgroundColor: white,
+                    elevation: 0.5,
+                    iconTheme: IconThemeData(color: primary2),
+                    // Ghi đè hành vi nút back mặc định
+                    leading: IconButton(
+                      icon: Icon(Icons.arrow_back),
+                      onPressed: () async {
+                        // Kiểm tra nếu bài kiểm tra đã hoàn thành thì cho phép thoát
+                        if (_viewModel.test.value?.isSuccess == true) {
+                          Navigator.of(context).pop();
+                          return;
+                        }
+
+                        // Nếu chưa hoàn thành, hiển thị dialog xác nhận
+                        final shouldPop = await _showExitConfirmation(context);
+                        if (shouldPop == true) {
+                          Navigator.of(context).pop();
+                        }
                       },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: primary2,
-                        foregroundColor: white,
-                        padding: EdgeInsets.symmetric(vertical: 12),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                      ),
-                      child: Text(
-                        'Nộp bài',
-                        style: styleMediumBold.copyWith(color: white),
-                      ),
                     ),
-                  );
-                },
-              ),
+                  ),
+                  backgroundColor: white,
+                  body: SafeArea(child: _buildBody()),
+                  bottomNavigationBar: ValueListenableBuilder<TestModel?>(
+                    valueListenable: _viewModel.test,
+                    builder: (context, test, _) {
+                      if (test?.isSuccess == true) {
+                        return SizedBox();
+                      }
+
+                      return Container(
+                        padding: const EdgeInsets.all(16.0),
+                        decoration: BoxDecoration(
+                          color: white,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.05),
+                              spreadRadius: 1,
+                              blurRadius: 5,
+                              offset: Offset(0, -1),
+                            ),
+                          ],
+                        ),
+                        child: ElevatedButton(
+                          onPressed: () {
+                            _showSubmitConfirmation(context);
+                          },
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: primary2,
+                            foregroundColor: white,
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text(
+                            'Nộp bài',
+                            style: styleMediumBold.copyWith(color: white),
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                );
+              },
             ),
           );
         });
+  }
+
+  // Hiển thị dialog thông báo nội quy kiểm tra
+  void _showTestRules(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        backgroundColor: white,
+        title: Text(
+          'Nội quy làm bài kiểm tra',
+          style: styleMediumBold.copyWith(color: primary2),
+          textAlign: TextAlign.center,
+        ),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildRuleItem(
+                '1. Không được rời khỏi màn hình làm bài trong quá trình kiểm tra.',
+                Icons.visibility_off_outlined,
+              ),
+              SizedBox(height: 12),
+              _buildRuleItem(
+                '2. Không được chuyển sang ứng dụng khác hoặc đóng ứng dụng.',
+                Icons.app_blocking_outlined,
+              ),
+              SizedBox(height: 12),
+              _buildRuleItem(
+                '3. Vi phạm 2 lần sẽ bị khóa bài kiểm tra và không được tiếp tục làm bài.',
+                Icons.warning_amber_outlined,
+              ),
+              SizedBox(height: 12),
+              _buildRuleItem(
+                '4. Kiểm tra các câu hỏi và trả lời cẩn thận trước khi nộp bài.',
+                Icons.check_circle_outline,
+              ),
+              SizedBox(height: 12),
+              _buildRuleItem(
+                '5. Bài làm sẽ tự động nộp khi hết thời gian quy định.',
+                Icons.timer_outlined,
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(),
+            child: Text(
+              'Tôi đã hiểu',
+              style: styleMediumBold.copyWith(color: primary2),
+            ),
+          ),
+        ],
+        actionsPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(16),
+        ),
+      ),
+    );
+  }
+
+  // Hiển thị dialog thông báo vi phạm quy định
+  void _showViolationDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => WidgetDialogConfirm(
+        title: 'Vi phạm quy định kiểm tra',
+        content:
+            'Bạn đã vi phạm quy định kiểm tra bằng cách rời khỏi ứng dụng quá lâu. Bài kiểm tra của bạn sẽ bị khóa.',
+        colorButtonAccept: error,
+        titleStyle: styleMediumBold.copyWith(color: error),
+        acceptOnly: true,
+        onTapConfirm: () {
+          Navigator.of(context).pop(); // Đóng dialog
+          if (Get.isRegistered<GroupDetailViewModel>()) {
+            Get.find<GroupDetailViewModel>().refreshTest();
+          }
+          Navigator.of(context).pop(); // Quay lại màn hình trước
+        },
+      ),
+    );
+  }
+
+  Widget _buildRuleItem(String text, IconData icon) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: primary2, size: 20),
+        SizedBox(width: 8),
+        Expanded(
+          child: Text(
+            text,
+            style: styleSmall.copyWith(color: grey2),
+          ),
+        ),
+      ],
+    );
   }
 
   Widget _buildBody() {
@@ -169,8 +290,7 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
                   builder: (context, test, _) {
                     if (test?.isSuccess == true) {
                       return Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                         decoration: BoxDecoration(
                           color: Colors.green.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(8),
@@ -179,8 +299,7 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
                         child: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.check_circle,
-                                color: Colors.green, size: 16),
+                            Icon(Icons.check_circle, color: Colors.green, size: 16),
                             SizedBox(width: 4),
                             Text(
                               'Đã hoàn thành',
@@ -210,13 +329,9 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
             const SizedBox(height: 16),
             Divider(color: Colors.grey[200]),
             const SizedBox(height: 12),
-
-            if (testDetail.expiredAt != null &&
-                !AppUtils.isExpired(testDetail.expiredAt))
+            if (testDetail.expiredAt != null && !AppUtils.isExpired(testDetail.expiredAt))
               _buildCountdownTimer(testDetail.expiredAt!),
-
             const SizedBox(height: 12),
-
             Row(
               children: [
                 Icon(Icons.access_time, size: 18, color: primary2),
@@ -283,8 +398,7 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
 
         final isWarning = difference.inMinutes < 5;
         final color = isWarning ? Colors.red : primary2;
-        final bgColor =
-            isWarning ? Colors.red.withOpacity(0.1) : primary2.withOpacity(0.1);
+        final bgColor = isWarning ? Colors.red.withOpacity(0.1) : primary2.withOpacity(0.1);
 
         return Container(
           width: double.infinity,
@@ -358,8 +472,7 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
                       ),
                       const SizedBox(height: 4),
                       Container(
-                        padding:
-                            EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: primary2.withOpacity(0.1),
                           borderRadius: BorderRadius.circular(4),
@@ -391,11 +504,9 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
     final questionId = question.id;
 
     if (question.type == 'SINGLE_CHOICE') {
-      return _buildSingleChoiceOptions(
-          questionId: questionId, options: options);
+      return _buildSingleChoiceOptions(questionId: questionId, options: options);
     } else if (question.type == 'MULTIPLE_CHOICE') {
-      return _buildMultipleChoiceOptions(
-          questionId: questionId, options: options);
+      return _buildMultipleChoiceOptions(questionId: questionId, options: options);
     }
 
     return const Text('Loại câu hỏi không được hỗ trợ');
@@ -405,13 +516,11 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
     return optionsStr.split(';');
   }
 
-  Widget _buildSingleChoiceOptions(
-      {String? questionId, required List<String> options}) {
+  Widget _buildSingleChoiceOptions({String? questionId, required List<String> options}) {
     return ValueListenableBuilder<List<AnswerModel>?>(
         valueListenable: _viewModel.selectedAnswers,
         builder: (context, selectedAnswers, _) {
-          final currentAnswer = selectedAnswers
-              ?.firstWhereOrNull((answer) => answer.questionId == questionId);
+          final currentAnswer = selectedAnswers?.firstWhereOrNull((answer) => answer.questionId == questionId);
           final String? selectedOption = currentAnswer?.answer;
 
           return ValueListenableBuilder<TestModel?>(
@@ -423,9 +532,8 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
                 return Column(
                   children: options.mapIndexed((index, option) {
                     final optionKey = option.split('.').first.trim();
-                    final optionText = option.split('.').length > 1
-                        ? option.substring(option.indexOf('.') + 1).trim()
-                        : option;
+                    final optionText =
+                        option.split('.').length > 1 ? option.substring(option.indexOf('.') + 1).trim() : option;
 
                     final isSelected = selectedOption == optionKey;
 
@@ -446,8 +554,7 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
                               TextSpan(
                                 text: optionKey + '. ',
                                 style: TextStyle(
-                                  color:
-                                      isSelected ? primary2 : Colors.grey[700],
+                                  color: isSelected ? primary2 : Colors.grey[700],
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -463,8 +570,7 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
                         value: optionKey,
                         groupValue: selectedOption,
                         activeColor: primary2,
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                         onChanged: isCompleted
                             ? null
                             : (value) {
@@ -483,16 +589,13 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
         });
   }
 
-  Widget _buildMultipleChoiceOptions(
-      {String? questionId, required List<String> options}) {
+  Widget _buildMultipleChoiceOptions({String? questionId, required List<String> options}) {
     return ValueListenableBuilder<List<AnswerModel>?>(
         valueListenable: _viewModel.selectedAnswers,
         builder: (context, selectedAnswers, _) {
-          final currentAnswer = selectedAnswers
-              ?.firstWhereOrNull((answer) => answer.questionId == questionId);
+          final currentAnswer = selectedAnswers?.firstWhereOrNull((answer) => answer.questionId == questionId);
 
-          final List<String> selectedOptions =
-              currentAnswer?.answer.split(',') ?? [];
+          final List<String> selectedOptions = currentAnswer?.answer.split(',') ?? [];
 
           return ValueListenableBuilder<TestModel?>(
               valueListenable: _viewModel.test,
@@ -503,9 +606,8 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
                 return Column(
                   children: options.mapIndexed((index, option) {
                     final optionKey = option.split('.').first.trim();
-                    final optionText = option.split('.').length > 1
-                        ? option.substring(option.indexOf('.') + 1).trim()
-                        : option;
+                    final optionText =
+                        option.split('.').length > 1 ? option.substring(option.indexOf('.') + 1).trim() : option;
 
                     final isSelected = selectedOptions.contains(optionKey);
 
@@ -526,8 +628,7 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
                               TextSpan(
                                 text: optionKey + '. ',
                                 style: TextStyle(
-                                  color:
-                                      isSelected ? primary2 : Colors.grey[700],
+                                  color: isSelected ? primary2 : Colors.grey[700],
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -543,15 +644,13 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
                         value: selectedOptions.contains(optionKey),
                         activeColor: primary2,
                         checkColor: white,
-                        contentPadding:
-                            EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                        contentPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                         onChanged: isCompleted
                             ? null
                             : (bool? value) {
                                 if (value == null) return;
 
-                                List<String> newSelections =
-                                    List.from(selectedOptions);
+                                List<String> newSelections = List.from(selectedOptions);
 
                                 if (value) {
                                   if (!newSelections.contains(optionKey)) {
@@ -577,123 +676,36 @@ class _TestDetailScreenState extends State<TestDetailScreen> {
   void _showSubmitConfirmation(BuildContext context) {
     showDialog(
       context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          backgroundColor: white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            'Xác nhận nộp bài',
-            style: styleMediumBold.copyWith(color: primary2),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Bạn có chắc chắn muốn nộp bài kiểm tra này?',
-                style: styleSmall.copyWith(color: grey2),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Sau khi nộp bài, bạn sẽ không thể chỉnh sửa đáp án.',
-                style: styleSmall.copyWith(color: grey3),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-              },
-              child: Text(
-                'Hủy',
-                style: styleSmall.copyWith(color: grey3),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop();
-                _viewModel.submitTest(context);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primary2,
-                foregroundColor: white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                'Xác nhận nộp',
-                style: styleSmall.copyWith(color: white),
-              ),
-            ),
-          ],
-        );
-      },
+      builder: (context) => WidgetDialogConfirm(
+        title: 'Xác nhận nộp bài',
+        content: 'Bạn chắc chắn muốn nộp bài kiểm tra? Hãy kiểm tra lại các câu trả lời trước khi nộp.',
+        onTapConfirm: () {
+          Navigator.of(context).pop();
+          _viewModel.submitTest(context);
+        },
+        colorButtonAccept: success,
+        onTapCancel: () => Navigator.of(context).pop(),
+        titleStyle: styleMediumBold.copyWith(color: primary2),
+      ),
     );
   }
 
   Future<bool?> _showExitConfirmation(BuildContext context) async {
-    return await showDialog<bool>(
+    return showDialog<bool>(
       context: context,
-      builder: (BuildContext dialogContext) {
-        return AlertDialog(
-          backgroundColor: white,
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(16),
-          ),
-          title: Text(
-            'Xác nhận thoát',
-            style: styleMediumBold.copyWith(color: primary2),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Bạn có chắc chắn muốn thoát khỏi bài kiểm tra?',
-                style: styleSmall.copyWith(color: grey2),
-              ),
-              SizedBox(height: 8),
-              Text(
-                'Hệ thống sẽ tự động nộp bài với các câu trả lời hiện tại của bạn.',
-                style: styleSmall.copyWith(color: grey3),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(false);
-              },
-              child: Text(
-                'Hủy',
-                style: styleSmall.copyWith(color: grey3),
-              ),
-            ),
-            ElevatedButton(
-              onPressed: () {
-                Navigator.of(dialogContext).pop(true);
-                // Nộp bài khi người dùng thoát
-                _viewModel.submitTest(context);
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: primary2,
-                foregroundColor: white,
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                ),
-              ),
-              child: Text(
-                'Xác nhận thoát',
-                style: styleSmall.copyWith(color: white),
-              ),
-            ),
-          ],
-        );
-      },
+      builder: (context) => WidgetDialogConfirm(
+        title: 'Xác nhận thoát',
+        content: 'Bạn chưa hoàn thành bài kiểm tra. Nếu thoát bây giờ, quá trình làm bài sẽ không được lưu.',
+        onTapConfirm: () {
+          if (Get.isRegistered<GroupDetailViewModel>()) {
+            Get.find<GroupDetailViewModel>().refreshTest();
+          }
+          Navigator.of(context).pop(true);
+        },
+        colorButtonAccept: error,
+        onTapCancel: () => Navigator.of(context).pop(false),
+        titleStyle: styleMediumBold.copyWith(color: primary2),
+      ),
     );
   }
 }

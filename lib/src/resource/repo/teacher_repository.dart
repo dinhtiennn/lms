@@ -26,14 +26,14 @@ class TeacherRepository {
           status: response.statusCode ?? AppEndpoint.success,
           successCode: response.data['code'] == 0,
           result: TeacherModel.fromJson(response.data['result']),
-          message: response.data['message']
-      );
+          message: response.data['message']);
     } catch (e) {
       return NetworkState.withError(e);
     }
   }
 
-  Future<NetworkState> updateAvatar({required String id, required XFile avatar}) async {
+  Future<NetworkState> updateAvatar(
+      {required String id, required XFile avatar}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 

@@ -5,8 +5,6 @@ import 'package:get/get.dart';
 import 'package:lms/src/presentation/presentation.dart';
 import 'package:lms/src/resource/model/model.dart' as app_model;
 import 'package:lms/src/resource/resource.dart';
-import 'package:lms/src/resource/websocket_stomp/websocket_stomp.dart';
-import 'package:lms/src/resource/websocket_stomp/websocket_stomp_service.dart';
 import 'package:lms/src/utils/app_utils.dart';
 
 class NotificationViewModel extends BaseViewModel with StompListener {

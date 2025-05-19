@@ -3,10 +3,12 @@ import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:lms/src/configs/configs.dart';
 import 'package:lms/src/presentation/presentation.dart';
+import 'package:lms/src/presentation/teacher_presentation/chat_box_teacher/show_create_chat_bottom_sheet.dart';
 import 'package:lms/src/resource/model/chat_box_model.dart';
 import 'package:lms/src/resource/model/teacher_model.dart';
 import 'package:lms/src/utils/app_prefs.dart';
 import 'package:lms/src/utils/app_utils.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
 
 class ChatBoxTeacherScreen extends StatefulWidget {
   const ChatBoxTeacherScreen({Key? key}) : super(key: key);
@@ -36,12 +38,23 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
             appBar: AppBar(
               title: Text(
                 'Tin nhắn',
-                style: styleLargeBold.copyWith(color: white),
+                style: TextStyle(color: white),
               ),
               backgroundColor: primary2,
               centerTitle: true,
               elevation: 0,
               actions: [
+                IconButton(
+                  icon: Icon(Icons.add, color: white),
+                  onPressed: () {
+                    setState(() {
+                      _viewModel.chatNameController.clear();
+                      _viewModel.searchResults.value = [];
+                      _viewModel.selectedUsers.value = [];
+                      showCreateChatBottomSheet(context, _viewModel);
+                    });
+                  },
+                ),
                 IconButton(
                   icon: const Icon(Icons.refresh, color: white),
                   onPressed: _viewModel.refreshChatBoxs,
@@ -49,73 +62,31 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
                 ),
               ],
             ),
-            body: SafeArea(child: _buildBody()),
+            body: Column(
+              children: [
+                Expanded(
+                  child: _buildChatList(),
+                ),
+              ],
+            ),
             backgroundColor: white,
           );
         });
   }
 
-  Widget _buildBody() {
-    return Column(
-      children: [
-        _buildSearchBar(),
-        Expanded(
-          child: _buildChatList(),
-        ),
-      ],
-    );
-  }
-
-  Widget _buildSearchBar() {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-      color: primary2.withOpacity(0.05),
-      child: Row(
-        children: [
-          Expanded(
-            child: Container(
-              height: 40,
-              decoration: BoxDecoration(
-                color: white,
-                borderRadius: BorderRadius.circular(20),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.grey.withOpacity(0.2),
-                    spreadRadius: 1,
-                    blurRadius: 2,
-                    offset: const Offset(0, 1),
-                  ),
-                ],
-              ),
-              child: TextField(
-                decoration: InputDecoration(
-                  hintText: 'Tìm kiếm cuộc trò chuyện...',
-                  hintStyle: styleSmall.copyWith(color: grey1),
-                  prefixIcon: Icon(Icons.search, color: grey1),
-                  border: InputBorder.none,
-                  contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                ),
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildChatList() {
     return ValueListenableBuilder<List<ChatBoxModel>?>(
-      valueListenable: _viewModel.chatboxs,
-      builder: (context, chatboxs, child) {
-        if (chatboxs == null) {
+      valueListenable: _viewModel.chatboxes,
+      builder: (context, chatboxes, child) {
+        if (chatboxes == null) {
           return const Center(
-              child: CircularProgressIndicator(
-            valueColor: AlwaysStoppedAnimation<Color>(primary2),
-          ));
+            child: CircularProgressIndicator(
+              valueColor: AlwaysStoppedAnimation<Color>(primary2),
+            ),
+          );
         }
-
-        if (chatboxs.isEmpty) {
-          return _buildEmptyState();
+        if (chatboxes.isEmpty) {
+          return Container(color: white, child: _buildEmptyState());
         }
 
         return RefreshIndicator(
@@ -124,13 +95,13 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
           child: ListView.builder(
             controller: _viewModel.scrollController,
             padding: const EdgeInsets.symmetric(vertical: 8),
-            itemCount: chatboxs.length + 1,
+            itemCount: chatboxes.length + 1,
             itemBuilder: (context, index) {
-              if (index == chatboxs.length) {
+              if (index == chatboxes.length) {
                 return _buildLoadMoreIndicator();
               }
 
-              return _buildChatBoxItem(chatboxs[index]);
+              return _buildChatBoxItem(chatboxes[index]);
             },
           ),
         );
@@ -165,19 +136,6 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
             'Hãy bắt đầu trò chuyện mới',
             style: styleSmall.copyWith(color: grey1),
           ),
-          const SizedBox(height: 24),
-          ElevatedButton(
-            onPressed: _viewModel.refreshChatBoxs,
-            style: ElevatedButton.styleFrom(
-              backgroundColor: primary2,
-              foregroundColor: white,
-              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(8),
-              ),
-            ),
-            child: const Text('Làm mới'),
-          ),
         ],
       ),
     );
@@ -185,10 +143,9 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
 
   Widget _buildLoadMoreIndicator() {
     return ValueListenableBuilder<bool>(
-      valueListenable:
-          ValueNotifier(_viewModel.isLoading && _viewModel.hasMoreData),
+      valueListenable: _viewModel.isLoading,
       builder: (context, isLoading, child) {
-        if (isLoading) {
+        if (isLoading && _viewModel.hasMoreData) {
           return Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
             alignment: Alignment.center,
@@ -222,8 +179,7 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
 
   Widget _buildChatBoxItem(ChatBoxModel chatBox) {
     final DateTime? lastMessageTime = chatBox.lastMessageAt;
-    final String timeDisplay =
-        lastMessageTime != null ? _formatMessageTime(lastMessageTime) : '';
+    final String timeDisplay = lastMessageTime != null ? _formatMessageTime(lastMessageTime) : '';
 
     final String displayName = chatBox.name ?? 'Chat không tên';
 
@@ -232,29 +188,25 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
     final int memberCount = chatBox.memberAccountUsernames?.length ?? 0;
 
     final String lastMessageBy = chatBox.lastMessageBy ?? '';
-    final bool isOwnMessage = lastMessageBy.isNotEmpty &&
-        lastMessageBy ==
-            AppPrefs.getUser<TeacherModel>(TeacherModel.fromJson)?.email;
+    final bool isOwnMessage =
+        lastMessageBy.isNotEmpty && lastMessageBy == AppPrefs.getUser<TeacherModel>(TeacherModel.fromJson)?.email;
 
     return Card(
-      color: primary2.withOpacity(0.1),
+      color: white,
       margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-      elevation: 0,
+      elevation: 1,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(12),
-        side: BorderSide(color: grey0, width: 1),
       ),
       child: InkWell(
         borderRadius: BorderRadius.circular(12),
-        onTap: () {
-          Get.toNamed(Routers.chatBoxDetailTeacher, arguments: {'chatBox': chatBox});
-        },
+        onTap: () => _viewModel.goToDetail(chatBox),
         child: Padding(
           padding: const EdgeInsets.all(12),
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _buildAvatar(isGroup, memberCount),
+              _buildAvatar(isGroup, memberCount, displayName),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -274,7 +226,7 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
                         ),
                         Text(
                           timeDisplay,
-                          style: styleVerySmall.copyWith(color: grey1),
+                          style: styleVerySmall.copyWith(color: grey2),
                         ),
                       ],
                     ),
@@ -307,7 +259,7 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
     );
   }
 
-  Widget _buildAvatar(bool isGroup, int memberCount) {
+  Widget _buildAvatar(bool isGroup, int memberCount, String displayName) {
     if (isGroup) {
       return Stack(
         children: [
@@ -354,10 +306,14 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
           color: primary2.withOpacity(0.1),
           shape: BoxShape.circle,
         ),
-        child: const Icon(
-          Icons.person,
-          color: primary2,
-          size: 24,
+        alignment: Alignment.center,
+        child: Text(
+          displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
+          style: const TextStyle(
+            color: primary2,
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+          ),
         ),
       );
     }
@@ -367,13 +323,9 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
     final now = DateTime.now();
     final localDateTime = dateTime.toLocal();
 
-    if (localDateTime.year == now.year &&
-        localDateTime.month == now.month &&
-        localDateTime.day == now.day) {
+    if (localDateTime.year == now.year && localDateTime.month == now.month && localDateTime.day == now.day) {
       return DateFormat('HH:mm').format(localDateTime);
-    } else if (localDateTime.year == now.year &&
-        localDateTime.month == now.month &&
-        localDateTime.day == now.day - 1) {
+    } else if (localDateTime.year == now.year && localDateTime.month == now.month && localDateTime.day == now.day - 1) {
       return 'Hôm qua';
     } else if (now.difference(localDateTime).inDays < 7) {
       return DateFormat('E').format(localDateTime);

@@ -5,10 +5,8 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:get/get.dart';
-import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:lms/src/presentation/presentation.dart';
-import 'package:lms/src/resource/enum/course_enum.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -72,7 +70,9 @@ class AppUtils {
   }
 
   static void toast(String? message,
-      {Duration? duration, NotificationPosition? notificationPosition, CustomToastType type = CustomToastType.error}) {
+      {Duration? duration,
+      NotificationPosition? notificationPosition,
+      CustomToastType type = CustomToastType.error}) {
     if (message == null) return;
     showOverlayNotification(
       (context) {
@@ -88,7 +88,8 @@ class AppUtils {
 
   static const List<String> _themes = ['dark', 'light'];
 
-  static dynamic valueByMode({List<String> themes = _themes, required List<dynamic> values}) {
+  static dynamic valueByMode(
+      {List<String> themes = _themes, required List<dynamic> values}) {
     try {
       for (int i = 0; i < themes.length; i++) {
         if (AppPrefs.appMode == themes[i]) {
@@ -127,23 +128,27 @@ class AppUtils {
     //server không nhận pram nên truyền cũng không ảnh hưởng
     // Tạo số ngẫu nhiên và thêm vào URL
     var random = Random();
-    int randomNumber = random.nextInt(1000000); // Tạo số ngẫu nhiên từ 0 đến 999999
+    int randomNumber =
+        random.nextInt(1000000); // Tạo số ngẫu nhiên từ 0 đến 999999
     url = '$url?a=$randomNumber';
     return url;
   }
 
-  static String convertDateTime2String(DateTime? dateTime, {String format = 'yy-MM-dd'}) {
+  static String convertDateTime2String(DateTime? dateTime,
+      {String format = 'yy-MM-dd'}) {
     if (dateTime == null) return "";
     return DateFormat(format).format(dateTime);
   }
 
-  static DateTime? convertString2DateTime(String? dateTime, {String format = "yyyy-MM-ddTHH:mm:ss.SSSZ"}) {
+  static DateTime? convertString2DateTime(String? dateTime,
+      {String format = "yyyy-MM-ddTHH:mm:ss.SSSZ"}) {
     if (dateTime == null) return null;
     return DateFormat(format).parse(dateTime);
   }
 
   static String convertString2String(String? dateTime,
-      {String inputFormat = "yyyy-MM-ddTHH:mm:ss.SSSZ", String outputFormat = "yyyy-MM-dd"}) {
+      {String inputFormat = "yyyy-MM-ddTHH:mm:ss.SSSZ",
+      String outputFormat = "yyyy-MM-dd"}) {
     if (dateTime == null) return "";
     final input = convertString2DateTime(dateTime, format: inputFormat);
     return convertDateTime2String(input, format: outputFormat);
@@ -161,7 +166,9 @@ class AppUtils {
   static String convertPrice(price, {bool isCurrency = true}) {
     String result = "";
     try {
-      result = isCurrency ? "${NumberFormat(",###", "vi").format(price)}đ" : NumberFormat(",###", "vi").format(price);
+      result = isCurrency
+          ? "${NumberFormat(",###", "vi").format(price)}đ"
+          : NumberFormat(",###", "vi").format(price);
     } catch (e) {}
     return result;
   }

@@ -212,58 +212,157 @@ void showEditBottomSheet(
                     ),
                     const SizedBox(height: 16),
 
-                    // Trạng thái khóa học
-                    ValueListenableBuilder<StatusOption?>(
-                      valueListenable: viewModel.statusSelected,
-                      builder: (context, selectedStatus, child) {
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Padding(
-                              padding: const EdgeInsets.only(left: 12.0),
-                              child: Text(
-                                'Trạng thái khóa học',
-                                style: styleSmall.copyWith(color: grey2),
-                              ),
+                    // Loại phí khóa học
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Padding(
+                          padding: const EdgeInsets.only(left: 12.0),
+                          child: Text(
+                            'Loại phí khóa học',
+                            style: styleSmall.copyWith(color: grey2),
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        GestureDetector(
+                          onTap: () =>
+                              showFeeTypeBottomSheet(context, viewModel),
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(
+                                horizontal: 16, vertical: 16),
+                            decoration: BoxDecoration(
+                              border: Border.all(color: grey5),
+                              borderRadius: BorderRadius.circular(12),
                             ),
-                            const SizedBox(height: 8),
-                            GestureDetector(
-                              onTap: () =>
-                                  showStatusBottomSheet(context, viewModel),
-                              child: Container(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 16, vertical: 16),
-                                decoration: BoxDecoration(
-                                  border: Border.all(color: grey5),
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                child: Row(
-                                  mainAxisAlignment:
-                                      MainAxisAlignment.spaceBetween,
-                                  children: [
-                                    Expanded(
-                                      child: Text(
-                                        selectedStatus?.label ??
-                                            'Vui lòng chọn trạng thái khóa học',
-                                        style: styleSmall.copyWith(
-                                          color: selectedStatus != null
-                                              ? grey2
-                                              : grey4,
-                                        ),
-                                      ),
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                ValueListenableBuilder<FeeStatusOption?>(
+                                  valueListenable: viewModel.feeTypeSelected,
+                                  builder: (context, feeType, child) => Text(
+                                    feeType?.label ?? 'Vui lòng chọn loại phí',
+                                    style: styleSmall.copyWith(
+                                      color: feeType != null ? grey2 : grey4,
                                     ),
-                                    Icon(Icons.arrow_drop_down, color: grey2),
-                                  ],
+                                  ),
                                 ),
-                              ),
+                                Icon(Icons.arrow_drop_down, color: grey2),
+                              ],
                             ),
-                          ],
-                        );
-                      },
+                          ),
+                        ),
+                      ],
                     ),
                     const SizedBox(height: 16),
 
-                    // Ngày kết thúc
+                    // Hiển thị trường phù hợp dựa trên loại phí
+                    ValueListenableBuilder<FeeStatusOption?>(
+                      valueListenable: viewModel.feeTypeSelected,
+                      builder: (context, feeType, child) {
+                        if (feeType == null) {
+                          return const SizedBox.shrink();
+                        }
+
+                        // Nếu là khóa học có phí
+                        if (feeType.value == FeeStatusType.CHARGEABLE) {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              WidgetInput(
+                                controller: viewModel.priceController,
+                                titleText: 'Giá khóa học',
+                                style: styleSmall.copyWith(color: grey2),
+                                titleStyle: styleSmall.copyWith(color: grey2),
+                                suffix: Padding(
+                                  padding: const EdgeInsets.all(16.0),
+                                  child: Text(
+                                    '\$',
+                                    style: styleMediumBold.copyWith(
+                                        color: primary3),
+                                  ),
+                                ),
+                                borderRadius: BorderRadius.circular(12),
+                                textInputType: TextInputType.number,
+                                hintText: 'Nhập giá của khóa học',
+                                hintStyle: styleSmall.copyWith(color: grey4),
+                                validator: AppValid.validateRequireEnter(
+                                    titleValid: 'Vui lòng nhập giá khóa học'),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+                          );
+                        }
+                        // Nếu là khóa học miễn phí
+                        else {
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.only(left: 12.0),
+                                child: Text(
+                                  'Trạng thái khóa học',
+                                  style: styleSmall.copyWith(color: grey2),
+                                ),
+                              ),
+                              const SizedBox(height: 8),
+                              GestureDetector(
+                                onTap: () =>
+                                    showStatusBottomSheet(context, viewModel),
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 16, vertical: 16),
+                                  decoration: BoxDecoration(
+                                    border: Border.all(color: grey5),
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  child: Row(
+                                    mainAxisAlignment:
+                                        MainAxisAlignment.spaceBetween,
+                                    children: [
+                                      Expanded(
+                                        child: ValueListenableBuilder<
+                                            StatusOption?>(
+                                          valueListenable:
+                                              viewModel.statusSelected,
+                                          builder: (context, status, child) =>
+                                              Text(
+                                            status?.label ??
+                                                'Vui lòng chọn trạng thái khóa học',
+                                            style: styleSmall.copyWith(
+                                              color: status != null
+                                                  ? grey2
+                                                  : grey4,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      Icon(Icons.arrow_drop_down, color: grey2),
+                                    ],
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(height: 16),
+                            ],
+                          );
+                        }
+                      },
+                    ),
+
+                    WidgetInput(
+                      controller: viewModel.startDateController,
+                      titleText: 'Ngày bắt đầu',
+                      style: styleSmall.copyWith(color: grey2),
+                      titleStyle: styleSmall.copyWith(color: grey2),
+                      borderRadius: BorderRadius.circular(12),
+                      hintText: 'Chọn ngày bắt đầu',
+                      hintStyle: styleSmall.copyWith(color: grey4),
+                      readOnly: true,
+                      onTap: () => buildBottomSheetSelectDate(
+                          context, viewModel.startDateController),
+                      validator: AppValid.validateRequireEnter(
+                          titleValid: 'Vui lòng chọn ngày bắt đầu'),
+                    ),
+                    const SizedBox(height: 16),
                     WidgetInput(
                       controller: viewModel.endDateController,
                       titleText: 'Ngày kết thúc',
@@ -290,16 +389,9 @@ void showEditBottomSheet(
                         if (value == null || value.isEmpty) {
                           return null; // Không nhập ngày kết thúc thì hợp lệ
                         }
-
-                        final startDate = viewModel.course?.startDate;
-                        if (startDate == null) {
-                          return 'Vui lòng chọn ngày bắt đầu trước';
-                        }
-
-                        final formattedStartDate = AppUtils.formatDateToDDMMYYYY(startDate.toString());
-                        return AppValid.validateEndDate(formattedStartDate, value);
+                        return AppValid.validateEndDate(
+                            viewModel.startDateController.text, value);
                       },
-
                     ),
                     const SizedBox(height: 24),
 
@@ -358,5 +450,194 @@ void buildBottomSheetSelectDate(
     },
     currentTime: DateTime.now(),
     locale: picker.LocaleType.vi,
+  );
+}
+
+void showMajorBottomSheet(BuildContext context, List<MajorModel> majors,
+    CourseDetailTeacherViewModel viewModel) {
+  showModalBottomSheet(
+    useSafeArea: true,
+    context: context,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    backgroundColor: white,
+    builder: (context) => Container(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding:
+                EdgeInsets.only(bottom: MediaQuery.paddingOf(context).bottom),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: grey)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Chọn ngành học',
+                  style: styleMedium.copyWith(color: grey2),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView.builder(
+              itemCount: majors.length,
+              itemBuilder: (context, index) {
+                final major = majors[index];
+                return ListTile(
+                  title: Text(
+                    major.name ?? '',
+                    style: styleSmall.copyWith(color: grey2),
+                  ),
+                  onTap: () {
+                    viewModel.setMajor(major);
+                    Navigator.pop(context);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void showFeeTypeBottomSheet(
+    BuildContext context, CourseDetailTeacherViewModel viewModel) {
+  showModalBottomSheet(
+    useSafeArea: true,
+    context: context,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    backgroundColor: white,
+    builder: (context) => Container(
+      padding: EdgeInsets.all(16)
+          .copyWith(bottom: MediaQuery.paddingOf(context).bottom),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: grey)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Chọn loại phí khóa học',
+                  style: styleMedium.copyWith(color: grey2),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView.builder(
+              itemCount: viewModel.freeStatusOptions.length,
+              itemBuilder: (context, index) {
+                final feeType = viewModel.freeStatusOptions[index];
+                return ListTile(
+                  title: Text(
+                    feeType.label,
+                    style: styleSmall.copyWith(color: grey2),
+                  ),
+                  subtitle: Text(
+                    feeType.value == FeeStatusType.CHARGEABLE
+                        ? 'Khóa học có phí'
+                        : 'Khóa học miễn phí',
+                    style: styleVerySmall.copyWith(color: grey3),
+                  ),
+                  onTap: () {
+                    viewModel.feeTypeSelected.value = feeType;
+                    // Reset giá và trạng thái khi thay đổi loại phí
+                    if (feeType.value == FeeStatusType.CHARGEABLE) {
+                      viewModel.statusSelected.value = null;
+                    } else {
+                      viewModel.priceController.text = '';
+                    }
+                    Navigator.pop(context);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+void showStatusBottomSheet(
+    BuildContext context, CourseDetailTeacherViewModel viewModel) {
+  showModalBottomSheet(
+    useSafeArea: true,
+    context: context,
+    shape: const RoundedRectangleBorder(
+      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+    ),
+    backgroundColor: white,
+    builder: (context) => Container(
+      padding: EdgeInsets.all(16)
+          .copyWith(bottom: MediaQuery.paddingOf(context).bottom),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.only(bottom: 16),
+            decoration: BoxDecoration(
+              border: Border(bottom: BorderSide(color: grey)),
+            ),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  'Chọn trạng thái khóa học',
+                  style: styleMedium.copyWith(color: grey2),
+                ),
+                IconButton(
+                  icon: const Icon(Icons.close),
+                  onPressed: () => Navigator.pop(context),
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(height: 16),
+          Expanded(
+            child: ListView.builder(
+              itemCount: viewModel.statusOptions.length,
+              itemBuilder: (context, index) {
+                final status = viewModel.statusOptions[index];
+                return ListTile(
+                  title: Text(
+                    status.label,
+                    style: styleSmall.copyWith(color: grey2),
+                  ),
+                  onTap: () {
+                    viewModel.statusSelected.value = status;
+                    Navigator.pop(context);
+                  },
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    ),
   );
 }

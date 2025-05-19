@@ -11,10 +11,12 @@ class CreateCourseViewModel extends BaseViewModel {
   TextEditingController courseNameController = TextEditingController();
   TextEditingController courseDescriptionController = TextEditingController();
   TextEditingController startDateController = TextEditingController();
+  TextEditingController priceController = TextEditingController();
   TextEditingController endDateController = TextEditingController();
   ValueNotifier<List<MajorModel>?> majors = ValueNotifier(null);
   ValueNotifier<StatusOption?> statusSelected = ValueNotifier(StatusOption(Status.PUBLIC, 'Công khai', 'PUBLIC'));
   ValueNotifier<MajorModel?> majorSelected = ValueNotifier(null);
+  ValueNotifier<FeeStatusOption?> feeTypeSelected = ValueNotifier(null);
 
   //biến quản lý picker
   ImagePicker picker = ImagePicker();
@@ -22,6 +24,8 @@ class CreateCourseViewModel extends BaseViewModel {
 
   init() async {
     await _loadMajor();
+    // Mặc định chọn loại phí là CHARGEABLE
+    feeTypeSelected.value = freeStatusOptions[0];
   }
 
   void pickCourseImage() async {
@@ -40,27 +44,47 @@ class CreateCourseViewModel extends BaseViewModel {
     LearningDurationTypeOption(LearningDurationType.UNLIMITED, 'Không có thời hạn', 'UNLIMITED'),
   ];
 
+  List<FeeStatusOption> freeStatusOptions = [
+    FeeStatusOption(FeeStatusType.CHARGEABLE, 'Tính phí', 'CHARGEABLE'),
+    FeeStatusOption(FeeStatusType.NON_CHARGEABLE, 'Không tính phí', 'NON_CHARGEABLE'),
+  ];
+
   String getStatusLabel(Status status) => statusOptions.firstWhere((e) => e.value == status).label;
 
-  String getLearningDurationTypeLabel(LearningDurationType type) =>
+  String getLearningDurationTypeAPIValue(LearningDurationType type) =>
       learningDurationOptions.firstWhere((e) => e.value == type).apiValue;
 
+  String getFeeTypeAPIValue(FeeStatusType type) => freeStatusOptions.firstWhere((e) => e.value == type).apiValue;
+
   void addCourse() async {
-    String learningDurationTypeString = getLearningDurationTypeLabel(
+    if (statusSelected.value == null && priceController.text.isEmpty) {
+      showToast(title: 'Vui lòng chọn trạng thái khóa học', type: ToastificationType.warning);
+      return;
+    }
+
+    String learningDurationTypeString = getLearningDurationTypeAPIValue(
         endDateController.text.isEmpty ? LearningDurationType.UNLIMITED : LearningDurationType.LIMITED);
+
+    String feeTypeString = feeTypeSelected.value?.apiValue ??
+        getFeeTypeAPIValue(priceController.text.isEmpty ? FeeStatusType.NON_CHARGEABLE : FeeStatusType.CHARGEABLE);
     setLoading(false);
     if (majorSelected.value == null) {
       showToast(title: 'Vui lòng chọn ngành học');
       return;
     }
+
+    String? price = priceController.text.trim().replaceAll(',', '.');
+
     NetworkState<CourseModel> resultAddCourse = await courseRepository.addCourse(
       name: courseNameController.text,
       description: courseDescriptionController.text,
-      status: statusSelected.value?.apiValue,
+      status: statusSelected.value?.apiValue ?? StatusOption(Status.PUBLIC, 'Công khai', 'PUBLIC').apiValue,
       startDate: AppUtils.formatDateToISO(startDateController.text),
       endDate: AppUtils.formatDateToISO(endDateController.text),
       majorId: majorSelected.value?.id,
       learningDurationType: learningDurationTypeString,
+      feeType: feeTypeString,
+      price: price,
     );
     setLoading(false);
     if (resultAddCourse.isSuccess && resultAddCourse.result != null) {

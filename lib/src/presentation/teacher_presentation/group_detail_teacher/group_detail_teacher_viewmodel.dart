@@ -25,6 +25,12 @@ class GroupDetailTeacherViewModel extends BaseViewModel {
   TextEditingController keywordController = TextEditingController();
   ValueNotifier<List<StudentModel>?> studentsSearch = ValueNotifier(null);
 
+  // Controller cho chức năng chỉnh sửa bài kiểm tra
+  TextEditingController startDateController = TextEditingController();
+  TextEditingController startTimeController = TextEditingController();
+  TextEditingController expiredAtDateController = TextEditingController();
+  TextEditingController expiredAtTimeController = TextEditingController();
+
   final int pageSize = 20;
 
   int pageNumberPost = 0;
@@ -76,7 +82,8 @@ class GroupDetailTeacherViewModel extends BaseViewModel {
   void _onScrollPost() {
     if (!isLoadingPost &&
         hasMorePost &&
-        postScrollController.position.pixels >= postScrollController.position.maxScrollExtent - 300) {
+        postScrollController.position.pixels >=
+            postScrollController.position.maxScrollExtent - 300) {
       _loadPost();
     }
   }
@@ -84,7 +91,8 @@ class GroupDetailTeacherViewModel extends BaseViewModel {
   void _onScrollTest() {
     if (!isLoadingTest &&
         hasMoreTest &&
-        testScrollController.position.pixels >= testScrollController.position.maxScrollExtent - 300) {
+        testScrollController.position.pixels >=
+            testScrollController.position.maxScrollExtent - 300) {
       _loadTest();
     }
   }
@@ -92,7 +100,8 @@ class GroupDetailTeacherViewModel extends BaseViewModel {
   void _onScrollStudent() {
     if (!isLoadingStudent &&
         hasMoreStudent &&
-        studentScrollController.position.pixels >= studentScrollController.position.maxScrollExtent - 300) {
+        studentScrollController.position.pixels >=
+            studentScrollController.position.maxScrollExtent - 300) {
       _loadStudent();
     }
   }
@@ -110,7 +119,9 @@ class GroupDetailTeacherViewModel extends BaseViewModel {
 
   void createPost(BuildContext context) async {
     NetworkState<PostModel> resultPost = await groupRepository.createPost(
-        groupId: group.value?.id, text: descriptionPost.text, filesPicker: filesPicker.value);
+        groupId: group.value?.id,
+        text: descriptionPost.text,
+        filesPicker: filesPicker.value);
     if (resultPost.isSuccess && resultPost.result != null) {
       filesPicker.value = [];
       descriptionPost.text = '';
@@ -118,12 +129,14 @@ class GroupDetailTeacherViewModel extends BaseViewModel {
       hasMorePost = true;
       posts.value = [];
       await _loadPost();
-      showToast(title: 'Thêm bài đăng thành công!', type: ToastificationType.success);
+      showToast(
+          title: 'Thêm bài đăng thành công!', type: ToastificationType.success);
       if (context.mounted) {
         Navigator.pop(context);
       }
     } else {
-      showToast(title: 'Lỗi ${resultPost.message}', type: ToastificationType.error);
+      showToast(
+          title: 'Lỗi ${resultPost.message}', type: ToastificationType.error);
     }
   }
 
@@ -133,8 +146,11 @@ class GroupDetailTeacherViewModel extends BaseViewModel {
     isLoadingPost = true;
 
     try {
-      NetworkState<List<PostModel>> resultPosts = await groupRepository.getPosts(
-          groupId: group.value?.id ?? '', pageSize: pageSize, pageNumber: pageNumberPost);
+      NetworkState<List<PostModel>> resultPosts =
+          await groupRepository.getPosts(
+              groupId: group.value?.id ?? '',
+              pageSize: pageSize,
+              pageNumber: pageNumberPost);
 
       if (resultPosts.isSuccess && resultPosts.result != null) {
         if (resultPosts.result!.isEmpty) {
@@ -160,8 +176,11 @@ class GroupDetailTeacherViewModel extends BaseViewModel {
     isLoadingTest = true;
 
     try {
-      NetworkState<List<TestModel>> resultTests = await groupRepository.getTests(
-          groupId: group.value?.id ?? '', pageSize: pageSize, pageNumber: pageNumberTest);
+      NetworkState<List<TestModel>> resultTests =
+          await groupRepository.getTests(
+              groupId: group.value?.id ?? '',
+              pageSize: pageSize,
+              pageNumber: pageNumberTest);
 
       if (resultTests.isSuccess && resultTests.result != null) {
         if (resultTests.result!.isEmpty) {
@@ -187,8 +206,11 @@ class GroupDetailTeacherViewModel extends BaseViewModel {
     isLoadingStudent = true;
 
     try {
-      NetworkState<List<StudentModel>> resultStudents = await groupRepository.getStudents(
-          groupId: group.value?.id ?? '', pageSize: pageSize, pageNumber: pageNumberStudent);
+      NetworkState<List<StudentModel>> resultStudents =
+          await groupRepository.getStudents(
+              groupId: group.value?.id ?? '',
+              pageSize: pageSize,
+              pageNumber: pageNumberStudent);
 
       if (resultStudents.isSuccess && resultStudents.result != null) {
         if (resultStudents.result!.isEmpty) {
@@ -214,7 +236,8 @@ class GroupDetailTeacherViewModel extends BaseViewModel {
       showToast(title: 'Xóa post thành công', type: ToastificationType.success);
       refreshPost();
     } else {
-      showToast(title: 'Lỗi ${resultPosts.message}', type: ToastificationType.error);
+      showToast(
+          title: 'Lỗi ${resultPosts.message}', type: ToastificationType.error);
     }
   }
 
@@ -231,7 +254,8 @@ class GroupDetailTeacherViewModel extends BaseViewModel {
   }
 
   void removeSelectedStudent(StudentModel student) {
-    selectedStudents.value = selectedStudents.value.where((s) => s.id != student.id).toList();
+    selectedStudents.value =
+        selectedStudents.value.where((s) => s.id != student.id).toList();
     selectedStudents.notifyListeners();
   }
 
@@ -243,7 +267,8 @@ class GroupDetailTeacherViewModel extends BaseViewModel {
     }
 
     NetworkState<List<StudentModel>> resultSearchStudent =
-        await studentRepository.searchStudentNotInGroup(groupId: group.value?.id ?? '', keyword: keyword);
+        await studentRepository.searchStudentNotInGroup(
+            groupId: group.value?.id ?? '', keyword: keyword);
     if (resultSearchStudent.isSuccess && resultSearchStudent.result != null) {
       studentsSearch.value = resultSearchStudent.result;
       studentsSearch.notifyListeners();
@@ -262,34 +287,43 @@ class GroupDetailTeacherViewModel extends BaseViewModel {
     selectedStudents.value = [];
   }
 
-  void addAllStudentToGroup(BuildContext context, List<StudentModel> students) async {
-    NetworkState resultAddStudents =
-        await groupRepository.addStudents(groupId: group.value?.id ?? '', students: students);
+  void addAllStudentToGroup(
+      BuildContext context, List<StudentModel> students) async {
+    NetworkState resultAddStudents = await groupRepository.addStudents(
+        groupId: group.value?.id ?? '', students: students);
     if (resultAddStudents.isSuccess) {
       await refreshStudent();
-      showToast(title: 'Thêm sinh viên vào nhóm thành công', type: ToastificationType.success);
+      showToast(
+          title: 'Thêm sinh viên vào nhóm thành công',
+          type: ToastificationType.success);
       if (context.mounted) {
         Navigator.pop(context);
       }
     } else {
-      showToast(title: resultAddStudents.message ?? '', type: ToastificationType.error);
+      showToast(
+          title: resultAddStudents.message ?? '',
+          type: ToastificationType.error);
     }
   }
 
   void removeStudent({String? studentId, required BuildContext context}) async {
     setLoading(true);
-    NetworkState resultRemoveStudent =
-        await groupRepository.removeStudent(groupId: group.value?.id, studentId: studentId);
+    NetworkState resultRemoveStudent = await groupRepository.removeStudent(
+        groupId: group.value?.id, studentId: studentId);
     if (resultRemoveStudent.isSuccess) {
       setLoading(false);
       await refreshStudent();
       if (context.mounted) {
         Navigator.pop(context);
       }
-      showToast(title: 'Xóa sinh viên khỏi nhóm thành công', type: ToastificationType.success);
+      showToast(
+          title: 'Xóa sinh viên khỏi nhóm thành công',
+          type: ToastificationType.success);
     } else {
       setLoading(false);
-      showToast(title: resultRemoveStudent.message ?? '', type: ToastificationType.error);
+      showToast(
+          title: resultRemoveStudent.message ?? '',
+          type: ToastificationType.error);
     }
   }
 }

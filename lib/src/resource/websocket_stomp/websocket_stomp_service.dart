@@ -10,6 +10,7 @@ import 'package:logger/logger.dart';
 
 enum StompListenType {
   chatBox,
+  chatBoxCreate,
   comment,
   editComment,
   reply,
@@ -59,12 +60,12 @@ class StompService {
           onDisconnect: _onDisconnect,
           heartbeatIncoming: Duration(seconds: 5),
           heartbeatOutgoing: Duration(seconds: 5),
-          // stompConnectHeaders: {
-          //   'Authorization': 'Bearer ${AppPrefs.accessToken}'
-          // },
-          // webSocketConnectHeaders: {
-          //   'Authorization': 'Bearer ${AppPrefs.accessToken}'
-          // },
+          stompConnectHeaders: {
+            'Authorization': 'Bearer ${AppPrefs.accessToken}'
+          },
+          webSocketConnectHeaders: {
+            'Authorization': 'Bearer ${AppPrefs.accessToken}'
+          },
           useSockJS: true),
     );
 
@@ -76,6 +77,8 @@ class StompService {
     _subscribedDestinations.clear();
 
     for (var type in StompListenType.values) {
+      if (type == StompListenType.chatBox) continue;
+
       final destination = _getDestination(type);
       if (destination != null && !_subscribedDestinations.contains(destination)) {
         final unsubscribe = _client!.subscribe(
@@ -117,8 +120,14 @@ class StompService {
   void registerListener({
     required StompListenType type,
     required StompListener listener,
+    String? chatBoxId,
   }) {
-    // Use runtimeType and hashCode for more accurate instance comparison
+    // Kiểm tra nếu là kiểu chatBox nhưng không cung cấp chatBoxId
+    if (type == StompListenType.chatBox && chatBoxId == null) {
+      _logger.e("❌ Không thể đăng ký kênh chatBox mà không có chatBoxId");
+      return;
+    }
+
     final existingIndex =
         _listeners.indexWhere((e) => e.listener == listener && e.listener.runtimeType == listener.runtimeType);
 
@@ -132,7 +141,7 @@ class StompService {
     }
 
     // Rest of the method remains the same
-    final destination = _getDestination(type);
+    final destination = _getDestination(type, chatBoxId: chatBoxId);
     if (_client?.connected == true && destination != null && !_subscribedDestinations.contains(destination)) {
       final unsubscribe = _client!.subscribe(
         destination: destination,
@@ -165,7 +174,14 @@ class StompService {
   void unregisterListener({
     required StompListenType type,
     required StompListener listener,
+    String? chatBoxId,
   }) {
+    // Kiểm tra nếu là kiểu chatBox nhưng không cung cấp chatBoxId
+    if (type == StompListenType.chatBox && chatBoxId == null) {
+      _logger.e("❌ Không thể hủy đăng ký kênh chatBox mà không có chatBoxId");
+      return;
+    }
+
     final index = _listeners.indexWhere((e) => e.listener == listener);
     if (index == -1) return;
 
@@ -177,7 +193,7 @@ class StompService {
     }
 
     // Không hủy đăng ký khi còn listener khác đang nghe kênh đó
-    final destination = _getDestination(type);
+    final destination = _getDestination(type, chatBoxId: chatBoxId);
     final stillHasListener = _listeners.any((e) => e.events.contains(type));
     if (!stillHasListener && destination != null && _unsubscribeMap.containsKey(destination)) {
       _unsubscribeMap[destination]!();
@@ -212,10 +228,13 @@ class StompService {
       case StompListenType.notification:
         listener.onStompNotificationReceived(body);
         break;
+      case StompListenType.chatBoxCreate:
+        listener.onStompChatBoxCreateReceived(body);
+        break;
     }
   }
 
-  String? _getDestination(StompListenType type) {
+  String? _getDestination(StompListenType type, {String? chatBoxId}) {
     String? userName;
     if (AppPrefs.getUser<StudentModel>(StudentModel.fromJson) != null) {
       StudentModel? studentModel = AppPrefs.getUser<StudentModel>(StudentModel.fromJson);
@@ -234,9 +253,11 @@ class StompService {
       case StompListenType.editReply:
         return "/topic/comment-replies";
       case StompListenType.chatBox:
-        return "";
+        return chatBoxId != null ? "/topic/chatbox/$chatBoxId" : null;
       case StompListenType.notification:
         return "/topic/notifications/$userName";
+      case StompListenType.chatBoxCreate:
+        return "/topic/chatbox/${userName}/created";
     }
   }
 
@@ -251,9 +272,11 @@ class StompService {
       case StompListenType.editReply:
         return "/app/comment-reply/update";
       case StompListenType.chatBox:
-        return "";
+        return "/app/chat/sendMessage";
       case StompListenType.notification:
         return "";
+      case StompListenType.chatBoxCreate:
+        return "/app/chat/create";
     }
   }
 
@@ -274,7 +297,7 @@ class StompService {
       final result = await StudentRepository().myInfo();
       if (result.isSuccess) {
         _logger.i("✅ Refresh token thành công, reconnect STOMP");
-        reconnect();
+        // reconnect();
       } else {
         _logger.e("❌ Không thể refresh token. Đăng xuất.");
         forceLogout();

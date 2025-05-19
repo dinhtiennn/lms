@@ -21,3 +21,5 @@ export 'test_result/test_result.dart';
 export 'notification/notification.dart';
 export 'notification_detail/notification_detail.dart';
 export 'document_detail/document_detail.dart';
+export 'chat_detail/chat_detail.dart';
+export 'payment/payment_webview_screen.dart';

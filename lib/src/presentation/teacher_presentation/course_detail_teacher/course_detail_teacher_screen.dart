@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:intl/intl.dart';
 import 'package:lms/src/configs/configs.dart';
 import 'package:lms/src/presentation/presentation.dart';
 import 'package:lms/src/resource/resource.dart';
@@ -17,6 +18,22 @@ class CourseDetailTeacherScreen extends StatefulWidget {
 
 class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
   late CourseDetailTeacherViewModel _viewModel;
+
+  String _formatDate(DateTime? date) {
+    if (date == null) return 'N/A';
+    return DateFormat('dd/MM/yyyy').format(date);
+  }
+
+  String _getLearningDurationLabel(String? type) {
+    switch (type) {
+      case 'LIMITED':
+        return 'Giới hạn thời gian';
+      case 'UNLIMITED':
+        return 'Không giới hạn';
+      default:
+        return type ?? 'N/A';
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,6 +84,9 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                             case 'add_students':
                               showAddStudentBottomSheet(
                                   popupContext, _viewModel);
+                              break;
+                            case 'remove_course':
+                              _showDialogRemoveCourse(popupContext);
                               break;
                           }
                         });
@@ -132,6 +152,21 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                                 ],
                               ),
                             ),
+                          PopupMenuItem(
+                            value: 'remove_course',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete_outline, color: error),
+                                SizedBox(width: 8),
+                                Expanded(
+                                  child: Text(
+                                    'Xóa khóa học',
+                                    style: styleSmall.copyWith(color: error),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
                         ];
                       },
                     );
@@ -212,7 +247,15 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                     course?.name ?? '',
                     style: styleLargeBold.copyWith(color: black),
                   ),
-                  const SizedBox(height: 8),
+                  const SizedBox(height: 16),
+
+                  // Thông tin chi tiết khóa học (phí và thời gian)
+                  _buildCourseHighlights(course: course),
+                  const SizedBox(height: 24),
+
+                  // Thống kê tổng quan
+                  _buildStatsSummary(course: course),
+                  const SizedBox(height: 24),
 
                   // Ngành học
                   Row(
@@ -227,26 +270,11 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 4),
-
-                  // Thời gian học
-                  Row(
-                    children: [
-                      Icon(Icons.access_time, color: grey2, size: 16),
-                      const SizedBox(width: 4),
-                      Expanded(
-                        child: Text(
-                          'Thời gian: ${AppUtils.getLearningDurationTypeLabel(course?.learningDurationType ?? '')}',
-                          style: styleSmall.copyWith(color: grey2),
-                        ),
-                      ),
-                    ],
-                  ),
                   const SizedBox(height: 16),
 
                   // Mô tả khóa học
                   Text(
-                    'Mô tả khóa học khóa học',
+                    'Mô tả khóa học',
                     style: styleMediumBold.copyWith(color: black),
                   ),
                   const SizedBox(height: 8),
@@ -303,6 +331,170 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildCourseHighlights({CourseDetailModel? course}) {
+    final bool isChargeable = course?.feeType == 'CHARGEABLE';
+    final bool isLimited = course?.learningDurationType == 'LIMITED';
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withAlpha((255 * 0.1).round()),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Loại phí
+          Row(
+            children: [
+              Icon(
+                isChargeable ? Icons.attach_money : Icons.money_off,
+                color: isChargeable ? primary2 : Colors.green,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    isChargeable ? 'Khóa học tính phí' : 'Khóa học miễn phí',
+                    style: styleMediumBold.copyWith(
+                      color: isChargeable ? primary2 : Colors.green,
+                    ),
+                  ),
+                  if (isChargeable && course?.price != null)
+                    Text(
+                    '${course!.price ?? ''}\$',
+                      style: styleSmall.copyWith(
+                        color: isChargeable ? primary2 : Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                ],
+              ),
+            ],
+          ),
+          const SizedBox(height: 16),
+          const Divider(height: 1),
+          const SizedBox(height: 16),
+          // Thời gian học
+          Row(
+            children: [
+              Icon(
+                isLimited ? Icons.timer : Icons.all_inclusive,
+                color: grey2,
+                size: 24,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      _getLearningDurationLabel(course?.learningDurationType),
+                      style: styleMediumBold.copyWith(color: grey2),
+                    ),
+                    if (isLimited &&
+                        (course?.startDate != null || course?.endDate != null))
+                      Text(
+                        course?.startDate != null && course?.endDate != null
+                            ? 'Thời gian: ${_formatDate(course?.startDate)} - ${_formatDate(course?.endDate)}'
+                            : course?.startDate != null
+                                ? 'Bắt đầu: ${_formatDate(course?.startDate)}'
+                                : 'Kết thúc: ${_formatDate(course?.endDate)}',
+                        style: styleSmall.copyWith(color: grey3),
+                      ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatsSummary({CourseDetailModel? course}) {
+    // Tính toán số lượng chương học từ danh sách bài học
+    int totalChapters = 0;
+    if (course?.lesson != null) {
+      for (var lesson in course!.lesson!) {
+        totalChapters += lesson.chapters?.length ?? 0;
+      }
+    }
+
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.grey.withAlpha((255 * 0.1).round()),
+            spreadRadius: 1,
+            blurRadius: 4,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildStatItem(
+              Icons.book_outlined, '${course?.lesson?.length ?? 0}', 'Bài học'),
+          _buildVerticalDivider(),
+          _buildStatItem(
+              Icons.menu_book_outlined, '$totalChapters', 'Chương học'),
+          if (course?.status?.isNotEmpty == true) ...[
+            _buildVerticalDivider(),
+            _buildStatItem(
+              course?.status == 'PUBLIC' ? Icons.public : Icons.lock_outlined,
+              course?.status ?? '',
+              'Trạng thái',
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStatItem(IconData icon, String value, String label) {
+    return Column(
+      children: [
+        Row(
+          children: [
+            Icon(icon, color: primary3, size: 18),
+            const SizedBox(width: 4),
+            Text(
+              value,
+              style: styleMediumBold.copyWith(color: primary3),
+            ),
+          ],
+        ),
+        const SizedBox(height: 4),
+        Text(
+          label,
+          style: styleSmall.copyWith(color: grey2),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVerticalDivider() {
+    return Container(
+      height: 40,
+      width: 1,
+      color: grey.withAlpha(255 * (0.3).round()),
     );
   }
 
@@ -528,6 +720,22 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
       builder: (context) {
         return commentWidget;
       },
+    );
+  }
+
+  void _showDialogRemoveCourse(BuildContext popupContext) {
+    showDialog(
+      context: context,
+      builder: (context) => WidgetDialogConfirm(
+        titleStyle: styleMediumBold.copyWith(color: error),
+        colorButtonAccept: error,
+        title: 'Xóa khóa học',
+        onTapConfirm: () {
+          _viewModel.removeCourse();
+          Navigator.pop(context);
+        },
+        content: 'Xác nhận xóa khóa học',
+      ),
     );
   }
 }

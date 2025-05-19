@@ -7,7 +7,6 @@ import 'package:lms/src/resource/model/model.dart';
 import 'package:lms/src/utils/app_clients.dart';
 import 'package:lms/src/utils/app_valid.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
-import 'package:logger/logger.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:permission_handler/permission_handler.dart';
 import 'package:toastification/toastification.dart';
@@ -17,13 +16,17 @@ class GroupDetailTeacherScreen extends StatefulWidget {
   const GroupDetailTeacherScreen({Key? key}) : super(key: key);
 
   @override
-  State<GroupDetailTeacherScreen> createState() => _GroupDetailTeacherScreenState();
+  State<GroupDetailTeacherScreen> createState() =>
+      _GroupDetailTeacherScreenState();
 }
 
 class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
   late GroupDetailTeacherViewModel _viewModel;
   int _selectedIndex = 0;
   late List<Widget> _widgetOptions = [];
+
+  // Định nghĩa màu grey1 để sử dụng trong giao diện
+  final Color grey1 = Colors.grey.shade400;
 
   void _onItemTapped(int index) {
     setState(() {
@@ -90,7 +93,6 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
   }
 
   Widget _buildBody() {
-
     _widgetOptions = [
       listPost(),
       listTest(),
@@ -132,7 +134,8 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
                       ),
                     ),
                   ),
-                  Text('Tạo bài đăng mới', style: styleLargeBold.copyWith(color: primary2)),
+                  Text('Tạo bài đăng mới',
+                      style: styleLargeBold.copyWith(color: primary2)),
                   const SizedBox(height: 16),
                   WidgetInput(
                       controller: _viewModel.descriptionPost,
@@ -141,9 +144,11 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
                       titleStyle: styleSmall.copyWith(color: grey2),
                       style: styleSmall.copyWith(color: grey2),
                       maxLines: 5,
-                      validator: AppValid.validateRequireEnter(titleValid: 'Vui lòng nhập nội dung')),
+                      validator: AppValid.validateRequireEnter(
+                          titleValid: 'Vui lòng nhập nội dung')),
                   const SizedBox(height: 16),
-                  Text('Tệp đính kèm', style: styleMediumBold.copyWith(color: grey3)),
+                  Text('Tệp đính kèm',
+                      style: styleMediumBold.copyWith(color: grey3)),
                   const SizedBox(height: 8),
                   ValueListenableBuilder<List<File>>(
                     valueListenable: _viewModel.filesPicker,
@@ -163,7 +168,8 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
                               )),
                           ActionChip(
                             avatar: const Icon(Icons.attach_file),
-                            label: Text('Chọn tệp', style: styleVerySmall.copyWith(color: white)),
+                            label: Text('Chọn tệp',
+                                style: styleVerySmall.copyWith(color: white)),
                             side: BorderSide.none,
                             onPressed: _viewModel.pickFiles,
                           ),
@@ -179,24 +185,29 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
                           onPressed: () => Navigator.of(context).pop(),
                           style: OutlinedButton.styleFrom(
                             side: BorderSide(color: grey3),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                           ),
-                          child: Text('Đóng', style: styleMediumBold.copyWith(color: grey3)),
+                          child: Text('Đóng',
+                              style: styleMediumBold.copyWith(color: grey3)),
                         ),
                       ),
                       const SizedBox(width: 16),
                       Expanded(
                         child: ElevatedButton(
                           onPressed: () {
-                            if (_viewModel.formKey.currentState?.validate() ?? false) {
+                            if (_viewModel.formKey.currentState?.validate() ??
+                                false) {
                               _viewModel.createPost(context);
                             }
                           },
                           style: ElevatedButton.styleFrom(
                             backgroundColor: primary2,
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(12)),
                           ),
-                          child: Text('Đăng bài', style: styleMediumBold.copyWith(color: white)),
+                          child: Text('Đăng bài',
+                              style: styleMediumBold.copyWith(color: white)),
                         ),
                       ),
                     ],
@@ -220,7 +231,8 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
       ),
       builder: (context) {
         return Padding(
-          padding: EdgeInsets.symmetric(vertical: 24).copyWith(bottom: MediaQuery.paddingOf(context).bottom),
+          padding: EdgeInsets.symmetric(vertical: 24)
+              .copyWith(bottom: MediaQuery.paddingOf(context).bottom),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -310,7 +322,8 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
             physics: const AlwaysScrollableScrollPhysics(),
             controller: _viewModel.postScrollController,
             padding: const EdgeInsets.all(16),
-            itemCount: postsList.length + (_viewModel.isLoadingPost && _viewModel.hasMorePost ? 1 : 0),
+            itemCount: postsList.length +
+                (_viewModel.isLoadingPost && _viewModel.hasMorePost ? 1 : 0),
             itemBuilder: (context, index) {
               if (index == postsList.length) {
                 return Padding(
@@ -333,7 +346,8 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
     );
   }
 
-  Widget _buildItemPost({required BuildContext context, required PostModel post}) {
+  Widget _buildItemPost(
+      {required BuildContext context, required PostModel post}) {
     return Card(
       color: white,
       elevation: 2.0,
@@ -346,7 +360,9 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
             Row(
               children: [
                 Container(
-                  decoration: BoxDecoration(border: Border.all(color: grey5), borderRadius: BorderRadius.circular(100)),
+                  decoration: BoxDecoration(
+                      border: Border.all(color: grey5),
+                      borderRadius: BorderRadius.circular(100)),
                   child: WidgetImageNetwork(
                     url: _viewModel.teacher?.avatar,
                     width: 50,
@@ -356,7 +372,8 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
                     widgetError: Center(
                       child: Text(
                         (_viewModel.teacher?.fullName?.isNotEmpty ?? false)
-                            ? (_viewModel.teacher?.fullName![0] ?? '').toUpperCase()
+                            ? (_viewModel.teacher?.fullName![0] ?? '')
+                                .toUpperCase()
                             : "?",
                         style: styleMediumBold.copyWith(color: primary),
                       ),
@@ -611,7 +628,8 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
           borderSide: BorderSide.none,
           style: ToastificationStyle.fillColored,
           context: context,
-          title: const Text('Đã xảy ra lỗi khi tải xuống. Vui lòng thử lại sau!'),
+          title:
+              const Text('Đã xảy ra lỗi khi tải xuống. Vui lòng thử lại sau!'),
           type: ToastificationType.error,
         );
       }
@@ -654,7 +672,8 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
             physics: const AlwaysScrollableScrollPhysics(),
             controller: _viewModel.testScrollController,
             padding: const EdgeInsets.all(16),
-            itemCount: testsList.length + (_viewModel.isLoadingTest && _viewModel.hasMoreTest ? 1 : 0),
+            itemCount: testsList.length +
+                (_viewModel.isLoadingTest && _viewModel.hasMoreTest ? 1 : 0),
             itemBuilder: (context, index) {
               if (index == testsList.length) {
                 return const Padding(
@@ -671,7 +690,12 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
     );
   }
 
-  Widget _buildItemTest({required BuildContext context, required TestModel test}) {
+  Widget _buildItemTest(
+      {required BuildContext context, required TestModel test}) {
+    // Kiểm tra xem bài kiểm tra đã bắt đầu chưa
+    final bool canEdit =
+        test.startedAt != null && DateTime.now().isBefore(test.startedAt!);
+
     return Container(
       padding: EdgeInsets.only(bottom: 16),
       child: InkWell(
@@ -687,9 +711,29 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: <Widget>[
-                Text(
-                  test.title ?? '',
-                  style: styleMediumBold.copyWith(color: grey),
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        test.title ?? '',
+                        style: styleMediumBold.copyWith(color: grey),
+                      ),
+                    ),
+                    if (canEdit)
+                      IconButton(
+                        icon: Icon(Icons.edit, color: primary2),
+                        tooltip: 'Chỉnh sửa bài kiểm tra',
+                        onPressed: () {
+                          Get.toNamed(Routers.editTest,
+                              arguments: {'test': test})?.then((value) {
+                            if (value == true) {
+                              // Nếu màn hình trả về true, có nghĩa là đã cập nhật thành công, cần refresh lại danh sách
+                              _viewModel.refreshTest();
+                            }
+                          });
+                        },
+                      ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 Text(
@@ -709,7 +753,12 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
                               Expanded(
                                 child: Text(
                                   'Ngày bắt đầu: ${test.startedAt?.day ?? ''}/${test.startedAt?.month ?? ''}/${test.startedAt?.year ?? ''} ${test.startedAt?.hour ?? ''}:${test.startedAt?.minute ?? ''}',
-                                  style: styleVerySmall.copyWith(color: grey3),
+                                  style: styleVerySmall.copyWith(
+                                    color: canEdit ? successLight : grey3,
+                                    fontWeight: canEdit
+                                        ? FontWeight.bold
+                                        : FontWeight.normal,
+                                  ),
                                 ),
                               ),
                               const SizedBox(width: 4),
@@ -769,10 +818,14 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
                   ),
                 )
               else
-                ...students.map((student) => _buildPersonItem(student: student)).toList(),
+                ...students
+                    .map((student) => _buildPersonItem(student: student))
+                    .toList(),
 
               // Hiển thị indicator khi đang tải thêm
-              if (_viewModel.isLoadingStudent && _viewModel.hasMoreStudent && students.isNotEmpty)
+              if (_viewModel.isLoadingStudent &&
+                  _viewModel.hasMoreStudent &&
+                  students.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.symmetric(vertical: 16.0),
                   child: Center(
@@ -811,7 +864,8 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
               leading: Container(
                 width: 40,
                 height: 40,
-                decoration: BoxDecoration(borderRadius: BorderRadius.circular(100)),
+                decoration:
+                    BoxDecoration(borderRadius: BorderRadius.circular(100)),
                 child: WidgetImageNetwork(
                   url: teacher?.avatar,
                   width: 40,
@@ -819,7 +873,9 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
                   radiusAll: 100,
                   widgetError: Center(
                     child: Text(
-                      (teacher?.fullName?.isNotEmpty ?? false) ? teacher!.fullName![0].toUpperCase() : "?",
+                      (teacher?.fullName?.isNotEmpty ?? false)
+                          ? teacher!.fullName![0].toUpperCase()
+                          : "?",
                       style: styleMediumBold.copyWith(color: primary),
                     ),
                   ),
@@ -829,7 +885,8 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
                 teacher?.fullName ?? '',
                 style: styleMedium.copyWith(color: primary3),
               ),
-              subtitle: Text('Giảng viên', style: styleSmall.copyWith(color: grey3)),
+              subtitle:
+                  Text('Giảng viên', style: styleSmall.copyWith(color: grey3)),
               trailing: const Icon(Icons.star, color: Colors.amber),
             ),
           ),
@@ -861,7 +918,9 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
             radiusAll: 100,
             widgetError: Center(
               child: Text(
-                (student.fullName?.isNotEmpty ?? false) ? student.fullName![0].toUpperCase() : "?",
+                (student.fullName?.isNotEmpty ?? false)
+                    ? student.fullName![0].toUpperCase()
+                    : "?",
                 style: styleMediumBold.copyWith(color: primary),
               ),
             ),
@@ -874,21 +933,19 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
         subtitle: Text('Sinh viên', style: styleSmall.copyWith(color: grey3)),
         trailing: IconButton(
             onPressed: () => showDialog(
-              context: context,
-              builder: (context) => WidgetDialogConfirm(
-                titleStyle:
-                styleMediumBold.copyWith(color: error),
-                colorButtonAccept: error,
-                title: 'Xóa sinh viên',
-                onTapConfirm: () {
-                  _viewModel.removeStudent(
-                      studentId: student.id,
-                      context: context);
-                },
-                content:
-                'Xác nhận xóa sinh viên ${student.fullName} khỏi nhóm?',
-              ),
-            ),
+                  context: context,
+                  builder: (context) => WidgetDialogConfirm(
+                    titleStyle: styleMediumBold.copyWith(color: error),
+                    colorButtonAccept: error,
+                    title: 'Xóa sinh viên',
+                    onTapConfirm: () {
+                      _viewModel.removeStudent(
+                          studentId: student.id, context: context);
+                    },
+                    content:
+                        'Xác nhận xóa sinh viên ${student.fullName} khỏi nhóm?',
+                  ),
+                ),
             icon: Icon(
               Icons.remove_circle_outline,
               color: Colors.red,
@@ -911,12 +968,15 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
           borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
         ),
         child: Column(
+          mainAxisSize: MainAxisSize.min,
           children: [
+            // Header
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
                 color: primary2,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
+                borderRadius:
+                    const BorderRadius.vertical(top: Radius.circular(20)),
               ),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -941,121 +1001,148 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
                 ],
               ),
             ),
-            // Hiển thị các chip sinh viên đã chọn
-            ValueListenableBuilder<List<StudentModel>>(
-              valueListenable: _viewModel.selectedStudents,
-              builder: (context, selected, child) {
-                if (selected.isEmpty) return SizedBox.shrink();
-                return Container(
-                  width: double.infinity,
-                  alignment: Alignment.centerLeft,
-                  padding: EdgeInsets.all(16).copyWith(bottom: 0),
-                  child: Wrap(
-                    children: selected
-                        .map((student) => Padding(
-                              padding: const EdgeInsets.only(right: 8),
-                              child: Chip(
-                                label: Text(student.fullName ?? ''),
-                                onDeleted: () => _viewModel.removeSelectedStudent(student),
-                              ),
-                            ))
-                        .toList(),
-                  ),
-                );
-              },
-            ),
-            Padding(
-              padding: const EdgeInsets.all(16),
-              child: WidgetInput(
-                controller: _viewModel.keywordController,
-                hintText: 'Nhập tên hoặc email sinh viên...',
-                prefix: Icon(Icons.search, color: grey2),
-                borderRadius: BorderRadius.circular(12),
-                onChanged: (value) {
-                  _viewModel.searchStudentNotInGroup(keyword: value);
-                },
-                widthPrefix: 40,
-                style: styleSmall.copyWith(color: grey2),
-              ),
-            ),
-            Expanded(
-              child: ValueListenableBuilder<List<StudentModel>?>(
-                valueListenable: _viewModel.studentsSearch,
-                builder: (context, students, child) {
-                  if (students == null) {
-                    return Center(
-                      child: Text(
-                        'Nhập tên hoặc email để tìm kiếm sinh viên',
-                        style: styleMedium.copyWith(color: grey3),
-                      ),
-                    );
-                  }
 
-                  if (students.isEmpty) {
-                    return Center(
-                      child: Text(
-                        'Không tìm thấy sinh viên nào',
-                        style: styleMedium.copyWith(color: grey3),
-                      ),
-                    );
-                  }
-
-                  return ValueListenableBuilder<List<StudentModel>?>(
-                    valueListenable: _viewModel.selectedStudents,
-                    builder: (context, listStudentSelected, child) => ListView.builder(
-                      padding: const EdgeInsets.all(16),
-                      itemCount: students.length,
-                      itemBuilder: (context, index) {
-                        final student = students[index];
-                        final isSelected = listStudentSelected?.any((s) => s.id == student.id);
-                        return Card(
-                          color: white,
-                          margin: const EdgeInsets.only(bottom: 8),
-                          child: ListTile(
-                            leading: WidgetImageNetwork(
-                              width: 40,
-                              height: 40,
-                              radiusAll: 100,
-                              url: student.avatar ?? '',
-                              widgetError: CircleAvatar(
-                                backgroundColor: primary2,
-                                child: Text(
-                                  'SV',
-                                  style: styleSmall.copyWith(color: white),
-                                ),
-                              ),
-                            ),
-                            title: Text(
-                              student.fullName ?? '',
-                              style: styleSmallBold.copyWith(color: black),
-                            ),
-                            subtitle: Text(
-                              student.email ?? '',
-                              style: styleSmall.copyWith(color: grey2),
-                            ),
-                            trailing: isSelected ?? false
-                                ? Icon(Icons.check, color: successLight)
-                                : ElevatedButton(
-                                    onPressed: () {
-                                      _viewModel.addSelectedStudent(student);
-                                    },
-                                    style: ElevatedButton.styleFrom(
-                                      backgroundColor: primary2,
-                                      shape: RoundedRectangleBorder(
-                                        borderRadius: BorderRadius.circular(8),
+            // Content - Scrollable area
+            Flexible(
+              child: CustomScrollView(
+                slivers: [
+                  // Hiển thị các chip sinh viên đã chọn
+                  SliverToBoxAdapter(
+                    child: ValueListenableBuilder<List<StudentModel>>(
+                      valueListenable: _viewModel.selectedStudents,
+                      builder: (context, selected, child) {
+                        if (selected.isEmpty) return SizedBox.shrink();
+                        return Container(
+                          width: double.infinity,
+                          alignment: Alignment.centerLeft,
+                          padding: EdgeInsets.all(16).copyWith(bottom: 0),
+                          child: Wrap(
+                            children: selected
+                                .map((student) => Padding(
+                                      padding: const EdgeInsets.only(
+                                          right: 8, bottom: 8),
+                                      child: Chip(
+                                        label: Text(student.fullName ?? ''),
+                                        onDeleted: () => _viewModel
+                                            .removeSelectedStudent(student),
                                       ),
-                                    ),
-                                    child: const Text('Thêm'),
-                                  ),
+                                    ))
+                                .toList(),
                           ),
                         );
                       },
                     ),
-                  );
-                },
+                  ),
+
+                  // Search input
+                  SliverToBoxAdapter(
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: WidgetInput(
+                        controller: _viewModel.keywordController,
+                        hintText: 'Nhập tên hoặc email sinh viên...',
+                        prefix: Icon(Icons.search, color: grey2),
+                        borderRadius: BorderRadius.circular(12),
+                        onChanged: (value) {
+                          _viewModel.searchStudentNotInGroup(keyword: value);
+                        },
+                        widthPrefix: 40,
+                        style: styleSmall.copyWith(color: grey2),
+                      ),
+                    ),
+                  ),
+
+                  // Student list
+                  SliverFillRemaining(
+                    hasScrollBody: true,
+                    child: ValueListenableBuilder<List<StudentModel>?>(
+                      valueListenable: _viewModel.studentsSearch,
+                      builder: (context, students, child) {
+                        if (students == null) {
+                          return Center(
+                            child: Text(
+                              'Nhập tên hoặc email để tìm kiếm sinh viên',
+                              style: styleMedium.copyWith(color: grey3),
+                            ),
+                          );
+                        }
+
+                        if (students.isEmpty) {
+                          return Center(
+                            child: Text(
+                              'Không tìm thấy sinh viên nào',
+                              style: styleMedium.copyWith(color: grey3),
+                            ),
+                          );
+                        }
+
+                        return ValueListenableBuilder<List<StudentModel>?>(
+                          valueListenable: _viewModel.selectedStudents,
+                          builder: (context, listStudentSelected, child) =>
+                              ListView.builder(
+                                physics: NeverScrollableScrollPhysics(),
+                            padding: const EdgeInsets.all(16),
+                            itemCount: students.length,
+                            itemBuilder: (context, index) {
+                              final student = students[index];
+                              final isSelected = listStudentSelected
+                                  ?.any((s) => s.id == student.id);
+                              return Card(
+                                color: white,
+                                margin: const EdgeInsets.only(bottom: 8),
+                                child: ListTile(
+                                  leading: WidgetImageNetwork(
+                                    width: 40,
+                                    height: 40,
+                                    radiusAll: 100,
+                                    url: student.avatar ?? '',
+                                    widgetError: CircleAvatar(
+                                      backgroundColor: primary2,
+                                      child: Text(
+                                        'SV',
+                                        style:
+                                            styleSmall.copyWith(color: white),
+                                      ),
+                                    ),
+                                  ),
+                                  title: Text(
+                                    student.fullName ?? '',
+                                    style:
+                                        styleSmallBold.copyWith(color: black),
+                                  ),
+                                  subtitle: Text(
+                                    student.email ?? '',
+                                    style: styleSmall.copyWith(color: grey2),
+                                  ),
+                                  trailing: isSelected ?? false
+                                      ? Icon(Icons.check, color: successLight)
+                                      : ElevatedButton(
+                                          onPressed: () {
+                                            _viewModel
+                                                .addSelectedStudent(student);
+                                          },
+                                          style: ElevatedButton.styleFrom(
+                                            backgroundColor: primary2,
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(8),
+                                            ),
+                                          ),
+                                          child: const Text('Thêm'),
+                                        ),
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
             ),
-            // Nút thêm vào lớp
+
+            // Footer - Nút thêm vào lớp (Fixed at bottom)
             ValueListenableBuilder<List<StudentModel>>(
               valueListenable: _viewModel.selectedStudents,
               builder: (context, selected, child) {
@@ -1075,7 +1162,8 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
                         _viewModel.addAllStudentToGroup(context, selected);
                       },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor: selected.isEmpty ? Colors.grey.shade300 : primary2,
+                        backgroundColor:
+                            selected.isEmpty ? Colors.grey.shade300 : primary2,
                         padding: const EdgeInsets.symmetric(vertical: 16),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(12),

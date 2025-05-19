@@ -6,28 +6,19 @@ import 'package:lms/src/presentation/presentation.dart';
 import 'package:lms/src/resource/model/chat_box_model.dart';
 import 'package:lms/src/resource/model/teacher_model.dart';
 import 'package:lms/src/utils/app_prefs.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ChatBoxTeacherDetailScreen extends StatefulWidget {
   const ChatBoxTeacherDetailScreen({Key? key}) : super(key: key);
 
   @override
-  State<ChatBoxTeacherDetailScreen> createState() =>
-      _ChatBoxTeacherDetailScreenState();
+  State<ChatBoxTeacherDetailScreen> createState() => _ChatBoxTeacherDetailScreenState();
 }
 
-class _ChatBoxTeacherDetailScreenState
-    extends State<ChatBoxTeacherDetailScreen> {
+class _ChatBoxTeacherDetailScreenState extends State<ChatBoxTeacherDetailScreen> {
   late ChatBoxTeacherDetailViewModel _viewModel;
   final Color grey0 = Colors.grey.shade200;
   final Color grey1 = Colors.grey.shade400;
-  String? currentUserEmail;
-
-  @override
-  void initState() {
-    super.initState();
-    currentUserEmail =
-        AppPrefs.getUser<TeacherModel>(TeacherModel.fromJson)?.email;
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -89,8 +80,7 @@ class _ChatBoxTeacherDetailScreenState
                     if (chatbox?.group ?? false)
                       Text(
                         '${chatbox?.memberAccountUsernames?.length ?? 0} thành viên',
-                        style: styleVerySmall.copyWith(
-                            color: white.withOpacity(0.7)),
+                        style: styleVerySmall.copyWith(color: white.withOpacity(0.7)),
                       ),
                   ],
                 ),
@@ -105,8 +95,10 @@ class _ChatBoxTeacherDetailScreenState
       ),
       actions: [
         IconButton(
-          icon: const Icon(Icons.refresh, color: white),
-          onPressed: _viewModel.refreshMessages,
+          icon: const Icon(Icons.info_outline, color: white),
+          onPressed: () {
+            _viewModel.settingBoxChat();
+          },
           tooltip: 'Làm mới',
         ),
       ],
@@ -133,13 +125,13 @@ class _ChatBoxTeacherDetailScreenState
                 Container(
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: primary2.withOpacity(0.1),
+                    color: primary3.withOpacity(0.1),
                     shape: BoxShape.circle,
                   ),
                   child: const Icon(
                     Icons.message_outlined,
                     size: 48,
-                    color: primary2,
+                    color: primary3,
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -157,12 +149,10 @@ class _ChatBoxTeacherDetailScreenState
           );
         }
 
-        // Group messages by date
         final Map<String, List<MessageModel>> groupedMessages = {};
         for (final message in messages) {
           if (message.createdAt != null) {
-            final String date =
-                DateFormat('dd/MM/yyyy').format(message.createdAt!.toLocal());
+            String date = DateFormat('dd/MM/yyyy').format(message.createdAt!.toLocal());
             if (!groupedMessages.containsKey(date)) {
               groupedMessages[date] = [];
             }
@@ -179,56 +169,66 @@ class _ChatBoxTeacherDetailScreenState
             return dateA.compareTo(dateB);
           });
 
-        return ListView.builder(
-          controller: _viewModel.scrollController,
-          reverse: false, // Tin nhắn cũ nhất ở trên, mới nhất ở dưới
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          itemCount: dates.length + 1, // +1 cho loading indicator
-          itemBuilder: (context, index) {
-            // Hiển thị loading indicator ở đầu danh sách
-            if (index == 0) {
-              return ValueListenableBuilder<bool>(
-                valueListenable: _viewModel.isLoadingMore,
-                builder: (context, isLoading, _) {
-                  if (isLoading) {
-                    return Container(
-                      height: 40,
-                      padding: const EdgeInsets.symmetric(vertical: 8),
-                      alignment: Alignment.center,
-                      child: const SizedBox(
-                        width: 20,
-                        height: 20,
-                        child: CircularProgressIndicator(
-                          strokeWidth: 2,
-                          valueColor: AlwaysStoppedAnimation<Color>(primary2),
-                        ),
-                      ),
-                    );
-                  }
-                  return const SizedBox.shrink();
-                },
-              );
+        return NotificationListener<ScrollNotification>(
+          onNotification: (scrollInfo) {
+            // Kiểm tra khi người dùng cuộn đến đầu danh sách
+            if (scrollInfo.metrics.pixels <= scrollInfo.metrics.minScrollExtent + 50 &&
+                !_viewModel.isLoading &&
+                _viewModel.hasMoreMessages) {
+              // Gọi loadMoreMessages khi cuộn gần đến đầu danh sách
+              _viewModel.loadMoreMessages();
             }
-
-            final dateIndex = index - 1;
-            final date = dates[dateIndex];
-            final messagesForDate = groupedMessages[date]!;
-
-            // Sắp xếp tin nhắn trong ngày theo thời gian tăng dần
-            messagesForDate.sort((a, b) {
-              return (a.createdAt ?? DateTime.now())
-                  .compareTo(b.createdAt ?? DateTime.now());
-            });
-
-            return Column(
-              children: [
-                _buildDateDivider(date),
-                ...messagesForDate
-                    .map((message) => _buildMessageItem(message))
-                    .toList(),
-              ],
-            );
+            return false;
           },
+          child: ListView.builder(
+            controller: _viewModel.scrollController,
+            reverse: false,
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            itemCount: dates.length + 1,
+            // +1 cho loading indicator
+            itemBuilder: (context, index) {
+              // Hiển thị loading indicator ở đầu danh sách
+              if (index == 0) {
+                return ValueListenableBuilder<bool>(
+                  valueListenable: _viewModel.isLoadingMore,
+                  builder: (context, isLoading, _) {
+                    if (isLoading) {
+                      return Container(
+                        height: 40,
+                        padding: const EdgeInsets.symmetric(vertical: 8),
+                        alignment: Alignment.center,
+                        child: const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(primary3),
+                          ),
+                        ),
+                      );
+                    }
+                    return const SizedBox(height: 20);
+                  },
+                );
+              }
+
+              final dateIndex = index - 1;
+              final date = dates[dateIndex];
+              final messagesForDate = groupedMessages[date]!;
+
+              // Sắp xếp tin nhắn trong ngày theo thời gian tăng dần
+              messagesForDate.sort((a, b) {
+                return (a.createdAt ?? DateTime.now()).compareTo(b.createdAt ?? DateTime.now());
+              });
+
+              return Column(
+                children: [
+                  _buildDateDivider(date),
+                  ...messagesForDate.map((message) => _buildMessageItem(context, message)).toList(),
+                ],
+              );
+            },
+          ),
         );
       },
     );
@@ -237,8 +237,7 @@ class _ChatBoxTeacherDetailScreenState
   Widget _buildDateDivider(String date) {
     final now = DateTime.now();
     final today = DateFormat('dd/MM/yyyy').format(now);
-    final yesterday =
-        DateFormat('dd/MM/yyyy').format(now.subtract(const Duration(days: 1)));
+    final yesterday = DateFormat('dd/MM/yyyy').format(now.subtract(const Duration(days: 1)));
 
     String displayDate;
     if (date == today) {
@@ -267,132 +266,170 @@ class _ChatBoxTeacherDetailScreenState
     );
   }
 
-  Widget _buildMessageItem(MessageModel message) {
-    final bool isMyMessage = message.senderAccount == currentUserEmail;
-    final timeString = message.createdAt != null
-        ? DateFormat('HH:mm').format(message.createdAt!.toLocal())
-        : '';
+  Widget _buildMessageItem(BuildContext context, MessageModel message) {
+    final bool isCurrentUser = message.senderAccount == _viewModel.currentUserEmail;
+
+    final String senderDisplayName = message.senderAccount?.split('@')[0] ?? 'Unknown';
 
     return Padding(
       padding: const EdgeInsets.only(bottom: 8),
       child: Row(
-        mainAxisAlignment:
-            isMyMessage ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.end,
         children: [
-          if (!isMyMessage) ...[
-            CircleAvatar(
-              radius: 16,
-              backgroundColor: primary2.withOpacity(0.2),
-              child: const Icon(
-                Icons.person,
-                size: 18,
-                color: primary2,
+          if (!isCurrentUser)
+            WidgetImageNetwork(
+              url: message.avatarSenderAccount,
+              radiusAll: 100,
+              width: 32,
+              height: 32,
+              fit: BoxFit.cover,
+              widgetError: CircleAvatar(
+                backgroundColor: primary3,
+                radius: 16,
+                child: Text(
+                  (message.senderAccount ?? 'U')[0].toUpperCase(),
+                  style: const TextStyle(color: white, fontSize: 12),
+                ),
               ),
             ),
-            const SizedBox(width: 8),
-          ],
-          Column(
-            crossAxisAlignment:
-                isMyMessage ? CrossAxisAlignment.end : CrossAxisAlignment.start,
-            children: [
-              if (!isMyMessage)
-                Padding(
-                  padding: const EdgeInsets.only(left: 8, bottom: 4),
-                  child: Text(
-                    message.senderAccount?.split('@').first ?? 'Unknown',
-                    style: styleVerySmall.copyWith(
-                        color: grey3, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              Container(
-                constraints: BoxConstraints(
-                  maxWidth: MediaQuery.of(context).size.width * 0.65,
-                ),
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                decoration: BoxDecoration(
-                  color: isMyMessage ? primary2 : grey0,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      message.content ?? '',
-                      style: styleSmall.copyWith(
-                        color: isMyMessage ? white : grey3,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      timeString,
-                      style: TextStyle(
-                        color: isMyMessage ? white.withOpacity(0.7) : grey1,
-                        fontSize: 10,
-                      ),
-                    ),
-                  ],
-                ),
+          if (!isCurrentUser) const SizedBox(width: 8),
+          Flexible(
+            child: Container(
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.7,
               ),
-            ],
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+              decoration: BoxDecoration(
+                color: isCurrentUser ? primary2.withOpacity(0.8) : white,
+                borderRadius: BorderRadius.circular(18),
+                boxShadow: [
+                  BoxShadow(
+                    offset: const Offset(0, 1),
+                    blurRadius: 3,
+                    color: Colors.black.withOpacity(0.1),
+                  ),
+                ],
+              ),
+              child: Column(
+                crossAxisAlignment: isCurrentUser ? CrossAxisAlignment.end : CrossAxisAlignment.start,
+                children: [
+                  if (!isCurrentUser)
+                    Padding(
+                      padding: const EdgeInsets.only(bottom: 4),
+                      child: Text(
+                        senderDisplayName,
+                        style: styleVerySmall.copyWith(
+                          color: primary2,
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ),
+                  Text(
+                    message.content ?? '',
+                    style: styleSmall.copyWith(
+                      color: isCurrentUser ? white : black,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    mainAxisSize: MainAxisSize.min,
+                    mainAxisAlignment: isCurrentUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+                    children: [
+                      Text(
+                        _formatMessageTime(message.createdAt),
+                        style: styleVerySmall.copyWith(
+                          color: isCurrentUser ? white.withOpacity(0.7) : grey3.withOpacity(0.7),
+                          fontSize: 10,
+                        ),
+                      ),
+                      if (isCurrentUser)
+                        Icon(
+                          Icons.check,
+                          size: 12,
+                          color: white.withOpacity(0.7),
+                        ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
           ),
-          if (isMyMessage) const SizedBox(width: 8),
+          if (isCurrentUser) const SizedBox(width: 8),
         ],
       ),
     );
   }
 
+  String _formatMessageTime(DateTime? timestamp) {
+    if (timestamp == null) return '';
+
+    final now = DateTime.now();
+    final today = DateTime(now.year, now.month, now.day);
+    final yesterday = DateTime(now.year, now.month, now.day - 1);
+    final dateToCheck = DateTime(timestamp.year, timestamp.month, timestamp.day);
+
+    if (dateToCheck == today) {
+      return DateFormat('HH:mm').format(timestamp);
+    } else if (dateToCheck == yesterday) {
+      return 'Hôm qua ${DateFormat('HH:mm').format(timestamp)}';
+    } else {
+      return DateFormat('dd/MM/yyyy HH:mm').format(timestamp);
+    }
+  }
+
   Widget _buildInputArea() {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: white,
         boxShadow: [
           BoxShadow(
-            color: Colors.grey.withOpacity(0.1),
-            spreadRadius: 1,
-            blurRadius: 3,
             offset: const Offset(0, -1),
+            blurRadius: 5,
+            color: Colors.black.withOpacity(0.1),
           ),
         ],
       ),
-      child: Row(
-        children: [
-          IconButton(
-            icon: const Icon(Icons.attach_file, color: primary2),
-            onPressed: () {
-              // TODO: Implement file attachment
-            },
-          ),
-          Expanded(
-            child: Container(
-              decoration: BoxDecoration(
-                color: grey0.withOpacity(0.7),
-                borderRadius: BorderRadius.circular(24),
-              ),
-              child: TextField(
+      child: SafeArea(
+        child: Row(
+          children: [
+            Expanded(
+              child: WidgetInput(
                 controller: _viewModel.messageController,
-                decoration: InputDecoration(
-                  hintText: 'Nhập tin nhắn...',
-                  hintStyle: styleSmall.copyWith(color: grey1),
-                  border: InputBorder.none,
-                  contentPadding:
-                      const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
-                  isDense: true,
-                ),
-                maxLines: 3,
-                minLines: 1,
+                hintText: 'Nhập tin nhắn...',
+                hintStyle: styleSmall.copyWith(color: grey4),
+                style: styleSmall.copyWith(color: grey),
+                borderRadius: BorderRadius.circular(24),
                 textInputAction: TextInputAction.send,
-                onSubmitted: (_) => _viewModel.sendMessage(),
+                onSubmit: (_) => _viewModel.sendMessage(),
               ),
             ),
-          ),
-          IconButton(
-            icon: const Icon(Icons.send, color: primary2),
-            onPressed: _viewModel.sendMessage,
-          ),
-        ],
+            const SizedBox(width: 8),
+            // Nút gửi tin nhắn
+            ValueListenableBuilder<bool>(
+              valueListenable: _viewModel.isSendingMessage,
+              builder: (context, isSending, _) {
+                return RawMaterialButton(
+                  onPressed: isSending ? null : _viewModel.sendMessage,
+                  shape: const CircleBorder(),
+                  constraints: const BoxConstraints(minWidth: 48, minHeight: 48),
+                  elevation: 0,
+                  child: isSending
+                      ? const SizedBox(
+                          width: 20,
+                          height: 20,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2,
+                            valueColor: AlwaysStoppedAnimation<Color>(primary3),
+                          ),
+                        )
+                      : const Icon(Icons.send, color: primary3),
+                );
+              },
+            ),
+          ],
+        ),
       ),
     );
   }

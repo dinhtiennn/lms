@@ -26,7 +26,12 @@ mixin StompListener {
   void onStompReplyReceived(dynamic data) {
     logger.i('↩️ STOMP REPLY RECEIVED MIXIN: $data');
   }
+
   void onStompNotificationReceived(dynamic data) {
     logger.i('↩️ STOMP NOTIFICATION RECEIVED MIXIN: $data');
+  }
+
+  void onStompChatBoxCreateReceived(dynamic data) {
+    logger.i('↩️ STOMP CHATBOX CREATE RECEIVED MIXIN: $data');
   }
 }

@@ -73,7 +73,6 @@ class AppValid {
     };
   }
 
-
   static validatePasswordConfirm(TextEditingController controller) {
     return (value) {
       if (controller.text != value) {
@@ -102,7 +101,8 @@ class AppValid {
 
   static validateRequireEnter({String? titleValid}) {
     return (value) {
-      if (value == null || value.length == 0) return titleValid ?? 'register_field_cannot_empty'.tr;
+      if (value == null || value.length == 0)
+        return titleValid ?? 'register_field_cannot_empty'.tr;
     };
   }
 
@@ -135,12 +135,13 @@ class AppValid {
   }
 
   static String? validateStartTime(
-      TextEditingController startDateController,
-      String? timeStartText,
-      ) {
-    final dateText = startDateController.text;
-
-    if (dateText.isEmpty || timeStartText == null || timeStartText.isEmpty) {
+    String? startDateText,
+    String? timeStartText,
+  ) {
+    if (startDateText == null ||
+        startDateText.isEmpty ||
+        timeStartText == null ||
+        timeStartText.isEmpty) {
       return 'Không được bỏ trống';
     }
 
@@ -148,7 +149,7 @@ class AppValid {
     final timeFormat = DateFormat('HH:mm');
 
     try {
-      final date = dateFormat.parseStrict(dateText);
+      final date = dateFormat.parseStrict(startDateText);
       final time = timeFormat.parseStrict(timeStartText);
 
       final startDateTime = DateTime(
@@ -170,8 +171,10 @@ class AppValid {
   }
 
   static String? validateEndDate(String? startDateText, String? endDateText) {
-    if (startDateText == null || endDateText == null) return 'Không được bỏ trống!';
-    if (startDateText.isEmpty || endDateText.isEmpty) return 'Không được bỏ trống!';
+    if (startDateText == null || endDateText == null)
+      return 'Không được bỏ trống!';
+    if (startDateText.isEmpty || endDateText.isEmpty)
+      return 'Không được bỏ trống!';
 
     final format = DateFormat('dd/MM/yyyy');
 
@@ -190,17 +193,16 @@ class AppValid {
   }
 
   static String? validateEndTime(
-      TextEditingController startDateController,
-      TextEditingController startTimeController,
-      TextEditingController endDateController,
-      String? timeEndText,
-      ) {
-    final startDateText = startDateController.text;
-    final startTimeText = startTimeController.text;
-    final endDateText = endDateController.text;
-
-    if (startDateText.isEmpty ||
+    String? startDateText,
+    String? startTimeText,
+    String? endDateText,
+    String? timeEndText,
+  ) {
+    if (startDateText == null ||
+        startDateText.isEmpty ||
+        startTimeText == null ||
         startTimeText.isEmpty ||
+        endDateText == null ||
         endDateText.isEmpty ||
         timeEndText == null ||
         timeEndText.isEmpty) {

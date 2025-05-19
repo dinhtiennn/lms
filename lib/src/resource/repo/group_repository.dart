@@ -17,15 +17,16 @@ class GroupRepository {
     return _instance!;
   }
 
-  Future<NetworkState<List<GroupModel>>> getAllGroupByTeacher({int pageSize = 20, int pageNumber = 0}) async {
+  Future<NetworkState<List<GroupModel>>> getAllGroupByTeacher(
+      {int pageSize = 20, int pageNumber = 0}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) {
       return NetworkState.withDisconnect();
     }
 
     try {
-      Response response = await AppClients()
-          .get(AppEndpoint.GROUPOFTEACHER, queryParameters: {'pageSize': pageSize, 'pageNumber': pageNumber});
+      Response response = await AppClients().get(AppEndpoint.GROUPOFTEACHER,
+          queryParameters: {'pageSize': pageSize, 'pageNumber': pageNumber});
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         successCode: response.data['code'] == 0,
@@ -37,15 +38,16 @@ class GroupRepository {
     }
   }
 
-  Future<NetworkState<List<GroupModel>>> getAllGroupByStudent({int pageSize = 20, int pageNumber = 0}) async {
+  Future<NetworkState<List<GroupModel>>> getAllGroupByStudent(
+      {int pageSize = 20, int pageNumber = 0}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) {
       return NetworkState.withDisconnect();
     }
 
     try {
-      Response response = await AppClients()
-          .get(AppEndpoint.GROUPSOFSTUDENT, queryParameters: {'pageSize': pageSize, 'pageNumber': pageNumber});
+      Response response = await AppClients().get(AppEndpoint.GROUPSOFSTUDENT,
+          queryParameters: {'pageSize': pageSize, 'pageNumber': pageNumber});
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         successCode: response.data['code'] == 0,
@@ -57,15 +59,16 @@ class GroupRepository {
     }
   }
 
-  Future<NetworkState<GroupModel>> create({required String name, required String description}) async {
+  Future<NetworkState<GroupModel>> create(
+      {required String name, required String description}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) {
       return NetworkState.withDisconnect();
     }
 
     try {
-      Response response =
-          await AppClients().post(AppEndpoint.CREATEGROUP, data: {'name': name, 'description': description});
+      Response response = await AppClients().post(AppEndpoint.CREATEGROUP,
+          data: {'name': name, 'description': description});
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         successCode: response.data['code'] == 0,
@@ -77,15 +80,18 @@ class GroupRepository {
     }
   }
 
-  Future<NetworkState<GroupModel>> update({String? groupId, required String name, required String description}) async {
+  Future<NetworkState<GroupModel>> update(
+      {String? groupId,
+      required String name,
+      required String description}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) {
       return NetworkState.withDisconnect();
     }
 
     try {
-      Response response = await AppClients()
-          .put(AppEndpoint.UPDATEGROUP, data: {'groupId': groupId, 'name': name, 'description': description});
+      Response response = await AppClients().put(AppEndpoint.UPDATEGROUP,
+          data: {'groupId': groupId, 'name': name, 'description': description});
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         successCode: response.data['code'] == 0,
@@ -142,7 +148,8 @@ class GroupRepository {
     }
   }
 
-  Future<NetworkState<List<PostModel>>> getPosts({String? groupId, int pageSize = 0, int pageNumber = 20}) async {
+  Future<NetworkState<List<PostModel>>> getPosts(
+      {String? groupId, int pageSize = 0, int pageNumber = 20}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) {
       return NetworkState.withDisconnect();
@@ -150,7 +157,11 @@ class GroupRepository {
 
     try {
       Response response = await AppClients().get(AppEndpoint.POSTS,
-          queryParameters: {'groupId': groupId, 'pageSize': pageSize, 'pageNumber': pageNumber});
+          queryParameters: {
+            'groupId': groupId,
+            'pageSize': pageSize,
+            'pageNumber': pageNumber
+          });
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         successCode: response.data['code'] == 0,
@@ -162,7 +173,8 @@ class GroupRepository {
     }
   }
 
-  Future<NetworkState<List<TestModel>>> getTests({String? groupId, int pageSize = 0, int pageNumber = 20}) async {
+  Future<NetworkState<List<TestModel>>> getTests(
+      {String? groupId, int pageSize = 0, int pageNumber = 20}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) {
       return NetworkState.withDisconnect();
@@ -170,7 +182,11 @@ class GroupRepository {
 
     try {
       Response response = await AppClients().get(AppEndpoint.TESTS,
-          data: FormData.fromMap({'groupId': groupId, 'pageSize': pageSize, 'pageNumber': pageNumber}));
+          data: FormData.fromMap({
+            'groupId': groupId,
+            'pageSize': pageSize,
+            'pageNumber': pageNumber
+          }));
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         successCode: response.data['code'] == 0,
@@ -182,7 +198,8 @@ class GroupRepository {
     }
   }
 
-  Future<NetworkState<List<StudentModel>>> getStudents({String? groupId, int pageSize = 0, int pageNumber = 20}) async {
+  Future<NetworkState<List<StudentModel>>> getStudents(
+      {String? groupId, int pageSize = 0, int pageNumber = 20}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) {
       return NetworkState.withDisconnect();
@@ -190,7 +207,11 @@ class GroupRepository {
 
     try {
       Response response = await AppClients().get(AppEndpoint.STUDENTSINGROUP,
-          data: FormData.fromMap({'groupId': groupId, 'pageSize': pageSize, 'pageNumber': pageNumber}));
+          data: FormData.fromMap({
+            'groupId': groupId,
+            'pageSize': pageSize,
+            'pageNumber': pageNumber
+          }));
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         successCode: response.data['code'] == 0,
@@ -209,7 +230,8 @@ class GroupRepository {
     }
 
     try {
-      Response response = await AppClients().delete(AppEndpoint.DELETEPOST, data: FormData.fromMap({'postId': postId}));
+      Response response = await AppClients().delete(AppEndpoint.DELETEPOST,
+          data: FormData.fromMap({'postId': postId}));
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         successCode: response.data['code'] == 0,
@@ -234,7 +256,8 @@ class GroupRepository {
     }
 
     try {
-      Response response = await AppClients().post(AppEndpoint.CREATETEST, data: {
+      Response response =
+          await AppClients().post(AppEndpoint.CREATETEST, data: {
         'groupId': groupId,
         'title': title,
         'description': description,
@@ -273,27 +296,30 @@ class GroupRepository {
     }
   }
 
-  Future<NetworkState<List<TestResultView>>> testResultView({String? testId, int? pageSize = 30, int? pageNumber = 0}) async {
+  Future<NetworkState<List<TestResultView>>> testResultView(
+      {String? testId, int? pageSize = 30, int? pageNumber = 0}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
     // try {
-      Response response = await AppClients().get(
-        AppEndpoint.ALLTESTRESULT,
-        data: FormData.fromMap({'testId': testId, 'pageSize': pageSize, 'pageNumber': pageNumber}),
-      );
-      return NetworkState(
-        status: response.statusCode ?? AppEndpoint.success,
-        result: TestResultView.listFromJson(response.data['result']['content']),
-        message: response.data['message'] ?? '',
-        successCode: response.data['code'] == 0,
-      );
+    Response response = await AppClients().get(
+      AppEndpoint.ALLTESTRESULT,
+      data: FormData.fromMap(
+          {'testId': testId, 'pageSize': pageSize, 'pageNumber': pageNumber}),
+    );
+    return NetworkState(
+      status: response.statusCode ?? AppEndpoint.success,
+      result: TestResultView.listFromJson(response.data['result']['content']),
+      message: response.data['message'] ?? '',
+      successCode: response.data['code'] == 0,
+    );
     // } catch (e) {
     //   return NetworkState.withError(e);
     // }
   }
 
-  Future<NetworkState<TestResultModel>> testStudentDetail({String? testId}) async {
+  Future<NetworkState<TestResultModel>> testStudentDetail(
+      {String? testId}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
@@ -313,7 +339,8 @@ class GroupRepository {
     }
   }
 
-  Future<NetworkState<TestResultModel>> testStudentDetailByTeacher({String? testId, String? studentId}) async {
+  Future<NetworkState<TestResultModel>> testStudentDetailByTeacher(
+      {String? testId, String? studentId}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
@@ -353,7 +380,8 @@ class GroupRepository {
     }
   }
 
-  Future<NetworkState> addStudents({required String groupId, required List<StudentModel> students}) async {
+  Future<NetworkState> addStudents(
+      {required String groupId, required List<StudentModel> students}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
@@ -380,7 +408,8 @@ class GroupRepository {
     }
   }
 
-  Future<NetworkState> removeStudent({String? groupId, String? studentId}) async {
+  Future<NetworkState> removeStudent(
+      {String? groupId, String? studentId}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
     try {
@@ -399,13 +428,17 @@ class GroupRepository {
     }
   }
 
-  Future<NetworkState> submitTest({String? testId, List<AnswerModel>? answers}) async {
+  Future<NetworkState> submitTest(
+      {String? testId, List<AnswerModel>? answers}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
     try {
       Response response = await AppClients().post(
         AppEndpoint.SUBMITTEST,
-        data: {'testId': testId, 'answerRequests': answers?.map((e) => e.toJson()).toList()},
+        data: {
+          'testId': testId,
+          'answerRequests': answers?.map((e) => e.toJson()).toList()
+        },
       );
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
@@ -415,6 +448,43 @@ class GroupRepository {
       );
     } catch (e) {
       return NetworkState.withError(e);
+    }
+  }
+
+  Future<NetworkState<TestModel>> updateTest({
+    required String testId,
+    required String title,
+    required String description,
+    required DateTime startedAt,
+    required DateTime expiredAt,
+    required List<TestQuestionRequestModel> questions,
+  }) async {
+    bool isDisconnect = await WifiService.isDisconnect();
+    if (isDisconnect) {
+      return NetworkState.withDisconnect();
+    }
+
+    try {
+      Response response = await AppClients().put(
+        AppEndpoint.UPDATETEST,
+        data: {
+          'testInGroupId': testId,
+          'title': title,
+          'description': description,
+          'startedAt': AppUtils.toOffsetDateTimeString(startedAt),
+          'expiredAt': AppUtils.toOffsetDateTimeString(expiredAt),
+          'listQuestionRequest': questions.map((e) => e.toJson()).toList(),
+        },
+      );
+
+      return NetworkState(
+        status: response.statusCode ?? AppEndpoint.success,
+        successCode: response.data['code'] == 0,
+        result: TestModel.fromJson(response.data['result']),
+        message: response.data['message'] ?? '',
+      );
+    } catch (e) {
+      return NetworkState.withErrorConvert(e);
     }
   }
 }

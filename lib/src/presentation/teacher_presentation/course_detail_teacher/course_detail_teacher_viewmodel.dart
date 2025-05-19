@@ -20,10 +20,13 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
   var formKey = GlobalKey<FormState>();
   TextEditingController courseNameController = TextEditingController();
   TextEditingController courseDescriptionController = TextEditingController();
+  TextEditingController startDateController = TextEditingController();
   TextEditingController endDateController = TextEditingController();
+  TextEditingController priceController = TextEditingController();
   ValueNotifier<List<MajorModel>?> majors = ValueNotifier(null);
   ValueNotifier<StatusOption?> statusSelected = ValueNotifier(null);
   ValueNotifier<MajorModel?> majorSelected = ValueNotifier(null);
+  ValueNotifier<FeeStatusOption?> feeTypeSelected = ValueNotifier(null);
 
   //biến quản lý danh sách comment
   ValueNotifier<List<CommentModel>?> comments = ValueNotifier(null);
@@ -180,6 +183,11 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
     LearningDurationTypeOption(LearningDurationType.UNLIMITED, 'Không có thời hạn', 'UNLIMITED'),
   ];
 
+  List<FeeStatusOption> freeStatusOptions = [
+    FeeStatusOption(FeeStatusType.CHARGEABLE, 'Tính phí', 'CHARGEABLE'),
+    FeeStatusOption(FeeStatusType.NON_CHARGEABLE, 'Không tính phí', 'NON_CHARGEABLE'),
+  ];
+
   init() async {
     course = Get.arguments['course'];
     await _loadCourseDetail();
@@ -229,6 +237,9 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
     await _loadMajor();
     courseNameController.text = courseDetail.value?.name ?? '';
     courseDescriptionController.text = courseDetail.value?.description ?? '';
+    final price = courseDetail.value?.price;
+    priceController.text = price != null ? price.toStringAsFixed(price.truncateToDouble() == price ? 0 : 2) : '';
+    startDateController.text = AppUtils.formatDateToDDMMYYYY(courseDetail.value?.startDate?.toString() ?? '');
     endDateController.text = AppUtils.formatDateToDDMMYYYY(courseDetail.value?.endDate?.toString() ?? '');
     isEndDate.value = endDateController.text.isNotEmpty;
     isEndDate.notifyListeners();
@@ -237,8 +248,19 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
       (option) => option.apiValue == courseDetail.value?.status,
       orElse: () => statusOptions.first,
     );
+
+    // Khởi tạo giá trị cho feeTypeSelected dựa trên feeType của khóa học
+    String? courseFeeType = courseDetail.value?.feeType;
+    feeTypeSelected.value = freeStatusOptions.firstWhere(
+      (option) => option.apiValue == courseFeeType,
+      orElse: () => price != null && price > 0
+          ? freeStatusOptions.firstWhere((e) => e.value == FeeStatusType.CHARGEABLE)
+          : freeStatusOptions.firstWhere((e) => e.value == FeeStatusType.NON_CHARGEABLE),
+    );
+
     majorSelected.notifyListeners();
     statusSelected.notifyListeners();
+    feeTypeSelected.notifyListeners();
   }
 
   Future<void> _loadCourseDetail() async {
@@ -251,17 +273,32 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
 
   //Các hàm chình sửa khóa học
   void updateCourse() async {
+    if (statusSelected.value == null && priceController.text.isEmpty) {
+      showToast(title: 'Vui lòng chọn trạng thái khóa học', type: ToastificationType.warning);
+      return;
+    }
+
     String learningDurationTypeString = getLearningDurationTypeLabel(
         endDateController.text.isEmpty ? LearningDurationType.UNLIMITED : LearningDurationType.LIMITED);
+
+    // Sử dụng feeTypeSelected để xác định loại phí
+    String feeTypeString = feeTypeSelected.value?.apiValue ??
+        getFeeTypeAPIValue(priceController.text.isEmpty ? FeeStatusType.NON_CHARGEABLE : FeeStatusType.CHARGEABLE);
+
+    String? price = priceController.text.trim().replaceAll(',', '.');
+
     setLoading(false);
     NetworkState<CourseModel> resultUpdateCourse = await courseRepository.updateCourse(
       courseId: course?.id,
       name: courseNameController.text,
       description: courseDescriptionController.text,
-      status: statusSelected.value?.apiValue,
+      status: statusSelected.value?.apiValue ?? StatusOption(Status.PUBLIC, 'Công khai', 'PUBLIC').apiValue,
+      startDate: AppUtils.formatDateToISO(startDateController.text),
       endDate: AppUtils.formatDateToISO(endDateController.text),
       majorId: majorSelected.value?.id,
       learningDurationType: learningDurationTypeString,
+      feeType: feeTypeString,
+      price: price,
     );
     setLoading(false);
     if (resultUpdateCourse.isSuccess && resultUpdateCourse.result != null) {
@@ -287,6 +324,8 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
       showToast(title: resultUpdateCourse.message ?? '', type: ToastificationType.error);
     }
   }
+
+  String getFeeTypeAPIValue(FeeStatusType type) => freeStatusOptions.firstWhere((e) => e.value == type).apiValue;
 
   String getStatusLabel(Status status) => statusOptions.firstWhere((e) => e.value == status).label;
 
@@ -688,7 +727,7 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
         Navigator.pop(context);
       }
     } else {
-      showToast(title: 'Thêm sinh viên vào khóa học không thành công', type: ToastificationType.error);
+      showToast(title: resultAddStudents.message ?? 'N/A ADD STUDENT', type: ToastificationType.error);
     }
   }
 
@@ -1332,5 +1371,16 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
 
   void setChapter(ChapterModel chapter) {
     chapterSelected.value = chapter;
+  }
+
+  void removeCourse() async {
+    NetworkState resultRemoveCourse = await courseRepository.removeCourse(course?.id);
+    if (resultRemoveCourse.isSuccess) {
+      if (Get.isRegistered<HomeTeacherViewModel>()) {
+        Get.find<HomeTeacherViewModel>().refresh();
+        await Future.delayed(const Duration(seconds: 1));
+      }
+      Get.back();
+    }
   }
 }

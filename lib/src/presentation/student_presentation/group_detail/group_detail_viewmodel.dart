@@ -134,9 +134,9 @@ class GroupDetailViewModel extends BaseViewModel {
           tests.value = newTests;
 
           await _checkTestSuccess(newTests);
-          tests.value?.forEach(
-            (element) => logger.e(element.toString()),
-          );
+          // tests.value?.forEach(
+          //   (element) => logger.e(element.toString()),
+          // );
           pageNumberTest += 1;
         }
       } else {

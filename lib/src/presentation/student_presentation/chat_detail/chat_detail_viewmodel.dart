@@ -2,10 +2,6 @@ import 'package:get/get.dart';
 
 import 'package:lms/src/presentation/presentation.dart';
 
-class ChatViewModel extends BaseViewModel {
+class ChatDetailViewModel extends BaseViewModel {
   init() async {}
-
-  void chatDetail(){
-
-  }
 }

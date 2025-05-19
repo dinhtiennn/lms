@@ -108,6 +108,7 @@ class LoginViewModel extends BaseViewModel {
           await studentRepository.myInfo();
 
       if (resultProfile.isSuccess && resultProfile.result != null) {
+        AppPrefs.setUser<TeacherModel>(null);
         AppPrefs.setUser<StudentModel>(resultProfile.result);
         AppPrefs.password = password;
         checked = true;

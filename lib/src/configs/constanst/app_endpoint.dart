@@ -7,11 +7,11 @@ class AppEndpoint {
 
   static const String baseImageUrl = "http://192.168.218.36:8080";
   //
-  // static const String baseUrl = "http://192.168.1.31:8080";
+  // static const String baseUrl = "http://192.168.1.26:8080";
   //
-  // static const String baseWebsocket = 'http://192.168.1.31:8080/lms/ws';
+  // static const String baseWebsocket = 'http://192.168.1.26:8080/lms/ws';
   //
-  // static const String baseImageUrl = "http://192.168.1.31:8080";
+  // static const String baseImageUrl = "http://192.168.1.26:8080";
   //
   // static const String baseUrl = "http://192.168.1.11:8080";
   //
@@ -90,6 +90,8 @@ class AppEndpoint {
   static const String APPROVEDREQUEST = '/lms/joinclass/approved';
   static const String REJECTEDREQUEST = '/lms/joinclass/rejected';
   static const String STATUSJOIN = '/lms/joinclass/getstatus';
+  static const String REMOVECOURSE = '/lms/course/delete';
+  static const String PAYMENT = '/lms/paypal/pay';
 
   //api comment
   static const String COMMENTS =
@@ -120,6 +122,7 @@ class AppEndpoint {
   static const String ADDSTUDENTTOGROUP = '/lms/studentgroup/addstudent';
   static const String DELETESTUDENTOFGROUP = '/lms/studentgroup/delete';
   static const String GROUPSOFSTUDENT = '/lms/studentgroup/getgroup';
+  static const String UPDATETEST = '/lms/testingroup/update';
 
   //api document
   static const String CREATEDOCUMENT = '/lms/document/create';
@@ -132,6 +135,6 @@ class AppEndpoint {
   //api chat box
   static const String CHATBOXS = '/lms/chatBox';
   static const String MESSAGES = '/lms/chatBox/{id}/messages';
-
-
+  static const String READMESSAGES = '/lms/chatBox/{id}/messages/markAsRead';
+  static const String SEARCHUSER = '/lms/chatmember/search';
 }

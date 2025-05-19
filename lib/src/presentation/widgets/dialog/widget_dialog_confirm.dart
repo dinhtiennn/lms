@@ -12,6 +12,7 @@ class WidgetDialogConfirm extends StatelessWidget {
   final bool reversalButton;
   final TextStyle? titleStyle;
   final Color? colorButtonAccept;
+  final bool? acceptOnly;
 
   const WidgetDialogConfirm(
       {Key? key,
@@ -21,7 +22,8 @@ class WidgetDialogConfirm extends StatelessWidget {
       this.reversalButton = false,
       this.onTapCancel,
       this.titleStyle,
-      this.colorButtonAccept})
+      this.colorButtonAccept,
+      this.acceptOnly})
       : super(key: key);
 
   @override
@@ -42,7 +44,7 @@ class WidgetDialogConfirm extends StatelessWidget {
                 children: [
                   SizedBox(width: 24),
                   Text(title, style: titleStyle ?? styleLargeBold.copyWith(color: error)),
-                  InkWell(onTap: () => Get.back(), child: Icon(Icons.clear, size: 24, color: grey4))
+                  acceptOnly == true ? SizedBox() : InkWell(onTap: () => Get.back(), child: Icon(Icons.clear, size: 24, color: grey4))
                 ],
               ),
               SizedBox(height: 8),
@@ -62,27 +64,31 @@ class WidgetDialogConfirm extends StatelessWidget {
                           ),
                         ),
                         SizedBox(width: 10),
-                        Expanded(
-                          child: WidgetButton(
-                            padding: 11,
-                            text: 'cancel'.tr,
-                            onTap: onTapCancel ?? () => Get.back(),
-                          ),
-                        ),
+                        acceptOnly == true
+                            ? SizedBox()
+                            : Expanded(
+                                child: WidgetButton(
+                                  padding: 11,
+                                  text: 'cancel'.tr,
+                                  onTap: onTapCancel ?? () => Get.back(),
+                                ),
+                              ),
                       ],
                     )
                   : Row(
                       children: [
-                        Expanded(
-                          child: WidgetButton(
-                            padding: 11,
-                            text: 'cancel'.tr,
-                            onTap: onTapCancel ?? () => Get.back(),
-                            color: white,
-                            borderColor: white,
-                            colorText: primary,
-                          ),
-                        ),
+                        acceptOnly == true
+                            ? SizedBox()
+                            : Expanded(
+                                child: WidgetButton(
+                                  padding: 11,
+                                  text: 'cancel'.tr,
+                                  onTap: onTapCancel ?? () => Get.back(),
+                                  color: white,
+                                  borderColor: white,
+                                  colorText: primary,
+                                ),
+                              ),
                         SizedBox(width: 10),
                         Expanded(
                           child: WidgetButton(

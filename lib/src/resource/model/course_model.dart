@@ -12,9 +12,11 @@ class CourseModel {
   final DateTime? startDate;
   final DateTime? endDate;
   final String? major;
+  final String? feeType;
+  final double? price;
   final TeacherModel? teacher;
   final int? studentCount;
-  final int? lessonCount;
+  final int? chapterCount;
   int? progress;
 
   CourseModel({
@@ -28,8 +30,10 @@ class CourseModel {
     this.endDate,
     this.major,
     this.teacher,
+    this.feeType,
+    this.price,
     this.studentCount,
-    this.lessonCount,
+    this.chapterCount,
     this.progress,
   });
 
@@ -41,22 +45,18 @@ class CourseModel {
       description: json["description"],
       status: json["status"],
       learningDurationType: json["learningDurationType"],
-      startDate: json["startDate"] == null
-          ? null
-          : AppUtils.fromUtcStringToVnTime(json["startDate"]),
-      endDate:
-      json["endDate"] == null ? null : AppUtils.fromUtcStringToVnTime(json["endDate"]),
+      startDate: json["startDate"] == null ? null : AppUtils.fromUtcStringToVnTime(json["startDate"]),
+      endDate: json["endDate"] == null ? null : AppUtils.fromUtcStringToVnTime(json["endDate"]),
       major: json["major"],
-      teacher: json["teacher"] == null
-          ? null
-          : TeacherModel.fromJson(json["teacher"]),
+      teacher: json["teacher"] == null ? null : TeacherModel.fromJson(json["teacher"]),
       studentCount: json["studentCount"],
-      lessonCount: json["lessonCount"],
+      chapterCount: json["lessonCount"],
+      price: json["price"],
+      feeType: json["feeType"],
     );
   }
 
-  Map<String, dynamic> toJson() =>
-      {
+  Map<String, dynamic> toJson() => {
         "id": id,
         "name": name,
         "image": image,
@@ -68,7 +68,7 @@ class CourseModel {
         "major": major,
         "teacher": teacher?.toJson(),
         "studentCount": studentCount,
-        "lessonCount": lessonCount,
+        "chapterCount": chapterCount,
       };
 
   static List<CourseModel> listFromJson(List<dynamic> jsonList) {
@@ -86,7 +86,7 @@ class CourseModel {
     String? major,
     TeacherModel? teacher,
     int? studentCount,
-    int? lessonCount,
+    int? chapterCount,
     int? progress,
   }) {
     return CourseModel(
@@ -100,14 +100,14 @@ class CourseModel {
       major: major ?? this.major,
       teacher: teacher ?? this.teacher,
       studentCount: studentCount ?? this.studentCount,
-      lessonCount: lessonCount ?? this.lessonCount,
+      chapterCount: chapterCount ?? this.chapterCount,
       progress: progress ?? this.progress,
     );
   }
 
   @override
   String toString() {
-    return 'CourseModel{id: $id, name: $name, image: $image, description: $description, status: $status, learningDurationType: $learningDurationType, startDate: $startDate, endDate: $endDate, major: $major, teacher: $teacher, studentCount: $studentCount, lessonCount: $lessonCount, progress: $progress}';
+    return 'CourseModel{id: $id, name: $name, image: $image, description: $description, status: $status, learningDurationType: $learningDurationType, startDate: $startDate, endDate: $endDate, major: $major, teacher: $teacher, studentCount: $studentCount, lessonCount: $chapterCount, progress: $progress}';
   }
 }
 
@@ -121,6 +121,8 @@ class CourseDetailModel {
   final DateTime? startDate;
   final DateTime? endDate;
   final String? major;
+  final String? feeType;
+  final double? price;
   final TeacherModel? teacher;
   List<LessonModel>? lesson;
 
@@ -134,41 +136,37 @@ class CourseDetailModel {
     this.startDate,
     this.endDate,
     this.major,
+    this.feeType,
+    this.price,
     this.teacher,
     this.lesson,
   });
 
   factory CourseDetailModel.fromJson(Map<String, dynamic> json) {
-    List<LessonModel> lessons = json["lesson"] == null
-        ? []
-        : List<LessonModel>.from(
-        json["lesson"]!.map((x) => LessonModel.fromJson(x)));
+    List<LessonModel> lessons =
+        json["lesson"] == null ? [] : List<LessonModel>.from(json["lesson"]!.map((x) => LessonModel.fromJson(x)));
 
     // Sắp xếp theo thứ tự tăng dần của lesson.order
     lessons.sort((a, b) => (a.order ?? 0).compareTo(b.order ?? 0));
 
     return CourseDetailModel(
-        id: json["id"],
-        name: json["name"],
-        image: AppUtils.pathMediaToUrlAndRamdomParam(json["image"]),
-        description: json["description"],
-        status: json["status"],
-    learningDurationType: json["learningDurationType"],
-    startDate:
-    json["startDate"] == null ? null : AppUtils.fromUtcStringToVnTime(json["startDate"]),
-    endDate: json["endDate"] == null ? null : AppUtils.fromUtcStringToVnTime(json["endDate"]),
-    major: json["major"],
-    teacher: json["teacher"] == null
-    ? null
-        : TeacherModel.fromJson(json["teacher"]),
-    lesson:
-    lessons
-    ,
+      id: json["id"],
+      name: json["name"],
+      image: AppUtils.pathMediaToUrlAndRamdomParam(json["image"]),
+      description: json["description"],
+      status: json["status"],
+      feeType: json["feeType"],
+      price: json["price"],
+      learningDurationType: json["learningDurationType"],
+      startDate: json["startDate"] == null ? null : AppUtils.fromUtcStringToVnTime(json["startDate"]),
+      endDate: json["endDate"] == null ? null : AppUtils.fromUtcStringToVnTime(json["endDate"]),
+      major: json["major"],
+      teacher: json["teacher"] == null ? null : TeacherModel.fromJson(json["teacher"]),
+      lesson: lessons,
     );
   }
 
-  Map<String, dynamic> toJson() =>
-      {
+  Map<String, dynamic> toJson() => {
         "id": id,
         "name": name,
         "image": image,
@@ -179,9 +177,7 @@ class CourseDetailModel {
         "endDate": endDate,
         "major": major,
         "teacher": teacher?.toJson(),
-        "lesson": lesson == null
-            ? []
-            : List<dynamic>.from(lesson!.map((x) => x.toJson())),
+        "lesson": lesson == null ? [] : List<dynamic>.from(lesson!.map((x) => x.toJson())),
       };
 
   CourseDetailModel copyWith({
@@ -242,4 +238,12 @@ class LearningDurationTypeOption {
   final String apiValue;
 
   const LearningDurationTypeOption(this.value, this.label, this.apiValue);
+}
+
+class FeeStatusOption {
+  final FeeStatusType value;
+  final String label;
+  final String apiValue;
+
+  const FeeStatusOption(this.value, this.label, this.apiValue);
 }

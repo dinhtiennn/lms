@@ -15,6 +15,8 @@ export 'group_model.dart';
 export 'notification_model.dart';
 export 'document_model.dart';
 export 'chat_box_model.dart';
+export 'account_model.dart';
+export 'payment_model.dart';
 
 // Lớp hỗ trợ cho nút hành động
 class ActionButton {

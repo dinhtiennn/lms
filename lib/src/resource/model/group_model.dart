@@ -162,7 +162,6 @@ class TestQuestionRequestModel {
       );
 
   Map<String, dynamic> toJson() => {
-        "id": id,
         "point": point,
         "content": content,
         "type": type,
@@ -172,6 +171,11 @@ class TestQuestionRequestModel {
 
   static List<TestQuestionRequestModel> listFromJson(List<dynamic> jsonList) {
     return jsonList.map((json) => TestQuestionRequestModel.fromJson(json as Map<String, dynamic>)).toList();
+  }
+
+  @override
+  String toString() {
+    return 'TestQuestionRequestModel{id: $id, point: $point, content: $content, type: $type, options: $options, correctAnswers: $correctAnswers}';
   }
 }
 

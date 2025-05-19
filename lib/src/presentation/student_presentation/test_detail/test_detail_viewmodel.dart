@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:flutter_fgbg/flutter_fgbg.dart';
 
 import 'package:lms/src/presentation/presentation.dart';
 import 'package:lms/src/resource/resource.dart';
@@ -11,21 +12,74 @@ class TestDetailViewModel extends BaseViewModel {
   ValueNotifier<TestDetailModel?> testDetail = ValueNotifier(null);
 
   ValueNotifier<List<AnswerModel>?> selectedAnswers = ValueNotifier([]);
+  ValueNotifier<bool> violationDetected = ValueNotifier(false);
 
   Timer? _expirationTimer;
   bool _notificationShown = false;
   bool _autoSubmitTriggered = false;
+  StreamSubscription<FGBGType>? _subscription;
+  DateTime? _lastBackgroundedTime;
+
+  // Số lần vi phạm
+  int _violationCount = 0;
+  // Thời gian tối đa cho phép ở chế độ nền (tính bằng giây)
+  final int _maxBackgroundTimeInSeconds = 2;
 
   @override
   void dispose() {
+    _subscription?.cancel();
     _expirationTimer?.cancel();
     super.dispose();
   }
 
   init() async {
     test.value = Get.arguments['test'];
+
+    // Bắt đầu theo dõi trạng thái ứng dụng
+    _subscription = FGBGEvents.instance.stream.listen((event) {
+      if (event == FGBGType.background) {
+        _onAppBackground();
+      } else if (event == FGBGType.foreground) {
+        _onAppForeground();
+      }
+    });
+
     await loadTestDetail();
     _startExpirationTimer();
+  }
+
+  void _onAppBackground() {
+    _lastBackgroundedTime = DateTime.now();
+    logger.i("App ở background tại: $_lastBackgroundedTime");
+  }
+
+  void _onAppForeground() {
+    if (_lastBackgroundedTime != null && !violationDetected.value) {
+      final now = DateTime.now();
+      final timeInBackground = now.difference(_lastBackgroundedTime!).inSeconds;
+
+      logger.i(
+          "Quay lại sau $timeInBackground giây dưới nền");
+
+      if (timeInBackground > _maxBackgroundTimeInSeconds) {
+        _violationCount++;
+
+        logger.w(
+            "Đã phát hiện vi phạm: Ứng dụng ở chế độ nền cho $timeInBackground giây");
+
+        if (_violationCount >= 2) {
+          // Sau 2 lần vi phạm, đánh dấu là vi phạm nghiêm trọng
+          violationDetected.value = true;
+        } else {
+          // Cảnh báo người dùng
+          showToast(
+            title: 'Cảnh báo vi phạm quy định kiểm tra!',
+            type: ToastificationType.warning,
+          );
+        }
+      }
+    }
+    _lastBackgroundedTime = null;
   }
 
   void _startExpirationTimer() {

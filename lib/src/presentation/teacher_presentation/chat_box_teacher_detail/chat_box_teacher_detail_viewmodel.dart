@@ -1,61 +1,179 @@
+import 'dart:convert';
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:lms/src/configs/configs.dart';
 import 'package:lms/src/presentation/presentation.dart';
 import 'package:lms/src/resource/model/model.dart';
+import 'package:lms/src/resource/resource.dart';
 import 'package:lms/src/utils/app_prefs.dart';
+import 'package:toastification/toastification.dart';
+import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'package:dio/dio.dart';
 
-class ChatBoxTeacherDetailViewModel extends BaseViewModel {
+class ChatBoxTeacherDetailViewModel extends BaseViewModel with StompListener {
   ValueNotifier<ChatBoxModel?> chatbox = ValueNotifier(null);
   ValueNotifier<List<MessageModel>?> messages = ValueNotifier([]);
   ValueNotifier<bool> isLoadingMore = ValueNotifier(false);
+  ValueNotifier<bool> isSendingMessage = ValueNotifier(false);
   TextEditingController messageController = TextEditingController();
   ScrollController scrollController = ScrollController();
+  StompService? stompService;
 
-  // Pagination parameters
-  int pageSize = 20;
+  int pageSize = 10;
   bool isLoading = false;
   bool hasMoreMessages = true;
+  final ValueNotifier<bool> loading = ValueNotifier(false);
 
-  // User information
+  TeacherModel? teacherModel =
+      AppPrefs.getUser<TeacherModel>(TeacherModel.fromJson);
   String? currentUserEmail;
+  String? currentUserFullName;
 
   init() async {
-    // Get the chatbox from arguments
+    // Lấy thông tin chat box từ tham số
     chatbox.value = Get.arguments['chatBox'];
 
-    // Get current user email for message identification
-    currentUserEmail =
-        AppPrefs.getUser<TeacherModel>(TeacherModel.fromJson)?.email;
+    // Lấy thông tin người dùng hiện tại
+    currentUserEmail = teacherModel?.email;
+    currentUserFullName = teacherModel?.fullName;
 
-    // Set up scroll listener for loading more messages when scrolling up
-    scrollController.addListener(_scrollListener);
+    if (chatbox.value == null || currentUserEmail == null) {
+      logger.e("Không thể lấy thông tin chatbox hoặc người dùng hiện tại");
+      showToast(
+          title: "Đã xảy ra lỗi, vui lòng thử lại",
+          type: ToastificationType.error);
+      return;
+    }
 
-    // Load initial messages
-    await refreshMessages();
+    // Đăng ký lắng nghe tin nhắn WebSocket
+    await setupSocket();
+
+    // Tải tin nhắn ban đầu (chỉ tải 1 lần)
+    await initialLoadMessages();
+
+    // Đợi một chút trước khi đăng ký ScrollListener để tránh kích hoạt ngay lập tức
+    Future.delayed(Duration(milliseconds: 500), () {
+      // Thêm listener cho ScrollController để tải thêm tin nhắn khi cuộn lên
+      scrollController.addListener(_scrollListener);
+    });
   }
 
   void _scrollListener() {
-    // Load more when scrolling to the top (older messages)
-    if (scrollController.position.pixels <=
-            scrollController.position.minScrollExtent + 200 &&
+    // Chỉ kiểm tra loadmore khi người dùng chủ động cuộn lên
+    if (scrollController.hasClients &&
+        scrollController.position.pixels <=
+            scrollController.position.minScrollExtent + 50 &&
         !isLoading &&
         hasMoreMessages) {
+      // Thêm log để theo dõi
+      logger.i("Đang kích hoạt loadMoreMessages từ _scrollListener");
       loadMoreMessages();
     }
   }
 
-  // Refresh messages (initial load)
-  Future<void> refreshMessages() async {
-    hasMoreMessages = true;
-    await _loadMessages(isRefresh: true);
+  Future<void> setupSocket() async {
+    try {
+      loading.value = true;
 
-    // Không tự động cuộn xuống dưới sau khi load tin nhắn lần đầu
-    // vì chúng ta muốn hiển thị tin nhắn cũ nhất ở trên cùng
+      stompService = await StompService.instance();
+      logger.i("Đăng ký lắng nghe tin nhắn cho chatbox ${chatbox.value?.id}");
+
+      if (chatbox.value?.id != null) {
+        stompService?.registerListener(
+          type: StompListenType.chatBox,
+          listener: this,
+          chatBoxId: chatbox.value!.id,
+        );
+      }
+
+      logger.i("WebSocket đã được kết nối thành công");
+    } catch (e) {
+      logger.e("Lỗi khi thiết lập kết nối WebSocket: $e");
+      showToast(
+          title: "Không thể kết nối đến máy chủ",
+          type: ToastificationType.error);
+
+      // Thử kết nối lại sau 3 giây
+      Future.delayed(Duration(seconds: 3), () {
+        logger.i("Đang thử kết nối lại WebSocket sau khi thất bại");
+        setupSocket();
+      });
+    } finally {
+      loading.value = false;
+    }
   }
 
-  // Load more messages (older messages)
+  // Hàm này chỉ dùng để tải tin nhắn lần đầu khi vào màn hình
+  Future<void> initialLoadMessages() async {
+    hasMoreMessages = true;
+    logger.i("Đang tải tin nhắn lần đầu (trang 0)");
+
+    isLoading = true;
+    notifyListeners();
+
+    try {
+      NetworkState<List<MessageModel>> resultMessages =
+          await chatBoxRepository.messages(
+              id: chatbox.value?.id ?? '', pageSize: pageSize, pageNumber: 0);
+
+      if (resultMessages.isSuccess && resultMessages.result != null) {
+        final newMessages = resultMessages.result!;
+        logger.i("Đã nhận ${newMessages.length} tin nhắn từ lần tải đầu tiên");
+
+        messages.value = newMessages;
+        hasMoreMessages = newMessages.length >= pageSize;
+        messages.notifyListeners();
+
+        // Cuộn xuống dưới cùng để hiển thị tin nhắn mới nhất
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (scrollController.hasClients &&
+              messages.value != null &&
+              messages.value!.isNotEmpty) {
+            logger.i("Cuộn xuống dưới cùng sau khi tải tin nhắn lần đầu");
+            scrollController.animateTo(
+              scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      } else {
+        messages.value = [];
+        messages.notifyListeners();
+        hasMoreMessages = false;
+        logger.w("Không có tin nhắn nào để tải");
+      }
+
+      // Đánh dấu tất cả tin nhắn là đã đọc
+      await markMessagesAsRead();
+    } catch (e) {
+      logger.e("Lỗi khi tải tin nhắn lần đầu: $e");
+      messages.value = [];
+      messages.notifyListeners();
+      hasMoreMessages = false;
+    } finally {
+      isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> refreshMessages() async {
+    hasMoreMessages = true;
+    logger.i("Đang làm mới tin nhắn (trang 0)");
+
+    await _loadMessages(isRefresh: true);
+
+    // Đánh dấu tất cả tin nhắn là đã đọc
+    await markMessagesAsRead();
+  }
+
   Future<void> loadMoreMessages() async {
     if (!isLoading && hasMoreMessages) {
+      logger.i(
+          "Đang tải thêm tin nhắn cũ (trang ${(messages.value?.length ?? 0) ~/ pageSize})");
       await _loadMessages(isLoadMore: true);
     }
   }
@@ -72,23 +190,34 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel {
     notifyListeners();
 
     try {
-      // Calculate offset based on current list size
-      final int offset = isRefresh ? 0 : messages.value?.length ?? 0;
+      // Tính pageNumber dựa trên số lượng tin nhắn hiện tại
+      final int pageNumber =
+          isRefresh ? 0 : (messages.value?.length ?? 0) ~/ pageSize;
+
+      logger.i(
+          "Tải tin nhắn: pageNumber=$pageNumber, pageSize=$pageSize, isRefresh=$isRefresh, isLoadMore=$isLoadMore");
 
       NetworkState<List<MessageModel>> resultMessages =
           await chatBoxRepository.messages(
               id: chatbox.value?.id ?? '',
               pageSize: pageSize,
-              pageNumber: offset);
+              pageNumber: pageNumber);
 
       if (resultMessages.isSuccess && resultMessages.result != null) {
         final newMessages = resultMessages.result!;
+        logger.i("Đã nhận ${newMessages.length} tin nhắn mới");
 
-        // If refreshing, replace the entire list
+        // Lưu chiều cao trước khi thêm tin nhắn mới nếu đang loadmore
+        double? savedHeight;
+        if (isLoadMore && scrollController.hasClients) {
+          savedHeight = scrollController.position.maxScrollExtent;
+        }
+
         if (isRefresh) {
+          // Nếu đang refresh, thay thế danh sách cũ
           messages.value = newMessages;
-        } else {
-          // If loading more, prepend to the existing list (older messages go at the top)
+        } else if (newMessages.isNotEmpty) {
+          // Nếu đang loadmore, thêm tin nhắn mới vào đầu danh sách
           final List<MessageModel> updatedList = [
             ...newMessages,
             ...messages.value ?? []
@@ -96,21 +225,46 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel {
           messages.value = updatedList;
         }
 
-        // Update hasMoreMessages flag - if we got fewer items than pageSize, there are no more to load
+        // Cập nhật trạng thái có thể tải thêm
         hasMoreMessages = newMessages.length >= pageSize;
-
-        // Notify listeners
         messages.notifyListeners();
+
+        // Xử lý vị trí cuộn sau khi cập nhật danh sách
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (scrollController.hasClients) {
+            if (isRefresh &&
+                messages.value != null &&
+                messages.value!.isNotEmpty) {
+              // Nếu refresh, cuộn xuống dưới cùng
+              logger.i("Cuộn xuống dưới cùng sau khi refresh");
+              scrollController.animateTo(
+                scrollController.position.maxScrollExtent,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeOut,
+              );
+            } else if (isLoadMore && savedHeight != null) {
+              // Khi loadmore, giữ vị trí cuộn tương đối
+              final double newHeight =
+                  scrollController.position.maxScrollExtent;
+              final double offset = newHeight - savedHeight;
+
+              // Giữ vị trí tương đối bằng cách nhảy đến vị trí mới
+              logger.i("Giữ vị trí cuộn sau khi loadmore: offset=$offset");
+              scrollController
+                  .jumpTo(scrollController.position.pixels + offset);
+            }
+          }
+        });
       } else {
-        // Handle error state
         if (isRefresh) {
           messages.value = [];
           messages.notifyListeners();
         }
         hasMoreMessages = false;
+        logger.w("Không có thêm tin nhắn nào để tải");
       }
     } catch (e) {
-      logger.e("Error loading messages: $e");
+      logger.e("Lỗi khi tải tin nhắn: $e");
       if (isRefresh) {
         messages.value = [];
         messages.notifyListeners();
@@ -126,56 +280,160 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel {
     }
   }
 
-  // Send a new message
-  Future<void> sendMessage() async {
-    if (messageController.text.trim().isEmpty || chatbox.value?.id == null)
-      return;
-
-    final String messageContent = messageController.text.trim();
-    messageController.clear();
+  Future<void> markMessagesAsRead() async {
+    if (chatbox.value?.id == null) return;
 
     try {
-      // Add the new message locally for immediate feedback
-      final newMessage = MessageModel(
-        chatBoxId: chatbox.value?.id,
-        senderAccount: currentUserEmail,
-        content: messageContent,
-        createdAt: DateTime.now(),
-      );
+      // Đánh dấu tin nhắn là đã đọc trên server
+      // todo: đánh đấu đọc message
+      // Nếu API này chưa có, có thể bỏ qua bước này
+      // NetworkState resultReadMessage = chatBoxRepository.markAsRead();
 
-      // Add to message list - thêm vào cuối danh sách (tin nhắn mới nhất)
-      messages.value = [...messages.value ?? [], newMessage];
-      messages.notifyListeners();
-
-      // Scroll to bottom to show the new message
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        if (scrollController.hasClients) {
-          scrollController.animateTo(
-            scrollController.position.maxScrollExtent,
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeOut,
-          );
-        }
-      });
-
-      // TODO: Implement actual message sending API call
-      // For now we'll just add the message locally for demo purposes
-      /*
-      final result = await chatBoxRepository.sendMessage(
-        id: chatbox.value?.id ?? '',
-        content: messageContent
-      );
-      */
+      // if (resultReadMessage.isSuccess) {
+      //   logger.i("Đã đánh dấu tin nhắn là đã đọc");
+      // } else {
+      //   logger.e("Lỗi khi đánh dấu tin nhắn là đã đọc: ${response.statusCode}");
+      // }
     } catch (e) {
-      logger.e("Error sending message: $e");
+      logger.e("Lỗi khi đánh dấu tin nhắn là đã đọc: $e");
+    }
+  }
+
+  @override
+  void onStompChatReceived(dynamic data) {
+    logger.i('Nhận tin nhắn từ WebSocket: $data');
+
+    try {
+      final receivedMessage = MessageModel.fromJson(jsonDecode(data));
+
+      // Kiểm tra nếu tin nhắn này chưa có trong danh sách
+      final existingIndex =
+          messages.value?.indexWhere((msg) => msg.id == receivedMessage.id) ??
+              -1;
+
+      if (existingIndex == -1) {
+        // Thêm tin nhắn mới vào danh sách
+        messages.value = [...messages.value ?? [], receivedMessage];
+        messages.notifyListeners();
+
+        // Cuộn xuống tin nhắn mới
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          if (scrollController.hasClients) {
+            scrollController.animateTo(
+              scrollController.position.maxScrollExtent,
+              duration: const Duration(milliseconds: 300),
+              curve: Curves.easeOut,
+            );
+          }
+        });
+      } else if (messages.value != null) {
+        // Cập nhật tin nhắn hiện có (ví dụ: trạng thái đã đọc)
+        final updatedMessages = [...messages.value!];
+        updatedMessages[existingIndex] = receivedMessage;
+        messages.value = updatedMessages;
+        messages.notifyListeners();
+      }
+
+      // Đánh dấu tin nhắn là đã đọc
+      markMessagesAsRead();
+    } catch (e) {
+      logger.e("Lỗi khi xử lý tin nhắn nhận được: $e");
+    }
+  }
+
+  Future<void> sendMessage() async {
+    if (chatbox.value?.id == null || currentUserEmail == null) {
+      showToast(
+          title: "Không thể xác định thông tin cuộc trò chuyện hoặc người dùng",
+          type: ToastificationType.error);
+      return;
+    }
+
+    if (messageController.text.isEmpty) {
+      return;
+    }
+
+    try {
+      isSendingMessage.value = true;
+      isSendingMessage.notifyListeners();
+
+      // Gửi tin nhắn văn bản qua WebSocket
+      final messageRequest = {
+        'chatBoxId': chatbox.value!.id,
+        'senderAccount': currentUserEmail,
+        'content': messageController.text.trim()
+      };
+
+      stompService!.send(
+        StompListenType.chatBox,
+        jsonEncode(messageRequest),
+      );
+
+      messageController.clear();
+    } catch (e) {
+      logger.e("Lỗi khi gửi tin nhắn: $e");
+      showToast(
+          title: "Không thể gửi tin nhắn. Vui lòng thử lại",
+          type: ToastificationType.error);
+    } finally {
+      isSendingMessage.value = false;
+      isSendingMessage.notifyListeners();
+    }
+  }
+
+  Future<void> pickFile() async {
+    try {
+      final ImagePicker picker = ImagePicker();
+
+      // Hiển thị dialog để chọn loại file
+      final source = await showDialog<ImageSource>(
+        context: Get.context!,
+        builder: (context) => AlertDialog(
+          title: Text('Chọn nguồn'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: Icon(Icons.photo_library),
+                title: Text('Thư viện'),
+                onTap: () => Navigator.pop(context, ImageSource.gallery),
+              ),
+              ListTile(
+                leading: Icon(Icons.camera_alt),
+                title: Text('Máy ảnh'),
+                onTap: () => Navigator.pop(context, ImageSource.camera),
+              ),
+            ],
+          ),
+        ),
+      );
+    } catch (e) {
+      logger.e("Lỗi khi chọn file: $e");
+      showToast(
+          title: "Không thể chọn file. Vui lòng thử lại",
+          type: ToastificationType.error);
     }
   }
 
   @override
   void dispose() {
     messageController.dispose();
-    scrollController.removeListener(_scrollListener);
     scrollController.dispose();
+
+    // Hủy đăng ký lắng nghe tin nhắn từ WebSocket
+    if (stompService != null && chatbox.value?.id != null) {
+      stompService!.unregisterListener(
+        type: StompListenType.chatBox,
+        listener: this,
+        chatBoxId: chatbox.value!.id,
+      );
+    }
+
     super.dispose();
+  }
+
+  void settingBoxChat() {
+    Get.toNamed(Routers.chatBoxInfoTeacher,
+        arguments: {'chatBox': chatbox.value});
   }
 }

@@ -42,8 +42,7 @@ class DocumentTeacherViewModel extends BaseViewModel {
   }
 
   void _onScroll() {
-    if (scrollController.position.pixels >=
-        scrollController.position.maxScrollExtent - 200) {
+    if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200) {
       loadMoreDocuments();
     }
   }
@@ -63,16 +62,13 @@ class DocumentTeacherViewModel extends BaseViewModel {
 
   Future<void> _loadMajor() async {
     setLoading(true);
-    NetworkState<List<MajorModel>> resultMajor =
-        await majorRepository.getAllMajor();
+    NetworkState<List<MajorModel>> resultMajor = await majorRepository.getAllMajor();
     setLoading(false);
     if (resultMajor.isSuccess && resultMajor.result != null) {
       majors.value = resultMajor.result ?? [];
       majors.notifyListeners();
     } else {
-      showToast(
-          title: 'Không thể tải danh sách ngành học. Vui lòng thử lại!',
-          type: ToastificationType.error);
+      showToast(title: 'Không thể tải danh sách ngành học. Vui lòng thử lại!', type: ToastificationType.error);
     }
   }
 
@@ -107,8 +103,7 @@ class DocumentTeacherViewModel extends BaseViewModel {
         final extension = file.extension?.toLowerCase();
 
         // Kiểm tra loại file
-        if (extension != null &&
-            (extension == 'pdf' || extension == 'doc' || extension == 'docx')) {
+        if (extension != null && (extension == 'pdf' || extension == 'doc' || extension == 'docx')) {
           filePicker.value = File(file.path!);
           fileName.value = file.name;
           filePicker.notifyListeners();
@@ -174,8 +169,7 @@ class DocumentTeacherViewModel extends BaseViewModel {
     }
   }
 
-  Future<void> _loadMyDocument(
-      {bool isLoadMore = false, bool isRefresh = false}) async {
+  Future<void> _loadMyDocument({bool isLoadMore = false, bool isRefresh = false}) async {
     if (isRefresh) {
       myDocuments.value = null;
       myDocuments.notifyListeners();
@@ -189,8 +183,7 @@ class DocumentTeacherViewModel extends BaseViewModel {
     }
 
     NetworkState<List<DocumentModel>> resultMyDocument =
-        await documentRepository.myDocument(keyword: keyword.text,
-            pageSize: pageSize, pageNumber: currentPage);
+        await documentRepository.myDocument(keyword: keyword.text, pageSize: pageSize, pageNumber: currentPage);
 
     if (isLoadMore) {
       isLoadingMore.value = false;

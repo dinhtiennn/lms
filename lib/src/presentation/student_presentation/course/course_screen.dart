@@ -42,7 +42,7 @@ class _CourseScreenState extends State<CourseScreen> {
             appBar: AppBar(
               backgroundColor: primary2,
               title: Text(
-                'my_course'.tr,
+                'Khóa học của tôi',
                 style: styleLargeBold.copyWith(color: white),
               ),
               centerTitle: true,

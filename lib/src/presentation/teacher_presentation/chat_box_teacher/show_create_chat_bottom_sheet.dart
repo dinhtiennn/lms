@@ -44,7 +44,7 @@ void showCreateChatBottomSheet(
                     children: [
                       const Expanded(
                         child: Text(
-                          'Tạo cuộc trò chuyện mới',
+                          'Tạo nhóm trò chuyện mới',
                           style: TextStyle(
                             color: Colors.white,
                             fontSize: 18,
@@ -180,64 +180,62 @@ void showCreateChatBottomSheet(
                               valueListenable: viewModel.selectedUsers,
                               builder: (context, selectedUsers, child) =>
                                   ListView.builder(
-
-                                    padding: const EdgeInsets.symmetric(
-                                        horizontal: 16),
-                                    shrinkWrap: true,
-                                    physics: NeverScrollableScrollPhysics(),
-                                    itemCount: searchResults.length,
-                                    itemBuilder: (context, index) {
-                                      final user = searchResults[index];
-                                      final isSelected =
-                                          selectedUsers.any((u) => u == user);
-                                      return Card(
-                                        color: white,
-                                        margin: const EdgeInsets.only(bottom: 8),
-                                        child: ListTile(
-                                          leading: CircleAvatar(
-                                            backgroundColor: primary2,
-                                            child: Text(
-                                              (user.accountFullname?.isNotEmpty ==
-                                                      true
-                                                  ? user.accountFullname![0]
-                                                      .toUpperCase()
-                                                  : 'U'),
-                                              style: styleSmall.copyWith(
-                                                  color: white),
-                                            ),
-                                          ),
-                                          title: Text(
-                                            user.accountFullname ?? '',
-                                            style: styleSmallBold.copyWith(
-                                                color: black),
-                                          ),
-                                          subtitle: Text(
-                                            user.accountUsername ?? '',
-                                            style:
-                                                styleSmall.copyWith(color: grey2),
-                                          ),
-                                          trailing: isSelected
-                                              ? const Icon(Icons.check,
-                                                  color: successLight)
-                                              : ElevatedButton(
-                                                  onPressed: () {
-                                                    viewModel
-                                                        .addUserToSelection(user);
-                                                  },
-                                                  style: ElevatedButton.styleFrom(
-                                                    backgroundColor: primary2,
-                                                    shape: RoundedRectangleBorder(
-                                                      borderRadius:
-                                                          BorderRadius.circular(
-                                                              8),
-                                                    ),
-                                                  ),
-                                                  child: const Text('Thêm'),
-                                                ),
+                                padding:
+                                    const EdgeInsets.symmetric(horizontal: 16),
+                                shrinkWrap: true,
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: searchResults.length,
+                                itemBuilder: (context, index) {
+                                  final user = searchResults[index];
+                                  final isSelected =
+                                      selectedUsers.any((u) => u == user);
+                                  return Card(
+                                    color: white,
+                                    margin: const EdgeInsets.only(bottom: 8),
+                                    child: ListTile(
+                                      leading: CircleAvatar(
+                                        backgroundColor: primary2,
+                                        child: Text(
+                                          (user.accountFullname?.isNotEmpty ==
+                                                  true
+                                              ? user.accountFullname![0]
+                                                  .toUpperCase()
+                                              : 'U'),
+                                          style:
+                                              styleSmall.copyWith(color: white),
                                         ),
-                                      );
-                                    },
-                                  ),
+                                      ),
+                                      title: Text(
+                                        user.accountFullname ?? '',
+                                        style: styleSmallBold.copyWith(
+                                            color: black),
+                                      ),
+                                      subtitle: Text(
+                                        user.accountUsername ?? '',
+                                        style:
+                                            styleSmall.copyWith(color: grey2),
+                                      ),
+                                      trailing: isSelected
+                                          ? const Icon(Icons.check,
+                                              color: successLight)
+                                          : ElevatedButton(
+                                              onPressed: () {
+                                                viewModel
+                                                    .addUserToSelection(user);
+                                              },
+                                              style: ElevatedButton.styleFrom(
+                                                backgroundColor: primary2,
+                                                shape: RoundedRectangleBorder(
+                                                  borderRadius:
+                                                      BorderRadius.circular(8),
+                                                ),
+                                              ),
+                                              child: const Text('Thêm'),
+                                            ),
+                                    ),
+                                  );
+                                },
+                              ),
                             );
                           },
                         ),
@@ -251,12 +249,12 @@ void showCreateChatBottomSheet(
                   ),
                 ),
 
-                // Footer - Nút tạo cuộc trò chuyện (Fixed at bottom)
+                // Footer - Nút tạo cuộc trò chuyện
                 ValueListenableBuilder<List<AccountModel>>(
                   valueListenable: viewModel.selectedUsers,
                   builder: (context, selected, child) {
                     return Padding(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.all(16).copyWith(bottom: 50),
                       child: SizedBox(
                         width: double.infinity,
                         child: ValueListenableBuilder<bool>(

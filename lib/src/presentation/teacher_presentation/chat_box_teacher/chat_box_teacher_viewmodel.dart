@@ -225,7 +225,7 @@ class ChatBoxTeacherViewModel extends BaseViewModel with StompListener {
 
       logger.i("Gửi yêu cầu tạo chat: ${jsonEncode(request.toJson())}");
 
-      // // Gửi yêu cầu qua WebSocket
+      // Gửi yêu cầu qua WebSocket
       // final stompService = await StompService.instance();
 
       stompService?.send(StompListenType.chatBoxCreate, jsonEncode(request.toJson()));
@@ -271,10 +271,14 @@ class ChatBoxTeacherViewModel extends BaseViewModel with StompListener {
           listener: this,
           chatBoxId: response['chatBoxId'],
         );
-
+        ChatBoxModel chatBoxModel = ChatBoxModel().copyWith(
+          id: response['chatBoxId'],
+        );
+        Get.toNamed(Routers.chatBoxDetailTeacher, arguments: {'chatBox': chatBoxModel})?.then((_) {
+          refreshChatBoxs();
+        });
         refreshChatBoxs();
       }
-
     } catch (e) {
       logger.e('Lỗi khi xử lý phản hồi tạo chatbox: $e');
     }
@@ -330,5 +334,17 @@ class ChatBoxTeacherViewModel extends BaseViewModel with StompListener {
   void clearSearch() {
     searchResults.value = [];
     searchResults.notifyListeners();
+  }
+
+  void searchUserOrChatBox() async {
+    final result = await Get.toNamed(Routers.chatBoxSearchTeacher);
+
+    if (result is AccountModel) {
+      createNewChatBox(members: [result]);
+    } else if (result is ChatBoxModel) {
+      Get.toNamed(Routers.chatBoxDetailTeacher, arguments: {'chatBox': result})?.then((_) {
+        refreshChatBoxs();
+      });
+    }
   }
 }

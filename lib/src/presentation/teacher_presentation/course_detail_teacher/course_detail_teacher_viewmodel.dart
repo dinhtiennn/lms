@@ -286,13 +286,14 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
         getFeeTypeAPIValue(priceController.text.isEmpty ? FeeStatusType.NON_CHARGEABLE : FeeStatusType.CHARGEABLE);
 
     String? price = priceController.text.trim().replaceAll(',', '.');
+    if(price.isNotEmpty) statusSelected.value = StatusOption(Status.REQUEST, 'Yêu cầu tham gia', 'REQUEST');
 
     setLoading(false);
     NetworkState<CourseModel> resultUpdateCourse = await courseRepository.updateCourse(
       courseId: course?.id,
       name: courseNameController.text,
       description: courseDescriptionController.text,
-      status: statusSelected.value?.apiValue ?? StatusOption(Status.PUBLIC, 'Công khai', 'PUBLIC').apiValue,
+      status: statusSelected.value?.apiValue ?? StatusOption(Status.REQUEST, 'Yêu cầu tham gia', 'REQUEST').apiValue,
       startDate: AppUtils.formatDateToISO(startDateController.text),
       endDate: AppUtils.formatDateToISO(endDateController.text),
       majorId: majorSelected.value?.id,

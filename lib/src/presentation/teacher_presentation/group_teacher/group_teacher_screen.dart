@@ -73,42 +73,89 @@ class _GroupTeacherScreenState extends State<GroupTeacherScreen> {
             }
 
             return ListView.builder(
+              physics: AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
               padding: const EdgeInsets.all(16).copyWith(bottom: MediaQuery.paddingOf(context).bottom),
               itemCount: groups?.length,
               controller: _viewModel.scrollController,
               itemBuilder: (context, index) {
                 GroupModel? group = groups?[index];
-                return Stack(
-                  children: [
-                    Card(
-                      color: white,
-                      margin: const EdgeInsets.only(bottom: 16),
-                      child: ListTile(
-                          title: Row(
+                return Card(
+                  elevation: 2,
+                  color: white.withOpacity(0.8),
+                  margin: const EdgeInsets.only(bottom: 16),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: InkWell(
+                    borderRadius: BorderRadius.circular(12),
+                    onTap: () => _viewModel.navigateToGroupDetail(group: group),
+                    child: Padding(
+                      padding: const EdgeInsets.all(16),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
                             children: [
-                              Expanded(child: Text(group?.name ?? '', style: styleMediumBold.copyWith(color: grey2))),
-                              SizedBox(
+                              // Icon nhóm
+                              Container(
                                 width: 40,
-                              )
+                                height: 40,
+                                decoration: BoxDecoration(
+                                  color: primary2.withOpacity(0.1),
+                                  borderRadius: BorderRadius.circular(8),
+                                ),
+                                child: Icon(
+                                  Icons.group,
+                                  color: primary2,
+                                  size: 24,
+                                ),
+                              ),
+                              SizedBox(width: 12),
+                              // Tên nhóm
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      group?.name ?? '',
+                                      style: styleMediumBold.copyWith(color: grey2),
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    SizedBox(height: 4),
+                                    Text(
+                                      'Nhóm học tập',
+                                      style: styleVerySmall.copyWith(color: grey3),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                              // Nút chỉnh sửa
+                              IconButton(
+                                icon: Icon(
+                                  Icons.edit,
+                                  color: primary2,
+                                  size: 20,
+                                ),
+                                onPressed: () => _showEditGroupModal(group!),
+                                padding: EdgeInsets.zero,
+                                constraints: BoxConstraints(),
+                                splashRadius: 24,
+                              ),
                             ],
                           ),
-                          subtitle: Text(
-                            group?.description ?? '',
-                            style: styleSmall.copyWith(color: grey4),
-                          ),
-                          onTap: () => _viewModel.navigateToGroupDetail(group: group)),
+                          if ((group?.description ?? '').isNotEmpty) SizedBox(height: 12),
+                          if ((group?.description ?? '').isNotEmpty)
+                            Text(
+                              group?.description ?? '',
+                              style: styleSmall.copyWith(color: grey4),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                        ],
+                      ),
                     ),
-                    Positioned(
-                        right: 0,
-                        child: IconButton(
-                          icon: Icon(
-                            Icons.edit,
-                            color: primary2,
-                            size: 20,
-                          ),
-                          onPressed: () => _showEditGroupModal(group!),
-                        )),
-                  ],
+                  ),
                 );
               },
             );

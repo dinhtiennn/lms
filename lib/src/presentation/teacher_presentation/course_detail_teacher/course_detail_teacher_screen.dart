@@ -12,8 +12,7 @@ class CourseDetailTeacherScreen extends StatefulWidget {
   const CourseDetailTeacherScreen({Key? key}) : super(key: key);
 
   @override
-  State<CourseDetailTeacherScreen> createState() =>
-      _CourseDetailTeacherScreenState();
+  State<CourseDetailTeacherScreen> createState() => _CourseDetailTeacherScreenState();
 }
 
 class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
@@ -71,19 +70,18 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                           switch (value) {
                             case 'manage_students':
                               _viewModel.getStudentsOfCourse().then((_) {
-                                showManageStudentsBottomSheet(
-                                    popupContext, _viewModel);
+                                print(courseDetail?.feeType);
+                                showManageStudentsBottomSheet(popupContext, _viewModel,
+                                    courseDetail?.feeType ?? '');
                               });
                               break;
                             case 'manage_students_request':
                               _viewModel.getAllRequestToCourse().then((_) {
-                                showManageStudentsBottomSheetRequest(
-                                    popupContext, _viewModel);
+                                showManageStudentsBottomSheetRequest(popupContext, _viewModel);
                               });
                               break;
                             case 'add_students':
-                              showAddStudentBottomSheet(
-                                  popupContext, _viewModel);
+                              showAddStudentBottomSheet(popupContext, _viewModel);
                               break;
                             case 'remove_course':
                               _showDialogRemoveCourse(popupContext);
@@ -108,17 +106,13 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                               ],
                             ),
                           ),
-                          if (!(courseDetail?.status
-                                  ?.toUpperCase()
-                                  .contains('PUBLIC') ??
-                              false))
+                          if (!(courseDetail?.status?.toUpperCase().contains('PUBLIC') ?? false))
                             PopupMenuItem(
                               value: 'manage_students_request',
                               child: Row(
                                 children: [
                                   Image(
-                                    image:
-                                        AssetImage(AppImages.png('subscribe')),
+                                    image: AssetImage(AppImages.png('subscribe')),
                                     width: 20,
                                     height: 20,
                                     color: primary3,
@@ -133,10 +127,7 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                                 ],
                               ),
                             ),
-                          if (!(courseDetail?.status
-                                  ?.toUpperCase()
-                                  .contains('PUBLIC') ??
-                              false))
+                          if (!(courseDetail?.status?.toUpperCase().contains('PUBLIC') ?? false))
                             PopupMenuItem(
                               value: 'add_students',
                               child: Row(
@@ -152,21 +143,22 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                                 ],
                               ),
                             ),
-                          PopupMenuItem(
-                            value: 'remove_course',
-                            child: Row(
-                              children: [
-                                Icon(Icons.delete_outline, color: error),
-                                SizedBox(width: 8),
-                                Expanded(
-                                  child: Text(
-                                    'Xóa khóa học',
-                                    style: styleSmall.copyWith(color: error),
+                          if (!(courseDetail?.feeType?.toUpperCase() == ('CHARGEABLE')))
+                            PopupMenuItem(
+                              value: 'remove_course',
+                              child: Row(
+                                children: [
+                                  Icon(Icons.delete_outline, color: error),
+                                  SizedBox(width: 8),
+                                  Expanded(
+                                    child: Text(
+                                      'Xóa khóa học',
+                                      style: styleSmall.copyWith(color: error),
+                                    ),
                                   ),
-                                ),
-                              ],
+                                ],
+                              ),
                             ),
-                          ),
                         ];
                       },
                     );
@@ -293,8 +285,7 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                         style: styleMediumBold.copyWith(color: black),
                       ),
                       ElevatedButton.icon(
-                        onPressed: () =>
-                            showAddLessonBottomSheet(context, _viewModel),
+                        onPressed: () => showAddLessonBottomSheet(context, _viewModel),
                         icon: Icon(
                           Icons.add_circle_outline,
                           color: white,
@@ -306,8 +297,7 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                         ),
                         style: ElevatedButton.styleFrom(
                           backgroundColor: primary3,
-                          padding:
-                              EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+                          padding: EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(8),
                           ),
@@ -374,7 +364,7 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                   ),
                   if (isChargeable && course?.price != null)
                     Text(
-                    '${course!.price ?? ''}\$',
+                      '${course!.price ?? ''}\$',
                       style: styleSmall.copyWith(
                         color: isChargeable ? primary2 : Colors.green,
                         fontWeight: FontWeight.bold,
@@ -404,8 +394,7 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                       _getLearningDurationLabel(course?.learningDurationType),
                       style: styleMediumBold.copyWith(color: grey2),
                     ),
-                    if (isLimited &&
-                        (course?.startDate != null || course?.endDate != null))
+                    if (isLimited && (course?.startDate != null || course?.endDate != null))
                       Text(
                         course?.startDate != null && course?.endDate != null
                             ? 'Thời gian: ${_formatDate(course?.startDate)} - ${_formatDate(course?.endDate)}'
@@ -450,11 +439,9 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatItem(
-              Icons.book_outlined, '${course?.lesson?.length ?? 0}', 'Bài học'),
+          _buildStatItem(Icons.book_outlined, '${course?.lesson?.length ?? 0}', 'Bài học'),
           _buildVerticalDivider(),
-          _buildStatItem(
-              Icons.menu_book_outlined, '$totalChapters', 'Chương học'),
+          _buildStatItem(Icons.menu_book_outlined, '$totalChapters', 'Chương học'),
           if (course?.status?.isNotEmpty == true) ...[
             _buildVerticalDivider(),
             _buildStatItem(
@@ -530,8 +517,7 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => showAddMaterialBottomSheet(
-                          context, lesson, _viewModel),
+                      onPressed: () => showAddMaterialBottomSheet(context, lesson, _viewModel),
                       icon: Icon(
                         Icons.add_circle_outline,
                         color: primary3,
@@ -547,9 +533,7 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                       (material.path ?? '').split('/').last,
                       style: styleSmall.copyWith(color: grey2),
                     ),
-                    onTap: () => Get.toNamed(
-                        Routers.courseMaterialDetailTeacher,
-                        arguments: {'material': material}),
+                    onTap: () => Get.toNamed(Routers.courseMaterialDetailTeacher, arguments: {'material': material}),
                   ),
                 ),
               ],
@@ -572,8 +556,7 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => showAddChapterBottomSheet(
-                          context, lesson, _viewModel),
+                      onPressed: () => showAddChapterBottomSheet(context, lesson, _viewModel),
                       icon: Icon(
                         Icons.add_circle_outline,
                         color: primary3,
@@ -588,24 +571,19 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                       Expanded(
                         child: ListTile(
                           leading: Icon(
-                            chapter.type == 'file'
-                                ? Icons.file_present
-                                : Icons.video_library,
+                            chapter.type == 'file' ? Icons.file_present : Icons.video_library,
                             color: primary2,
                           ),
                           title: Text(
                             chapter.name ?? '',
                             style: styleSmall.copyWith(color: grey2),
                           ),
-                          onTap: () => Get.toNamed(
-                              Routers.courseFileDetailTeacher,
-                              arguments: {'chapter': chapter}),
+                          onTap: () => Get.toNamed(Routers.courseFileDetailTeacher, arguments: {'chapter': chapter}),
                         ),
                       ),
                       InkWell(
                         child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 8),
+                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                           child: Icon(Icons.comment_outlined, color: primary2),
                         ),
                         onTap: () {
@@ -640,13 +618,11 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                             onPressed: () {
                               if (lesson.chapters?.isEmpty ?? false) {
                                 _viewModel.showToast(
-                                    title:
-                                        'Vui lòng thêm chương học trước khi thêm bài kiểm tra!',
+                                    title: 'Vui lòng thêm chương học trước khi thêm bài kiểm tra!',
                                     type: ToastificationType.warning);
                                 return;
                               }
-                              showCreateQuizBottomSheet(
-                                  context, lesson, _viewModel);
+                              showCreateQuizBottomSheet(context, lesson, _viewModel);
                             },
                             icon: Icon(
                               Icons.add_circle_outline,
@@ -664,8 +640,7 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                       quiz.question ?? '',
                       style: styleSmall.copyWith(color: grey2),
                     ),
-                    onTap: () => Get.toNamed(Routers.courseQuizsDetailTeacher,
-                        arguments: {'lesson': lesson}),
+                    onTap: () => Get.toNamed(Routers.courseQuizsDetailTeacher, arguments: {'lesson': lesson}),
                   ),
                 ),
               ],
@@ -691,10 +666,7 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
         }
       },
       setCommentSelected: _viewModel.setCommentSelected,
-      onLoadMoreComments: (
-          {required ChapterModel chapter,
-          int pageSize = 20,
-          int pageNumber = 0}) {
+      onLoadMoreComments: ({required ChapterModel chapter, int pageSize = 20, int pageNumber = 0}) {
         _viewModel.loadComments(isReset: pageNumber == 0, pageSize: pageSize);
       },
       currentChapter: currentChapter,

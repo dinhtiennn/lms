@@ -22,3 +22,4 @@ export 'chat_box_teacher/chat_box_teacher.dart';
 export 'chat_box_teacher_detail/chat_box_teacher_detail.dart';
 export 'chat_box_info_teacher/chat_box_info_teacher.dart';
 export 'chat_box_member_teacher/chat_box_member_teacher.dart';
+export 'chat_box_search_teacher/chat_box_search_teacher.dart';

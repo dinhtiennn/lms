@@ -29,6 +29,7 @@ class Routers {
   static const String testDetail = "/test-detail";
   static const String testResult = "/test-result";
   static const String chatDetail = "/chat-detail";
+  static const String chatInfo = "/chat-info";
   static const String paymentWebView = "/payment-webview";
 
   //Endpoint for teacher
@@ -57,6 +58,7 @@ class Routers {
   static const String chatBoxDetailTeacher = "/chat-box-detail-teacher";
   static const String chatBoxInfoTeacher = "/chat-box-info-teacher";
   static const String chatBoxMemberTeacher = "/chat-box-member-teacher";
+  static const String chatBoxSearchTeacher = "/chat-box-search-teacher";
 
   static Route<dynamic> generateRoute(RouteSettings settings) {
     var arguments = settings.arguments;
@@ -140,6 +142,9 @@ class Routers {
       case chatDetail:
         return animRoute(const ChatDetailScreen(),
             name: chatDetail, beginOffset: _right, arguments: arguments);
+      case chatInfo:
+        return animRoute(const ChatBoxInfoScreen(),
+            name: chatInfo, beginOffset: _right, arguments: arguments);
       case paymentWebView:
         return animRoute(const PaymentWebViewScreen(),
             name: paymentWebView, beginOffset: _right, arguments: arguments);
@@ -238,6 +243,11 @@ class Routers {
       case chatBoxMemberTeacher:
         return animRoute(const ChatBoxMemberTeacherScreen(),
             name: chatBoxMemberTeacher,
+            beginOffset: _right,
+            arguments: arguments);
+      case chatBoxSearchTeacher:
+        return animRoute(const ChatBoxSearchTeacherScreen(),
+            name: chatBoxSearchTeacher,
             beginOffset: _right,
             arguments: arguments);
       //case default

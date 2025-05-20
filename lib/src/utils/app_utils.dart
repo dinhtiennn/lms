@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:intl/intl.dart';
 import 'package:lms/src/presentation/presentation.dart';
+import 'package:lms/src/resource/resource.dart';
 import 'package:overlay_support/overlay_support.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -296,4 +297,11 @@ class AppUtils {
       return 'Có thời hạn';
     }
   }
+
+  static AccountModel? getOtherAccount(List<AccountModel> members, String currentUsername) {
+    return members.firstWhere(
+          (account) => account.accountUsername != currentUsername,
+    );
+  }
+
 }

@@ -19,9 +19,9 @@ class _ChatBoxMemberTeacherScreenState extends State<ChatBoxMemberTeacherScreen>
         viewModel: ChatBoxMemberTeacherViewModel(),
         onViewModelReady: (viewModel) {
           _viewModel = viewModel;
-            WidgetsBinding.instance.addPostFrameCallback((_) {
+          WidgetsBinding.instance.addPostFrameCallback((_) {
             _viewModel.init();
-            });
+          });
         },
         // child: WidgetBackground(),
         builder: (context, viewModel, child) {

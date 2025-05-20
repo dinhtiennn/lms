@@ -13,10 +13,10 @@ class AccountModel {
 
   factory AccountModel.fromJson(Map<String, dynamic> json) {
     return AccountModel(
-      accountId: json['accountId'] as String,
-      accountFullname: json['accountFullname'] as String,
-      accountUsername: json['accountUsername'] as String,
-      avatar: json['avatar'] as String?,
+      accountId: json['accountId'],
+      accountFullname: json['accountFullname'],
+      accountUsername: json['acountUsername'],
+      avatar: json['avatar'],
     );
   }
 
@@ -29,7 +29,7 @@ class AccountModel {
     };
   }
 
-  static List<AccountModel> listFromJson(List<dynamic> list) {
-    return list.map((e) => AccountModel.fromJson(e as Map<String, dynamic>)).toList();
+  static List<AccountModel> listFromJson(List<dynamic> jsonList) {
+    return jsonList.map((json) => AccountModel.fromJson(json)).toList();
   }
 }

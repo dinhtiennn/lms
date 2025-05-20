@@ -133,9 +133,7 @@ class TestDetailViewModel extends BaseViewModel {
       showToast(
           title: 'Bài kiểm tra đã được nộp tự động',
           type: ToastificationType.success);
-      if (Get.isRegistered<GroupDetailViewModel>()) {
-        Get.find<GroupDetailViewModel>().refreshTest();
-      }
+
       Get.back();
     } else {
       showToast(

@@ -4,11 +4,10 @@ import 'package:intl/intl.dart';
 import 'package:lms/src/configs/configs.dart';
 import 'package:lms/src/presentation/presentation.dart';
 import 'package:lms/src/presentation/teacher_presentation/chat_box_teacher/show_create_chat_bottom_sheet.dart';
+import 'package:lms/src/resource/model/account_model.dart';
 import 'package:lms/src/resource/model/chat_box_model.dart';
 import 'package:lms/src/resource/model/teacher_model.dart';
 import 'package:lms/src/utils/app_prefs.dart';
-import 'package:lms/src/utils/app_utils.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 
 class ChatBoxTeacherScreen extends StatefulWidget {
   const ChatBoxTeacherScreen({Key? key}) : super(key: key);
@@ -55,15 +54,25 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
                     });
                   },
                 ),
-                IconButton(
-                  icon: const Icon(Icons.refresh, color: white),
-                  onPressed: _viewModel.refreshChatBoxs,
-                  tooltip: 'Làm mới',
-                ),
               ],
             ),
             body: Column(
               children: [
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 12, vertical: 12),
+                  child: WidgetInput(
+                    hintText: 'Tên người dùng, email, đoạn chat...',
+                    prefix: const Icon(Icons.search, color: grey2),
+                    borderRadius: BorderRadius.circular(12),
+                    widthPrefix: 40,
+                    style: styleSmall.copyWith(color: grey2),
+                    readOnly: true,
+                    onTap: () {
+                      _viewModel.searchUserOrChatBox();
+                    },
+                  ),
+                ),
                 Expanded(
                   child: _buildChatList(),
                 ),
@@ -86,21 +95,46 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
           );
         }
         if (chatboxes.isEmpty) {
-          return Container(color: white, child: _buildEmptyState());
+          return RefreshIndicator(
+            onRefresh: _viewModel.refreshChatBoxs,
+            color: primary2,
+            child: ListView(
+              physics: const AlwaysScrollableScrollPhysics(),
+              children: [
+                Container(
+                  height: MediaQuery.of(context).size.height - 150,
+                  color: white,
+                  child: _buildEmptyState(),
+                ),
+              ],
+            ),
+          );
         }
+
+        // Lấy chiều cao màn hình để đảm bảo nội dung luôn có thể cuộn
+        final screenHeight = MediaQuery.of(context).size.height;
 
         return RefreshIndicator(
           onRefresh: _viewModel.refreshChatBoxs,
           color: primary2,
           child: ListView.builder(
+            // Đảm bảo luôn có thể cuộn
+            physics: const AlwaysScrollableScrollPhysics(),
             controller: _viewModel.scrollController,
-            padding: const EdgeInsets.symmetric(vertical: 8),
+            // Padding đủ lớn ở dưới cùng để đảm bảo có thể cuộn khi ít mục
+            padding: EdgeInsets.only(
+              top: 8,
+              bottom: chatboxes.length < 5
+                  ? screenHeight * 0.6
+                  : 16, // Thêm padding lớn nếu ít mục
+              left: 0,
+              right: 0,
+            ),
             itemCount: chatboxes.length + 1,
             itemBuilder: (context, index) {
               if (index == chatboxes.length) {
                 return _buildLoadMoreIndicator();
               }
-
               return _buildChatBoxItem(chatboxes[index]);
             },
           ),
@@ -135,6 +169,11 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
           Text(
             'Hãy bắt đầu trò chuyện mới',
             style: styleSmall.copyWith(color: grey1),
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Kéo xuống để làm mới',
+            style: styleVerySmall.copyWith(color: grey1),
           ),
         ],
       ),
@@ -171,7 +210,6 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
             ),
           );
         }
-
         return const SizedBox(height: 16);
       },
     );
@@ -179,17 +217,44 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
 
   Widget _buildChatBoxItem(ChatBoxModel chatBox) {
     final DateTime? lastMessageTime = chatBox.lastMessageAt;
-    final String timeDisplay = lastMessageTime != null ? _formatMessageTime(lastMessageTime) : '';
-
-    final String displayName = chatBox.name ?? 'Chat không tên';
+    final String timeDisplay =
+        lastMessageTime != null ? _formatMessageTime(lastMessageTime) : '';
 
     final bool isGroup = chatBox.group ?? false;
 
-    final int memberCount = chatBox.memberAccountUsernames?.length ?? 0;
+    // Lấy thông tin người dùng hiện tại
+    final TeacherModel? currentUser =
+        AppPrefs.getUser<TeacherModel>(TeacherModel.fromJson);
+    final String currentUserEmail = currentUser?.email ?? '';
+
+    // Xác định tên hiển thị và thông tin người đối diện
+    String displayName = '';
+    AccountModel? otherUser;
+
+    if (isGroup) {
+      // Nếu là nhóm chat, hiển thị tên nhóm
+      displayName = chatBox.name ?? 'Nhóm không tên';
+    } else {
+      // Nếu là chat 1-1, tìm người đối diện
+      if (chatBox.memberAccountUsernames != null &&
+          chatBox.memberAccountUsernames!.isNotEmpty) {
+        // Tìm tài khoản không phải là người dùng hiện tại
+        otherUser = chatBox.memberAccountUsernames!.firstWhere(
+            (member) => member.accountUsername != chatBox.createdBy,
+            orElse: () => chatBox.memberAccountUsernames!.first);
+
+        // Lấy tên hiển thị từ tài khoản đối diện
+        displayName = otherUser.accountFullname ??
+            otherUser.accountUsername ??
+            'Người dùng không tên';
+      } else {
+        displayName = 'Chat không tên';
+      }
+    }
 
     final String lastMessageBy = chatBox.lastMessageBy ?? '';
     final bool isOwnMessage =
-        lastMessageBy.isNotEmpty && lastMessageBy == AppPrefs.getUser<TeacherModel>(TeacherModel.fromJson)?.email;
+        lastMessageBy.isNotEmpty && lastMessageBy == currentUserEmail;
 
     return Card(
       color: white,
@@ -206,7 +271,10 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
-              _buildAvatar(isGroup, memberCount, displayName),
+              isGroup
+                  ? _buildAvatar(
+                      true, chatBox.memberAccountUsernames ?? [], displayName)
+                  : _buildSingleUserAvatar(otherUser, displayName),
               const SizedBox(width: 12),
               Expanded(
                 child: Column(
@@ -259,44 +327,69 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
     );
   }
 
-  Widget _buildAvatar(bool isGroup, int memberCount, String displayName) {
+  Widget _buildSingleUserAvatar(AccountModel? user, String displayName) {
+    // Nếu có thông tin người dùng và có avatar
+    if (user != null && user.avatar != null && user.avatar!.isNotEmpty) {
+      return Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          shape: BoxShape.circle,
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: WidgetImageNetwork(
+          url: user.avatar!,
+          fit: BoxFit.cover,
+          widgetError: _buildDefaultAvatar(displayName),
+        ),
+      );
+    } else {
+      // Nếu không có avatar, hiển thị chữ cái đầu tiên
+      return _buildDefaultAvatar(displayName);
+    }
+  }
+
+  Widget _buildDefaultAvatar(String displayName) {
+    return Container(
+      width: 50,
+      height: 50,
+      decoration: BoxDecoration(
+        color: primary2.withOpacity(0.1),
+        shape: BoxShape.circle,
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        displayName.isNotEmpty ? displayName[0].toUpperCase() : '?',
+        style: const TextStyle(
+          color: primary2,
+          fontSize: 20,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  Widget _buildAvatar(
+      bool isGroup, List<AccountModel> members, String displayName) {
+    int memberCount = members.length;
+
     if (isGroup) {
-      return Stack(
-        children: [
-          Container(
-            width: 50,
-            height: 50,
-            decoration: BoxDecoration(
-              color: primary2.withOpacity(0.1),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.people,
-              color: primary2,
-              size: 24,
-            ),
-          ),
-          Positioned(
-            right: 0,
-            bottom: 0,
-            child: Container(
-              padding: const EdgeInsets.all(4),
-              decoration: BoxDecoration(
+      return Container(
+        width: 50,
+        height: 50,
+        decoration: BoxDecoration(
+          color: white,
+          shape: BoxShape.circle,
+          border: Border.all(color: primary2.withOpacity(0.2), width: 1),
+        ),
+        clipBehavior: Clip.antiAlias,
+        child: memberCount > 0
+            ? _buildGroupAvatars(members)
+            : const Icon(
+                Icons.people,
                 color: primary2,
-                shape: BoxShape.circle,
-                border: Border.all(color: white, width: 2),
+                size: 24,
               ),
-              child: Text(
-                memberCount.toString(),
-                style: const TextStyle(
-                  color: white,
-                  fontSize: 10,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-            ),
-          ),
-        ],
       );
     } else {
       return Container(
@@ -319,16 +412,118 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
     }
   }
 
+  Widget _buildGroupAvatars(List<AccountModel> members) {
+    final displayMembers = members.take(3).toList();
+
+    return Column(
+      children: [
+        // Nửa trên: 1 avatar
+        if (displayMembers.isNotEmpty)
+          Expanded(
+            flex: 1,
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 1),
+              child: _buildSingleAvatar(displayMembers[0], 0),
+            ),
+          ),
+
+        // Nửa dưới: 2 avatar cạnh nhau
+        if (displayMembers.length > 1)
+          Expanded(
+            flex: 1,
+            child: Row(
+              children: [
+                // Avatar trái
+                Expanded(
+                  child: Padding(
+                    padding: const EdgeInsets.only(right: 1),
+                    child: _buildSingleAvatar(displayMembers[1], 1),
+                  ),
+                ),
+
+                // Avatar phải (nếu có)
+                if (displayMembers.length > 2)
+                  Expanded(
+                    child: _buildSingleAvatar(displayMembers[2], 3),
+                  ),
+
+                // Nếu chỉ có 2 thành viên, hiển thị ô trống
+                if (displayMembers.length == 2)
+                  Expanded(
+                    child: Container(
+                      color: primary2.withOpacity(0.05),
+                    ),
+                  ),
+              ],
+            ),
+          ),
+      ],
+    );
+  }
+
+  Widget _buildSingleAvatar(AccountModel member, index) {
+    if (member.avatar != null && member.avatar!.isNotEmpty) {
+      return WidgetImageNetwork(
+        width: index == 0 ? 50 : 20,
+        url: member.avatar!,
+        fit: BoxFit.cover,
+        widgetError: _buildInitialAvatar(member),
+      );
+    } else {
+      return _buildInitialAvatar(member);
+    }
+  }
+
+  Widget _buildInitialAvatar(AccountModel member) {
+    final String initial = _getInitial(member);
+
+    return Container(
+      decoration: BoxDecoration(
+        color: primary2.withOpacity(0.2),
+      ),
+      alignment: Alignment.center,
+      child: Text(
+        initial,
+        style: const TextStyle(
+          color: primary2,
+          fontSize: 10,
+          fontWeight: FontWeight.bold,
+        ),
+      ),
+    );
+  }
+
+  String _getInitial(AccountModel member) {
+    if (member.accountFullname != null && member.accountFullname!.isNotEmpty) {
+      return member.accountFullname![0].toUpperCase();
+    } else if (member.accountUsername != null &&
+        member.accountUsername!.isNotEmpty) {
+      return member.accountUsername![0].toUpperCase();
+    } else {
+      return '?';
+    }
+  }
+
   String _formatMessageTime(DateTime dateTime) {
     final now = DateTime.now();
     final localDateTime = dateTime.toLocal();
 
-    if (localDateTime.year == now.year && localDateTime.month == now.month && localDateTime.day == now.day) {
+    final isToday = now.year == localDateTime.year &&
+        now.month == localDateTime.month &&
+        now.day == localDateTime.day;
+
+    final yesterday = now.subtract(const Duration(days: 1));
+    final isYesterday = yesterday.year == localDateTime.year &&
+        yesterday.month == localDateTime.month &&
+        yesterday.day == localDateTime.day;
+
+    if (isToday) {
       return DateFormat('HH:mm').format(localDateTime);
-    } else if (localDateTime.year == now.year && localDateTime.month == now.month && localDateTime.day == now.day - 1) {
+    } else if (isYesterday) {
       return 'Hôm qua';
     } else if (now.difference(localDateTime).inDays < 7) {
-      return DateFormat('E').format(localDateTime);
+      // Hiển thị thứ, ví dụ: "Th 2", "Th 3", ...
+      return DateFormat.E('vi_VN').format(localDateTime);
     } else {
       return DateFormat('dd/MM/yyyy').format(localDateTime);
     }

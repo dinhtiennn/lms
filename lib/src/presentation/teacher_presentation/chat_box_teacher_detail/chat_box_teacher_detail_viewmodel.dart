@@ -1,17 +1,11 @@
 import 'dart:convert';
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
-import 'package:lms/src/configs/configs.dart';
 import 'package:lms/src/presentation/presentation.dart';
-import 'package:lms/src/resource/model/model.dart';
 import 'package:lms/src/resource/resource.dart';
 import 'package:lms/src/utils/app_prefs.dart';
 import 'package:toastification/toastification.dart';
 import 'package:image_picker/image_picker.dart';
-import 'package:http/http.dart' as http;
-import 'package:dio/dio.dart';
 
 class ChatBoxTeacherDetailViewModel extends BaseViewModel with StompListener {
   ValueNotifier<ChatBoxModel?> chatbox = ValueNotifier(null);
@@ -284,16 +278,12 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel with StompListener {
     if (chatbox.value?.id == null) return;
 
     try {
-      // Đánh dấu tin nhắn là đã đọc trên server
-      // todo: đánh đấu đọc message
-      // Nếu API này chưa có, có thể bỏ qua bước này
-      // NetworkState resultReadMessage = chatBoxRepository.markAsRead();
-
-      // if (resultReadMessage.isSuccess) {
-      //   logger.i("Đã đánh dấu tin nhắn là đã đọc");
-      // } else {
-      //   logger.e("Lỗi khi đánh dấu tin nhắn là đã đọc: ${response.statusCode}");
-      // }
+      NetworkState resultReadMessage = await chatBoxRepository.markAsRead(chatBoxId: chatbox.value?.id);
+      if (resultReadMessage.isSuccess) {
+        logger.i("Đã đánh dấu tin nhắn là đã đọc");
+      } else {
+        logger.e("Lỗi khi đánh dấu tin nhắn là đã đọc: ${resultReadMessage.message}");
+      }
     } catch (e) {
       logger.e("Lỗi khi đánh dấu tin nhắn là đã đọc: $e");
     }
@@ -378,40 +368,6 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel with StompListener {
     } finally {
       isSendingMessage.value = false;
       isSendingMessage.notifyListeners();
-    }
-  }
-
-  Future<void> pickFile() async {
-    try {
-      final ImagePicker picker = ImagePicker();
-
-      // Hiển thị dialog để chọn loại file
-      final source = await showDialog<ImageSource>(
-        context: Get.context!,
-        builder: (context) => AlertDialog(
-          title: Text('Chọn nguồn'),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              ListTile(
-                leading: Icon(Icons.photo_library),
-                title: Text('Thư viện'),
-                onTap: () => Navigator.pop(context, ImageSource.gallery),
-              ),
-              ListTile(
-                leading: Icon(Icons.camera_alt),
-                title: Text('Máy ảnh'),
-                onTap: () => Navigator.pop(context, ImageSource.camera),
-              ),
-            ],
-          ),
-        ),
-      );
-    } catch (e) {
-      logger.e("Lỗi khi chọn file: $e");
-      showToast(
-          title: "Không thể chọn file. Vui lòng thử lại",
-          type: ToastificationType.error);
     }
   }
 

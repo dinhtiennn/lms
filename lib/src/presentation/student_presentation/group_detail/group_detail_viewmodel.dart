@@ -229,6 +229,14 @@ class GroupDetailViewModel extends BaseViewModel {
     }
   }
 
+  void updatePost() async {
+    // NetworkState resultUpdate = groupRepository.updatePost();
+    // if(resultUpdate.isSuccess){
+    //   showToast(title: 'Chỉnh sửa bài đăng thành công', type: ToastificationType.success);
+    //   refreshPost();
+    // }
+  }
+
   void startResult(TestModel test) {
     Get.toNamed(Routers.testResult, arguments: {'test': test});
   }

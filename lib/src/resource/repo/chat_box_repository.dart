@@ -72,9 +72,6 @@ class ChatBoxRepository {
 
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
-        successCode: response.data['code'] == 0,
-        result: ChatBoxModel.listFromJson(response.data['result']),
-        message: response.data['message'] ?? '',
       );
     } catch (e) {
       return NetworkState.withErrorConvert(e);

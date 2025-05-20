@@ -30,8 +30,7 @@ class CourseRepository {
     if (isDisconnect) return NetworkState.withDisconnect();
 
     try {
-      Response response =
-          await AppClients().post(AppEndpoint.CREATECOURSE, data: {
+      Response response = await AppClients().post(AppEndpoint.CREATECOURSE, data: {
         'name': name,
         'description': description,
         'status': status,
@@ -40,8 +39,7 @@ class CourseRepository {
         'endDate': endDate,
         'majorId': majorId,
         'feeType': feeType,
-        'price':
-            (price != null && price.isNotEmpty) ? double.parse(price) : null,
+        'price': (price != null && price.isNotEmpty) ? double.parse(price) : null,
       });
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
@@ -69,8 +67,7 @@ class CourseRepository {
     if (isDisconnect) return NetworkState.withDisconnect();
 
     try {
-      Response response =
-          await AppClients().put(AppEndpoint.UPDATECOURSE, data: {
+      Response response = await AppClients().put(AppEndpoint.UPDATECOURSE, data: {
         'idCourse': courseId,
         'name': name,
         'description': description,
@@ -80,8 +77,7 @@ class CourseRepository {
         'endDate': endDate,
         'majorId': majorId,
         'feeType': feeType,
-        'price':
-            (price != null && price.isNotEmpty) ? double.parse(price) : null,
+        'price': (price != null && price.isNotEmpty) ? double.parse(price) : null,
       });
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
@@ -94,14 +90,13 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState<List<CourseModel>>> myCourses(
-      {int pageNumber = 0, int pageSize = 20}) async {
+  Future<NetworkState<List<CourseModel>>> myCourses({int pageNumber = 0, int pageSize = 20}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
     try {
-      Response response = await AppClients().get(AppEndpoint.MYCOURSE,
-          queryParameters: {'pageNumber': pageNumber, 'pageSize': pageSize});
+      Response response = await AppClients()
+          .get(AppEndpoint.MYCOURSE, queryParameters: {'pageNumber': pageNumber, 'pageSize': pageSize});
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         result: CourseModel.listFromJson(response.data['result']['content']),
@@ -152,14 +147,13 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState<List<CourseModel>>> getCoursesByTeacher(
-      {int pageNumber = 0, int pageSize = 20}) async {
+  Future<NetworkState<List<CourseModel>>> getCoursesByTeacher({int pageNumber = 0, int pageSize = 20}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
     try {
-      Response response = await AppClients().get(AppEndpoint.MYCOURSESBYTEACHER,
-          queryParameters: {'pageNumber': pageNumber, 'pageSize': pageSize});
+      Response response = await AppClients()
+          .get(AppEndpoint.MYCOURSESBYTEACHER, queryParameters: {'pageNumber': pageNumber, 'pageSize': pageSize});
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         result: CourseModel.listFromJson(response.data['result']['content']),
@@ -171,14 +165,13 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState<List<CourseModel>>> publicCourses(
-      {int pageNumber = 0, int pageSize = 20}) async {
+  Future<NetworkState<List<CourseModel>>> publicCourses({int pageNumber = 0, int pageSize = 20}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
     try {
-      Response response = await AppClients().get(AppEndpoint.PUBLICCOURSE,
-          queryParameters: {'pageNumber': pageNumber, 'pageSize': pageSize});
+      Response response = await AppClients()
+          .get(AppEndpoint.PUBLICCOURSE, queryParameters: {'pageNumber': pageNumber, 'pageSize': pageSize});
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         result: CourseModel.listFromJson(response.data['result']['content']),
@@ -191,21 +184,13 @@ class CourseRepository {
   }
 
   Future<NetworkState<List<CourseModel>>> searchCourses(
-      {required String keyword,
-      String? teacher,
-      int pageNumber = 0,
-      int pageSize = 20}) async {
+      {required String keyword, String? teacher, int pageNumber = 0, int pageSize = 20}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
     try {
-      Response response =
-          await AppClients().get(AppEndpoint.SEARCHCOURSE, queryParameters: {
-        'courseName': keyword,
-        'teacher': teacher,
-        'pageNumber': pageNumber,
-        'pageSize': pageSize
-      });
+      Response response = await AppClients().get(AppEndpoint.SEARCHCOURSE,
+          queryParameters: {'courseName': keyword, 'teacher': teacher, 'pageNumber': pageNumber, 'pageSize': pageSize});
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         result: CourseModel.listFromJson(response.data['result']['content']),
@@ -217,14 +202,13 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState<List<CourseModel>>> courseOfMajorFirst(
-      {int pageNumber = 0, int pageSize = 20}) async {
+  Future<NetworkState<List<CourseModel>>> courseOfMajorFirst({int pageNumber = 0, int pageSize = 20}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
     try {
-      Response response = await AppClients().get(AppEndpoint.COURSEOFMAJORFIRST,
-          queryParameters: {'pageNumber': pageNumber, 'pageSize': pageSize});
+      Response response = await AppClients()
+          .get(AppEndpoint.COURSEOFMAJORFIRST, queryParameters: {'pageNumber': pageNumber, 'pageSize': pageSize});
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         result: CourseModel.listFromJson(response.data['result']['content']),
@@ -236,8 +220,7 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState<CourseDetailModel>> getCourseDetail(
-      {String? courseId}) async {
+  Future<NetworkState<CourseDetailModel>> getCourseDetail({String? courseId}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
@@ -256,8 +239,7 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState<ProgressModel>> getProgressLesson(
-      {String? lessonId}) async {
+  Future<NetworkState<ProgressModel>> getProgressLesson({String? lessonId}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
@@ -276,8 +258,7 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState<ProgressModel>> getProgressChapter(
-      {String? chapterId}) async {
+  Future<NetworkState<ProgressModel>> getProgressChapter({String? chapterId}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
@@ -296,8 +277,7 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState<ProgressModel>> setChapterProgress(
-      {String? chapterId}) async {
+  Future<NetworkState<ProgressModel>> setChapterProgress({String? chapterId}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
@@ -316,8 +296,7 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState<ProgressModel>> setLessonProgress(
-      {String? lessonId}) async {
+  Future<NetworkState<ProgressModel>> setLessonProgress({String? lessonId}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
@@ -336,8 +315,7 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState<ProgressModel>> setCompleteChapterProgress(
-      {String? chapterId}) async {
+  Future<NetworkState<ProgressModel>> setCompleteChapterProgress({String? chapterId}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
@@ -356,8 +334,7 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState<ProgressModel>> setCompleteLessonProgress(
-      {String? lessonId}) async {
+  Future<NetworkState<ProgressModel>> setCompleteLessonProgress({String? lessonId}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
@@ -396,23 +373,17 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState<List<RequestToCourseModel>>>
-      getAllRequestToCourseByStudent(
-          {String? studentId, int pageSize = 20, int pageNumber = 0}) async {
+  Future<NetworkState<List<RequestToCourseModel>>> getAllRequestToCourseByStudent(
+      {String? studentId, int pageSize = 20, int pageNumber = 0}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
     try {
       Response response = await AppClients().get(AppEndpoint.LISTREQUEST,
-          data: FormData.fromMap({
-            'studentId': studentId,
-            'pageSize': pageSize,
-            'pageNumber': pageNumber
-          }));
+          data: FormData.fromMap({'studentId': studentId, 'pageSize': pageSize, 'pageNumber': pageNumber}));
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
-        result: RequestToCourseModel.listFromJson(
-            response.data['result']['content']),
+        result: RequestToCourseModel.listFromJson(response.data['result']['content']),
         message: response.data['message'] ?? '',
         successCode: response.data['code'] == 0,
       );
@@ -427,13 +398,8 @@ class CourseRepository {
     if (isDisconnect) return NetworkState.withDisconnect();
 
     try {
-      Response response = await AppClients().get(
-          AppEndpoint.LISTREQUESTTOCOURSE,
-          data: FormData.fromMap({
-            'courseId': courseId,
-            'pageSize': pageSize,
-            'pageNumber': pageNumber
-          }));
+      Response response = await AppClients().get(AppEndpoint.LISTREQUESTTOCOURSE,
+          data: FormData.fromMap({'courseId': courseId, 'pageSize': pageSize, 'pageNumber': pageNumber}));
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         result: RequestModel.listFromJson(response.data['result']['content']),
@@ -445,18 +411,13 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState<LessonModel>> addLesson(
-      {String? description, String? courseId, int? order}) async {
+  Future<NetworkState<LessonModel>> addLesson({String? description, String? courseId, int? order}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
     try {
-      Response response = await AppClients().post(AppEndpoint.CREATELESSON,
-          data: {
-            'description': description,
-            'courseId': courseId,
-            'order': order
-          });
+      Response response = await AppClients()
+          .post(AppEndpoint.CREATELESSON, data: {'description': description, 'courseId': courseId, 'order': order});
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         result: LessonModel.fromJson(response.data['result']),
@@ -468,8 +429,7 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState<LessonMaterialModel>> addMaterial(
-      {String? id, XFile? file, String? type}) async {
+  Future<NetworkState<LessonMaterialModel>> addMaterial({String? id, XFile? file, String? type}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
@@ -478,8 +438,8 @@ class CourseRepository {
     );
 
     try {
-      Response response = await AppClients().post(AppEndpoint.ADDMATERIAL,
-          data: FormData.fromMap({'id': id, 'file': getFile, 'type': type}));
+      Response response = await AppClients()
+          .post(AppEndpoint.ADDMATERIAL, data: FormData.fromMap({'id': id, 'file': getFile, 'type': type}));
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         result: LessonMaterialModel.fromJson(response.data['result']),
@@ -492,11 +452,7 @@ class CourseRepository {
   }
 
   Future<NetworkState<ChapterModel>> addMChapter(
-      {String? lessonId,
-      String? name,
-      int? order,
-      XFile? file,
-      String? type}) async {
+      {String? lessonId, String? name, int? order, XFile? file, String? type}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
@@ -506,13 +462,7 @@ class CourseRepository {
 
     try {
       Response response = await AppClients().post(AppEndpoint.ADDCHAPTER,
-          data: FormData.fromMap({
-            'lessonId': lessonId,
-            'name': name,
-            'order': order,
-            'file': getFile,
-            'type': type
-          }));
+          data: FormData.fromMap({'lessonId': lessonId, 'name': name, 'order': order, 'file': getFile, 'type': type}));
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         result: ChapterModel.fromJson(response.data['result']),
@@ -524,8 +474,7 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState<List<LessonQuizModel>>> addQuiz(
-      {String? lessonId, required List<LessonQuizModel> quizs}) async {
+  Future<NetworkState<List<LessonQuizModel>>> addQuiz({String? lessonId, required List<LessonQuizModel> quizs}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
@@ -553,11 +502,7 @@ class CourseRepository {
     try {
       Response response = await AppClients().get(
         AppEndpoint.STUDENTSOFCOURSE,
-        data: FormData.fromMap({
-          'courseId': courseId,
-          'pageNumber': pageNumber,
-          'pageSize': pageSize
-        }),
+        data: FormData.fromMap({'courseId': courseId, 'pageNumber': pageNumber, 'pageSize': pageSize}),
       );
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
@@ -570,8 +515,7 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState> removeStudent(
-      {String? courseId, String? studentId}) async {
+  Future<NetworkState> removeStudent({String? courseId, String? studentId}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
@@ -591,8 +535,7 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState> addStudents(
-      {required String courseId, required List<StudentModel> students}) async {
+  Future<NetworkState> addStudents({required String courseId, required List<StudentModel> students}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
@@ -619,8 +562,7 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState> approvedRequest(
-      {String? courseId, String? studentId}) async {
+  Future<NetworkState> approvedRequest({String? courseId, String? studentId}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
@@ -640,8 +582,7 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState> rejectedRequest(
-      {String? courseId, String? studentId}) async {
+  Future<NetworkState> rejectedRequest({String? courseId, String? studentId}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
@@ -744,6 +685,45 @@ class CourseRepository {
         status: response.statusCode,
         message: "Lỗi thanh toán",
         successCode: false,
+      );
+    } catch (e) {
+      return NetworkState.withError(e);
+    }
+  }
+
+  Future<NetworkState> paymentSuccess({String? paymentId, String? payerID}) async {
+    bool isDisconnect = await WifiService.isDisconnect();
+    if (isDisconnect) return NetworkState.withDisconnect();
+
+    try {
+      Response response = await AppClients().get(
+        AppEndpoint.PAYMENTSUCCESS,
+        queryParameters: {'paymentId': paymentId, 'PayerID': payerID},
+      );
+      return NetworkState(
+        status: response.statusCode ?? AppEndpoint.success,
+        result: response.data['result'],
+        message: response.data['message'] ?? '',
+        successCode: response.data['code'] == 0,
+      );
+    } catch (e) {
+      return NetworkState.withError(e);
+    }
+  }
+
+  Future<NetworkState> paymentCancel() async {
+    bool isDisconnect = await WifiService.isDisconnect();
+    if (isDisconnect) return NetworkState.withDisconnect();
+
+    try {
+      Response response = await AppClients().get(
+        AppEndpoint.PAYMENTCANCEL,
+      );
+      return NetworkState(
+        status: response.statusCode ?? AppEndpoint.success,
+        result: response.data['result'],
+        message: response.data['message'] ?? '',
+        successCode: response.data['code'] == 0,
       );
     } catch (e) {
       return NetworkState.withError(e);

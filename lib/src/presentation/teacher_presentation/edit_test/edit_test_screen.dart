@@ -271,7 +271,8 @@ class _EditTestScreenState extends State<EditTestScreen> {
                                           colorButtonAccept: primary3,
                                           title: 'Xác nhận thay đổi',
                                           onTapConfirm: () {
-                                            _viewModel.updateTest();
+                                            Navigator.pop(context);
+                                            _viewModel.updateTest(context);
                                           },
                                           content: '',
                                         ),
@@ -568,10 +569,11 @@ class _EditTestScreenState extends State<EditTestScreen> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
+        backgroundColor: white,
         title:
             Text('Xóa câu hỏi', style: styleMediumBold.copyWith(color: grey2)),
         content: Text(
-          'Bạn có chắc chắn muốn xóa câu hỏi này? Hành động này không thể hoàn tác.',
+          'Bạn có chắc chắn muốn xóa câu hỏi này?',
           style: styleSmall.copyWith(color: grey3),
         ),
         actions: [

@@ -46,9 +46,9 @@ class CourseReviewViewModel extends BaseViewModel {
       final cancelUrl = "https://lms.cancel.payment";
 
       // Gọi API để lấy URL thanh toán
+      setLoading(true);
       NetworkState resultPayment = await courseRepository.payCourse(
           courseId: course.value!.id!, price: course.value!.price!, successUrl: successUrl, cancelUrl: cancelUrl);
-
       setLoading(false);
 
       if (resultPayment.isSuccess && resultPayment.message != null && resultPayment.message!.isNotEmpty) {
@@ -70,13 +70,16 @@ class CourseReviewViewModel extends BaseViewModel {
           if (result['success'] == true) {
             // Thanh toán thành công,
             await getStatusJoin(course.value!);
+            if (Get.isRegistered<HomeViewModel>()) {
+              Get.find<HomeViewModel>().getMyCourses();
+              Get.find<HomeViewModel>().getPublicCourses();
+            }
           }
         }
       } else {
         showToast(title: 'Không thể tạo liên kết thanh toán, vui lòng thử lại sau', type: ToastificationType.error);
       }
     } catch (e) {
-      setLoading(false);
       showToast(title: 'Lỗi thanh toán: $e', type: ToastificationType.error);
       logger.e('Lỗi thanh toán: $e');
     }

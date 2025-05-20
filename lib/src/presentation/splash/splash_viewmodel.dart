@@ -2,7 +2,6 @@ import 'dart:async';
 import 'package:get/get.dart';
 import 'package:lms/src/resource/resource.dart';
 import 'package:lms/src/utils/app_prefs.dart';
-import 'package:toastification/toastification.dart';
 import '../../configs/configs.dart';
 import '../presentation.dart';
 

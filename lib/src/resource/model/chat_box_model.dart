@@ -1,3 +1,4 @@
+import 'package:lms/src/resource/model/account_model.dart';
 import 'package:lms/src/utils/utils.dart';
 
 class ChatBoxModel {
@@ -5,7 +6,7 @@ class ChatBoxModel {
   final DateTime? createdAt;
   final String? createdBy;
   final String? name;
-  final List<String>? memberAccountUsernames;
+  final List<AccountModel>? memberAccountUsernames;
   final DateTime? updatedAt;
   final String? lastMessage;
   final DateTime? lastMessageAt;
@@ -30,9 +31,8 @@ class ChatBoxModel {
         createdAt: json["createdAt"] == null ? null : AppUtils.fromUtcStringToVnTime(json["createdAt"]),
         createdBy: json["createdBy"],
         name: json["name"],
-        memberAccountUsernames: json["memberAccountUsernames"] == null
-            ? []
-            : List<String>.from(json["memberAccountUsernames"]!.map((x) => x)),
+        memberAccountUsernames:
+            json["memberAccountUsernames"] == null ? [] : AccountModel.listFromJson(json["memberAccountUsernames"]),
         updatedAt: json["updatedAt"] == null ? null : AppUtils.fromUtcStringToVnTime(json["updatedAt"]),
         lastMessage: json["lastMessage"],
         lastMessageAt: json["lastMessageAt"] == null ? null : AppUtils.fromUtcStringToVnTime(json["lastMessageAt"]),
@@ -46,7 +46,7 @@ class ChatBoxModel {
         "createdBy": createdBy,
         "name": name,
         "memberAccountUsernames":
-            memberAccountUsernames == null ? [] : List<dynamic>.from(memberAccountUsernames!.map((x) => x)),
+            memberAccountUsernames == null ? [] : List<AccountModel>.from(memberAccountUsernames!.map((x) => x)),
         "updatedAt": updatedAt?.toIso8601String(),
         "lastMessage": lastMessage,
         "lastMessageAt": lastMessageAt?.toIso8601String(),
@@ -63,7 +63,7 @@ class ChatBoxModel {
     DateTime? createdAt,
     String? createdBy,
     String? name,
-    List<String>? memberAccountUsernames,
+    List<AccountModel>? memberAccountUsernames,
     DateTime? updatedAt,
     String? lastMessage,
     DateTime? lastMessageAt,

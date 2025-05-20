@@ -211,10 +211,6 @@ class _NotificationDetailTeacherScreenState
                                                       height: 1.5,
                                                     ),
                                                   ),
-
-                                                  // Các action button
-                                                  SizedBox(height: 32),
-                                                  _buildActionButtons(actions),
                                                 ],
                                               ),
                                             ),
@@ -237,49 +233,6 @@ class _NotificationDetailTeacherScreenState
           },
         );
       },
-    );
-  }
-
-  Widget _buildActionButtons(List<ActionButton> actions) {
-    if (actions.isEmpty) {
-      return SizedBox.shrink();
-    }
-
-    return Row(
-      children: actions.map((action) {
-        return Expanded(
-          child: Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 4.0),
-            child: ElevatedButton.icon(
-              onPressed: () => action.onTap(),
-              icon: Icon(
-                action.icon,
-                color: action.outlined ? action.color : white,
-                size: 18,
-              ),
-              label: Text(
-                action.label,
-                style: styleVerySmallBold.copyWith(
-                  color: action.outlined ? action.color : white,
-                ),
-              ),
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    action.outlined ? Colors.transparent : action.color,
-                foregroundColor: action.outlined ? action.color : white,
-                padding: EdgeInsets.symmetric(vertical: 12),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(8),
-                  side: action.outlined
-                      ? BorderSide(color: action.color)
-                      : BorderSide.none,
-                ),
-                elevation: action.outlined ? 0 : 1,
-              ),
-            ),
-          ),
-        );
-      }).toList(),
     );
   }
 }

@@ -7,7 +7,7 @@ import 'package:get/get.dart';
 import 'package:lms/src/resource/resource.dart';
 import 'package:logger/logger.dart';
 import 'package:overlay_support/overlay_support.dart';
-
+import 'package:intl/date_symbol_data_local.dart';
 import 'src/configs/configs.dart';
 import 'src/presentation/presentation.dart';
 import 'src/utils/utils.dart';
@@ -17,6 +17,7 @@ void main() async {
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
   await Firebase.initializeApp();
   await AppPrefs.initListener();
+  await initializeDateFormatting('vi_VN', null);
   await dotenv.load(fileName: ".env");
   await notificationInitialed();
   runApp(const OverlaySupport(child: RestartWidget(child: App())));

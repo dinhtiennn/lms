@@ -6,6 +6,7 @@ class AppEndpoint {
   static const String baseWebsocket = 'http://192.168.218.36:8080/lms/ws';
 
   static const String baseImageUrl = "http://192.168.218.36:8080";
+
   //
   // static const String baseUrl = "http://192.168.1.26:8080";
   //
@@ -50,10 +51,8 @@ class AppEndpoint {
   static const String CHANGERPASSWORD = '/lms/account/changePassword';
   static const String REGISTER = '/lms/student/create';
   static const String SEARCHSTUDENT = '/lms/student/search';
-  static const String SEARCHSTUDENTNOTIN =
-      '/lms/studentcourse/searchstudentnotin';
-  static const String TESTSTUDENTDETAIL =
-      '/lms/teststudentresult/gettestdetail';
+  static const String SEARCHSTUDENTNOTIN = '/lms/studentcourse/searchstudentnotin';
+  static const String TESTSTUDENTDETAIL = '/lms/teststudentresult/gettestdetail';
   static const String STARTTEST = '/lms/teststudentresult/starttest';
   static const String SUBMITTEST = '/lms/teststudentresult/submitTest';
 
@@ -67,16 +66,11 @@ class AppEndpoint {
   static const String COURSEOFMAJORFIRST = '/lms/course/courseofmajorfirst';
   static const String COURSEDETAIL = '/lms/course/{id}';
   static const String PROGRESSLESSON = '/lms/lessonprogress/getprogress/{id}';
-  static const String PROGRESSCHAPTER =
-      '/lms/lessonchapterprogress/getprogress/{id}';
-  static const String SAVEPROGRESSCHAPTER =
-      '/lms/lessonchapterprogress/savechapterprogress/{id}';
-  static const String COMPELTEPROGRESSCHAPTER =
-      '/lms/lessonchapterprogress/completechapter/{id}';
-  static const String SAVEPROGRESSLESSON =
-      '/lms/lessonprogress/savelessonprogress/{id}';
-  static const String COMPELTEPROGRESSLESSON =
-      '/lms/lessonprogress/completelesson/{id}';
+  static const String PROGRESSCHAPTER = '/lms/lessonchapterprogress/getprogress/{id}';
+  static const String SAVEPROGRESSCHAPTER = '/lms/lessonchapterprogress/savechapterprogress/{id}';
+  static const String COMPELTEPROGRESSCHAPTER = '/lms/lessonchapterprogress/completechapter/{id}';
+  static const String SAVEPROGRESSLESSON = '/lms/lessonprogress/savelessonprogress/{id}';
+  static const String COMPELTEPROGRESSLESSON = '/lms/lessonprogress/completelesson/{id}';
   static const String LISTREQUEST = '/lms/joinclass/courserequest';
   static const String LISTREQUESTTOCOURSE = '/lms/joinclass/studentrequest';
   static const String JOINCOURSE = '/lms/joinclass/pending';
@@ -92,12 +86,12 @@ class AppEndpoint {
   static const String STATUSJOIN = '/lms/joinclass/getstatus';
   static const String REMOVECOURSE = '/lms/course/delete';
   static const String PAYMENT = '/lms/paypal/pay';
+  static const String PAYMENTSUCCESS = '/lms/paypal/success';
+  static const String PAYMENTCANCEL = '/lms/paypal/cancel';
 
   //api comment
-  static const String COMMENTS =
-      '/lms/comments/unreadCommentsOfChapter/details';
-  static const String REPLIES =
-      '/lms/comments/unreadCommentsOfChapter/details/reply';
+  static const String COMMENTS = '/lms/comments/unreadCommentsOfChapter/details';
+  static const String REPLIES = '/lms/comments/unreadCommentsOfChapter/details/reply';
 
   //api teacher
   static const String PROFILETEACHER = '/lms/teacher/myinfo';
@@ -110,6 +104,7 @@ class AppEndpoint {
   static const String UPDATEGROUP = '/lms/group/update';
   static const String GROUPOFTEACHER = '/lms/group/groupofteacher';
   static const String CREATEPOST = '/lms/post/create';
+  static const String UPDATEPOST = '/lms/post/update';
   static const String CREATETEST = '/lms/testingroup/create';
   static const String POSTS = '/lms/post';
   static const String DELETEPOST = '/lms/post/delete';
@@ -137,4 +132,5 @@ class AppEndpoint {
   static const String MESSAGES = '/lms/chatBox/{id}/messages';
   static const String READMESSAGES = '/lms/chatBox/{id}/messages/markAsRead';
   static const String SEARCHUSER = '/lms/chatmember/search';
+  static const String SEARCHCHATBOX = '/lms/chatBox/searchGroupByName';
 }

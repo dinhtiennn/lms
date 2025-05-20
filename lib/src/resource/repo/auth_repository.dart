@@ -233,15 +233,36 @@ class AuthRepository {
     }
   }
 
-  Future<NetworkState<List<AccountModel>>> searchUser({required String keyword, String? chatBoxId}) async {
+  Future<NetworkState<List<AccountModel>>> searchUser(
+      {required String keyword, String? chatBoxId, int pageSize = 50, pageNumber = 0}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
     try {
-      Response response = await AppClients()
-          .get(AppEndpoint.SEARCHUSER, queryParameters: {'chatBoxId': chatBoxId, 'searchString': keyword});
+      Response response = await AppClients().get(AppEndpoint.SEARCHUSER, queryParameters: {
+        'chatBoxId': chatBoxId,
+        'searchString': keyword,
+        'pageSize': pageSize,
+        'pageNumber': pageNumber
+      });
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
-        result: AccountModel.listFromJson(response.data['result']),
+        result: AccountModel.listFromJson(response.data['result']['content']),
+        message: response.data['message'] ?? '',
+        successCode: response.data['code'] == 0,
+      );
+    } catch (e) {
+      return NetworkState.withError(e);
+    }
+  }
+
+  Future<NetworkState<List<ChatBoxModel>>> searchChatBox({required String keyword, int pageSize = 50, int pageNumber = 0}) async {
+    bool isDisconnect = await WifiService.isDisconnect();
+    if (isDisconnect) return NetworkState.withDisconnect();
+    try {
+      Response response = await AppClients().get(AppEndpoint.SEARCHCHATBOX, queryParameters: {'name': keyword, 'pageSize': pageSize, 'pageNumber': pageNumber});
+      return NetworkState(
+        status: response.statusCode ?? AppEndpoint.success,
+        result: ChatBoxModel.listFromJson(response.data['result']['content']),
         message: response.data['message'] ?? '',
         successCode: response.data['code'] == 0,
       );

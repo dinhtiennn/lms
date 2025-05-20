@@ -76,15 +76,7 @@ class NavigationTeacherViewModel extends BaseViewModel with StompListener {
 
       if (data != null) {
         // Parse JSON dữ liệu từ socket
-        final Map<String, dynamic> notificationData = jsonDecode(data);
-        if (notificationData['countUnreadNotification'] != null) {
-          // notificationView.value =
-          //     notificationView.value?.copyWith(countUnreadNotification: notificationData['countUnreadNotification']);
-          notificationView.value = notificationView.value
-              ?.copyWith(countUnreadNotification: (notificationView.value?.countUnreadNotification ?? 0) + 1);
-        }
-        notificationView.value = notificationView.value
-            ?.copyWith(countUnreadNotification: (notificationView.value?.countUnreadNotification ?? 0) + 1);
+        _loadNotificationUnRead();
       }
     } catch (e) {
       logger.e("Lỗi khi xử lý thông báo từ socket: $e");

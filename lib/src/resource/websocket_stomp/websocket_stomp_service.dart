@@ -1,5 +1,6 @@
 import 'dart:ui';
 
+import 'package:dio/dio.dart';
 import 'package:get/get.dart';
 import 'package:lms/src/configs/configs.dart';
 import 'package:lms/src/presentation/presentation.dart';
@@ -34,6 +35,7 @@ class StompService {
   static StompService? _instance;
   final Set<String> _subscribedDestinations = {};
   final Map<String, StompUnsubscribe> _unsubscribeMap = {};
+  bool _isRefreshingToken = false;
 
   static Future<StompService> instance() async {
     _instance ??= StompService();
@@ -60,12 +62,8 @@ class StompService {
           onDisconnect: _onDisconnect,
           heartbeatIncoming: Duration(seconds: 5),
           heartbeatOutgoing: Duration(seconds: 5),
-          stompConnectHeaders: {
-            'Authorization': 'Bearer ${AppPrefs.accessToken}'
-          },
-          webSocketConnectHeaders: {
-            'Authorization': 'Bearer ${AppPrefs.accessToken}'
-          },
+          stompConnectHeaders: {'Authorization': 'Bearer ${AppPrefs.accessToken}'},
+          webSocketConnectHeaders: {'Authorization': 'Bearer ${AppPrefs.accessToken}'},
           useSockJS: true),
     );
 
@@ -257,7 +255,7 @@ class StompService {
       case StompListenType.notification:
         return "/topic/notifications/$userName";
       case StompListenType.chatBoxCreate:
-        return "/topic/chatbox/${userName}/created";
+        return "/topic/chatbox/$userName/created";
     }
   }
 
@@ -290,17 +288,55 @@ class StompService {
   void _onError(dynamic error) async {
     _logger.e("❌ WebSocket Error: $error");
 
-    // Kiểm tra xem lỗi là do 401 (Unauthorized)
-    if (error.toString().contains("401")) {
+    // Kiểm tra xem lỗi là do 401 (Unauthorized) và không đang trong quá trình refresh token
+    if (error.toString().contains("401") && !_isRefreshingToken) {
       _logger.w("🔄 Thử refresh token do lỗi 401 WebSocket");
 
-      final result = await StudentRepository().myInfo();
-      if (result.isSuccess) {
-        _logger.i("✅ Refresh token thành công, reconnect STOMP");
-        // reconnect();
-      } else {
-        _logger.e("❌ Không thể refresh token. Đăng xuất.");
+      try {
+        _isRefreshingToken = true; // Đánh dấu đang trong quá trình refresh token
+
+        // Lấy refresh token từ AppPrefs
+        final refreshToken = AppPrefs.accessToken;
+        if (refreshToken == null || refreshToken.isEmpty) {
+          _logger.e("❌ Không có refresh token, tiến hành đăng xuất");
+          forceLogout();
+          return;
+        }
+
+        _logger.i("🔄 Bắt đầu refresh token");
+        final dio = Dio()
+          ..options.connectTimeout = const Duration(seconds: 10)
+          ..options.receiveTimeout = const Duration(seconds: 10)
+          ..options.sendTimeout = const Duration(seconds: 10);
+
+        final response = await dio.post(
+          '${AppEndpoint.baseUrl}${AppEndpoint.REFRESH}',
+          data: {'token': refreshToken},
+          options: Options(
+            headers: {'Content-Type': 'application/json'},
+            sendTimeout: const Duration(seconds: 100),
+            receiveTimeout: const Duration(seconds: 100),
+          ),
+        );
+
+        String? newToken;
+        if (response.statusCode == 200 && response.data['result']?['token'] != null) {
+          newToken = response.data['result']['token'];
+          AppPrefs.accessToken = newToken;
+          AppPrefs.refreshToken = newToken;
+          _logger.i("💡 🔁 Cập nhật token mới thành công: $newToken");
+
+          // Kết nối lại WebSocket với token mới
+          reconnect();
+        } else {
+          _logger.e("❌ Phản hồi refresh token không hợp lệ: ${response.data}");
+          forceLogout();
+        }
+      } catch (e) {
+        _logger.e("❌ Lỗi khi refresh token: $e");
         forceLogout();
+      } finally {
+        _isRefreshingToken = false; // Đánh dấu đã kết thúc quá trình refresh token
       }
     }
   }
@@ -316,6 +352,7 @@ class StompService {
     AppPrefs.refreshToken = null;
 
     Get.offAllNamed(Routers.login, arguments: {'errMessage': 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!'});
+    disconnect();
   }
 
   static Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {

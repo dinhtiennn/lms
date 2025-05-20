@@ -4,8 +4,8 @@ import 'package:lms/src/configs/configs.dart';
 import 'package:lms/src/presentation/presentation.dart';
 import 'package:lms/src/resource/resource.dart';
 
-void showManageStudentsBottomSheet(
-    BuildContext context, CourseDetailTeacherViewModel viewModel) {
+void showManageStudentsBottomSheet(BuildContext context, CourseDetailTeacherViewModel viewModel, String feeType) {
+  bool isPayment = feeType.toUpperCase() == 'CHARGEABLE';
   showModalBottomSheet(
     context: context,
     isScrollControlled: true,
@@ -24,8 +24,7 @@ void showManageStudentsBottomSheet(
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: primary2,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -72,8 +71,7 @@ void showManageStudentsBottomSheet(
                 return ListView.builder(
                   controller: viewModel.studentsScrollController,
                   padding: const EdgeInsets.all(16),
-                  itemCount:
-                      students.length + (viewModel.hasMoreStudents ? 1 : 0),
+                  itemCount: students.length + (viewModel.hasMoreStudents ? 1 : 0),
                   itemBuilder: (context, index) {
                     if (index == students.length) {
                       return Center(
@@ -111,26 +109,23 @@ void showManageStudentsBottomSheet(
                           students[index].email ?? '',
                           style: styleSmall.copyWith(color: grey2),
                         ),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.remove_circle_outline,
-                              color: Colors.red),
-                          onPressed: () => showDialog(
-                            context: context,
-                            builder: (context) => WidgetDialogConfirm(
-                              titleStyle:
-                                  styleMediumBold.copyWith(color: error),
-                              colorButtonAccept: error,
-                              title: 'Xóa sinh viên',
-                              onTapConfirm: () {
-                                viewModel.removeStudentOfCourse(
-                                    studentId: students[index].id,
-                                    context: context);
-                              },
-                              content:
-                                  'Xác nhận xóa sinh viên ${students[index].fullName} khỏi lớp học?',
-                            ),
-                          ),
-                        ),
+                        trailing: isPayment
+                            ? SizedBox.shrink()
+                            : IconButton(
+                                icon: const Icon(Icons.remove_circle_outline, color: Colors.red),
+                                onPressed: () => showDialog(
+                                  context: context,
+                                  builder: (context) => WidgetDialogConfirm(
+                                    titleStyle: styleMediumBold.copyWith(color: error),
+                                    colorButtonAccept: error,
+                                    title: 'Xóa sinh viên',
+                                    onTapConfirm: () {
+                                      viewModel.removeStudentOfCourse(studentId: students[index].id, context: context);
+                                    },
+                                    content: 'Xác nhận xóa sinh viên ${students[index].fullName} khỏi lớp học?',
+                                  ),
+                                ),
+                              ),
                       ),
                     );
                   },

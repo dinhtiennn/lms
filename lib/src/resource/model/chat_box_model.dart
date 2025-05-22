@@ -88,8 +88,7 @@ class ChatBoxModel {
 class MessageModel {
   final String? id;
   final String? chatBoxId;
-  final String? senderAccount;
-  final String? avatarSenderAccount;
+  final AccountModel? senderAccount;
   final String? content;
   final DateTime? createdAt;
   final dynamic path;
@@ -101,7 +100,6 @@ class MessageModel {
     this.id,
     this.chatBoxId,
     this.senderAccount,
-    this.avatarSenderAccount,
     this.content,
     this.createdAt,
     this.path,
@@ -113,8 +111,9 @@ class MessageModel {
   factory MessageModel.fromJson(Map<String, dynamic> json) => MessageModel(
         id: json["id"],
         chatBoxId: json["chatBoxId"],
-        senderAccount: json["senderAccount"],
-        avatarSenderAccount: json["avatarSenderAccount"],
+        senderAccount: (json["senderAccount"] is List && json["senderAccount"].isNotEmpty)
+            ? AccountModel.fromJson(json["senderAccount"][0])
+            : null,
         content: json["content"],
         createdAt: json["createdAt"] == null ? null : AppUtils.fromUtcStringToVnTime(json["createdAt"]),
         path: json["path"],
@@ -127,7 +126,6 @@ class MessageModel {
         "id": id,
         "chatBoxId": chatBoxId,
         "senderAccount": senderAccount,
-        "avatarSenderAccount": avatarSenderAccount,
         "content": content,
         "createdAt": createdAt?.toIso8601String(),
         "path": path,

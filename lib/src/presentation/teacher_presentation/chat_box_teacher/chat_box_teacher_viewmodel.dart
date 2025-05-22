@@ -9,6 +9,7 @@ import 'package:lms/src/presentation/presentation.dart';
 import 'package:lms/src/resource/model/model.dart';
 import 'package:lms/src/resource/resource.dart';
 import 'package:lms/src/utils/app_prefs.dart';
+import 'package:lms/src/utils/app_utils.dart';
 import 'package:toastification/toastification.dart';
 
 class ChatBoxTeacherViewModel extends BaseViewModel with StompListener {
@@ -182,7 +183,7 @@ class ChatBoxTeacherViewModel extends BaseViewModel with StompListener {
           updatedAt: DateTime.now(),
           lastMessage: receivedMessage.content,
           lastMessageAt: receivedMessage.createdAt,
-          lastMessageBy: receivedMessage.senderAccount,
+          lastMessageBy: receivedMessage.senderAccount?.accountFullname,
           group: chatBoxToUpdate.group,
         );
 
@@ -273,6 +274,11 @@ class ChatBoxTeacherViewModel extends BaseViewModel with StompListener {
         );
         ChatBoxModel chatBoxModel = ChatBoxModel().copyWith(
           id: response['chatBoxId'],
+          name: response['nameOfChatBox'],
+          memberAccountUsernames: AccountModel.listFromJson(response['listMember']),
+          createdBy: response['createdBy'],
+          group: response['group'],
+          createdAt: response['createdAt'] == null ? null : AppUtils.fromUtcStringToVnTime(response['createdAt']),
         );
         Get.toNamed(Routers.chatBoxDetailTeacher, arguments: {'chatBox': chatBoxModel})?.then((_) {
           refreshChatBoxs();

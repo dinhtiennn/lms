@@ -63,46 +63,7 @@ class NotificationViewModel extends BaseViewModel with StompListener {
   void onStompNotificationReceived(dynamic data) {
     try {
       logger.i("Nhận thông báo mới từ socket: $data");
-
-      if (data != null) {
-        // Parse JSON dữ liệu từ socket
-        final Map<String, dynamic> notificationData = jsonDecode(data);
-        final typeStr = notificationData['type'];
-        final type = notificationTypeValues.map[typeStr] ?? NotificationType.MESSAGE;
-        // Tạo model NotificationModel từ dữ liệu nhận được
-        final app_model.NotificationModel newNotification = app_model.NotificationModel(
-          notificationId: notificationData['notificationId'],
-          notificationType: type,
-          isRead: false,
-          createdAt: AppUtils.fromUtcStringToVnTime(notificationData['createdDate']),
-          description: notificationData['message'],
-          commentId: notificationData['parentCommentId'],
-          commentReplyId: notificationData['commentReplyId'],
-        );
-
-        // Thêm thông báo mới vào đầu danh sách
-        if (notifications.value != null) {
-          final currentNotifications = notifications.value!.notifications ?? [];
-
-          final app_model.NotificationView updatedNotificationView = app_model.NotificationView(
-            countUnreadNotification: notifications.value!.countUnreadNotification,
-            notifications: [
-              newNotification,
-              ...currentNotifications,
-            ],
-          );
-
-          // Cập nhật lại giá trị
-          notifications.value = updatedNotificationView;
-          logger.i("Đã thêm thông báo mới vào đầu danh sách");
-        } else {
-          // Nếu danh sách rỗng, tạo mới với thông báo vừa nhận
-          notifications.value = app_model.NotificationView(
-            notifications: [newNotification],
-          );
-          logger.i("Đã tạo danh sách mới với thông báo vừa nhận");
-        }
-      }
+      refresh();
     } catch (e) {
       logger.e("Lỗi khi xử lý thông báo từ socket: $e");
     }
@@ -131,7 +92,6 @@ class NotificationViewModel extends BaseViewModel with StompListener {
 
     if (offset == 0) {
       _isLoading = true;
-      setLoading(true);
     } else {
       isLoadingMore.value = true;
       isLoadingMore.notifyListeners();
@@ -163,7 +123,6 @@ class NotificationViewModel extends BaseViewModel with StompListener {
 
     if (offset == 0) {
       _isLoading = false;
-      setLoading(false);
     } else {
       isLoadingMore.value = false;
       isLoadingMore.notifyListeners();
@@ -171,15 +130,22 @@ class NotificationViewModel extends BaseViewModel with StompListener {
   }
 
   void notificationDetail(NotificationModel notification) async {
-    // NetworkState resultMarkAsRead = await authRepository.markAsRead(notificationId: notification.notificationId);
-    // if(resultMarkAsRead.isSuccess){
-    Get.toNamed(Routers.notificationDetail, arguments: {'notification': notification});
-    // }
+    if (notification.isRead == true) {
+      Get.toNamed(Routers.notificationDetail, arguments: {'notification': notification});
+    } else {
+      NetworkState resultMarkAsRead = await authRepository.markAsRead(notificationId: notification.notificationId);
+      if (resultMarkAsRead.isSuccess) {
+        Get.toNamed(Routers.notificationDetail, arguments: {'notification': notification})?.then((_) {
+          refresh();
+        });
+      }
+    }
   }
 
   void readAllNotification() async {
     NetworkState resultReadAllNotification = await authRepository.readAllNotification();
-    if(resultReadAllNotification.isSuccess){
+    if (resultReadAllNotification.isSuccess) {
+      Get.back();
       refresh();
     }
   }

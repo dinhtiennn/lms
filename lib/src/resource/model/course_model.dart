@@ -50,7 +50,7 @@ class CourseModel {
       major: json["major"],
       teacher: json["teacher"] == null ? null : TeacherModel.fromJson(json["teacher"]),
       studentCount: json["studentCount"],
-      chapterCount: json["lessonCount"],
+      chapterCount: json["chapterCount"],
       price: json["price"],
       feeType: json["feeType"],
     );

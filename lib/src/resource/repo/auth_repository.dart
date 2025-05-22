@@ -46,20 +46,20 @@ class AuthRepository {
     }
   }
 
-  Future<NetworkState<StudentModel>> loginGoogle() async {
-    SocialService service = SocialService();
-    LoginSocialResult loginSocialResult = await service.signInGoogle();
-    bool isDisconnect = await WifiService.isDisconnect();
-    if (isDisconnect) return NetworkState.withDisconnect();
-
-    Response response = await AppClients()
-        .post('AppEndpoint.LOGINGOOGLE', data: FormData.fromMap({'access_token': loginSocialResult.accessToken}));
-    return NetworkState(
-        status: response.statusCode ?? AppEndpoint.success,
-        successCode: response.data['code'] == 0,
-        result: StudentModel.fromJson(response.data['result']['student']),
-        message: response.data['message']);
-  }
+  // Future<NetworkState<StudentModel>> loginGoogle() async {
+  //   SocialService service = SocialService();
+  //   LoginSocialResult loginSocialResult = await service.signInGoogle();
+  //   bool isDisconnect = await WifiService.isDisconnect();
+  //   if (isDisconnect) return NetworkState.withDisconnect();
+  //
+  //   Response response = await AppClients()
+  //       .post('AppEndpoint.LOGINGOOGLE', data: FormData.fromMap({'access_token': loginSocialResult.accessToken}));
+  //   return NetworkState(
+  //       status: response.statusCode ?? AppEndpoint.success,
+  //       successCode: response.data['code'] == 0,
+  //       result: StudentModel.fromJson(response.data['result']['student']),
+  //       message: response.data['message']);
+  // }
 
   Future<NetworkState> sendEmail({required String email}) async {
     bool isDisconnect = await WifiService.isDisconnect();
@@ -201,14 +201,14 @@ class AuthRepository {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
     try {
-      Response response = await AppClients().get(
+      Response response = await AppClients().post(
         AppEndpoint.READNOTIFICATION,
+        data: [
+          {'id': notificationId}
+        ],
       );
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
-        result: NotificationView.fromJson(response.data['result']),
-        message: response.data['message'] ?? '',
-        successCode: response.data['code'] == 0,
       );
     } catch (e) {
       return NetworkState.withError(e);
@@ -224,9 +224,6 @@ class AuthRepository {
       );
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
-        result: response.data['result'],
-        message: response.data['message'] ?? '',
-        successCode: response.data['code'] == 0,
       );
     } catch (e) {
       return NetworkState.withError(e);
@@ -255,11 +252,13 @@ class AuthRepository {
     }
   }
 
-  Future<NetworkState<List<ChatBoxModel>>> searchChatBox({required String keyword, int pageSize = 50, int pageNumber = 0}) async {
+  Future<NetworkState<List<ChatBoxModel>>> searchChatBox(
+      {required String keyword, int pageSize = 50, int pageNumber = 0}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
     try {
-      Response response = await AppClients().get(AppEndpoint.SEARCHCHATBOX, queryParameters: {'name': keyword, 'pageSize': pageSize, 'pageNumber': pageNumber});
+      Response response = await AppClients().get(AppEndpoint.SEARCHCHATBOX,
+          queryParameters: {'name': keyword, 'pageSize': pageSize, 'pageNumber': pageNumber});
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         result: ChatBoxModel.listFromJson(response.data['result']['content']),

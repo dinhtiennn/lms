@@ -15,7 +15,7 @@ class AccountModel {
     return AccountModel(
       accountId: json['accountId'],
       accountFullname: json['accountFullname'],
-      accountUsername: json['acountUsername'],
+      accountUsername: json['accountUsername'],
       avatar: json['avatar'],
     );
   }

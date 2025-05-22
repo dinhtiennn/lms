@@ -24,7 +24,7 @@ class _NavigationScreenState extends State<NavigationScreen> with TickerProvider
       HomeScreen(),
       CourseScreen(),
       GroupScreen(),
-      ChatScreen(),
+      ChatBoxScreen(),
       NotificationScreen(),
       AccountScreen(),
     ];

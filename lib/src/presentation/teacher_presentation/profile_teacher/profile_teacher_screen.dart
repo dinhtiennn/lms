@@ -31,26 +31,6 @@ class _EditProfileTeacherScreenState extends State<EditProfileTeacherScreen> {
                 style: styleLargeBold.copyWith(color: white),
               ),
               centerTitle: true,
-              actions: [
-                IconButton(
-                  icon: Container(
-                    padding: const EdgeInsets.all(6),
-                    decoration: BoxDecoration(
-                      color: white.withOpacity(0.2),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.settings_outlined,
-                      color: white,
-                      size: 20,
-                    ),
-                  ),
-                  onPressed: () {
-                    // Xử lý khi nhấn vào cài đặt
-                  },
-                ),
-                const SizedBox(width: 8),
-              ],
             ),
             body: SafeArea(
               bottom: false,
@@ -442,9 +422,6 @@ class _EditProfileTeacherScreenState extends State<EditProfileTeacherScreen> {
             if (teacher?.description != null) _buildInfoItem('Giới thiệu', teacher?.description ?? ''),
           ]),
           const SizedBox(height: 20),
-          _buildSectionTitle('Thông tin khác', Icons.info_outline),
-          const SizedBox(height: 16),
-          _buildActionCard(),
         ],
       ),
     );
@@ -567,91 +544,6 @@ class _EditProfileTeacherScreenState extends State<EditProfileTeacherScreen> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildActionCard() {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: white,
-        borderRadius: BorderRadius.circular(16),
-        boxShadow: [
-          BoxShadow(
-            color: black.withAlpha((255 * 0.05).round()),
-            blurRadius: 10,
-            offset: const Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        children: [
-          _buildActionItem(
-            Icons.edit_document,
-            'Chỉnh sửa thông tin',
-            'Cập nhật thông tin cá nhân của bạn',
-            () {
-              // Xử lý khi nhấn vào chỉnh sửa thông tin
-            },
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildActionItem(IconData icon, String title, String description, VoidCallback onTap) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(10),
-      child: Padding(
-        padding: const EdgeInsets.symmetric(vertical: 12),
-        child: Row(
-          children: [
-            Container(
-              padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(
-                color: primary2.withAlpha((255 * 0.1).round()),
-                shape: BoxShape.circle,
-              ),
-              child: Icon(
-                icon,
-                color: primary2,
-                size: 20,
-              ),
-            ),
-            const SizedBox(width: 16),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    title,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w500,
-                      color: black,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    description,
-                    style: TextStyle(
-                      fontSize: 12,
-                      color: grey3,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            Icon(
-              Icons.arrow_forward_ios,
-              color: grey4,
-              size: 16,
-            ),
-          ],
-        ),
       ),
     );
   }

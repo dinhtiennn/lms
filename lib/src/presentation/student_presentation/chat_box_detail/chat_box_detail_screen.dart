@@ -6,24 +6,24 @@ import 'package:lms/src/presentation/presentation.dart';
 import 'package:lms/src/resource/model/chat_box_model.dart';
 import 'package:lms/src/resource/model/account_model.dart';
 
-class ChatBoxTeacherDetailScreen extends StatefulWidget {
-  const ChatBoxTeacherDetailScreen({Key? key}) : super(key: key);
+class ChatBoxDetailScreen extends StatefulWidget {
+  const ChatBoxDetailScreen({Key? key}) : super(key: key);
 
   @override
-  State<ChatBoxTeacherDetailScreen> createState() =>
-      _ChatBoxTeacherDetailScreenState();
+  State<ChatBoxDetailScreen> createState() =>
+      _ChatBoxDetailScreenState();
 }
 
-class _ChatBoxTeacherDetailScreenState
-    extends State<ChatBoxTeacherDetailScreen> {
-  late ChatBoxTeacherDetailViewModel _viewModel;
+class _ChatBoxDetailScreenState
+    extends State<ChatBoxDetailScreen> {
+  late ChatBoxDetailViewModel _viewModel;
   final Color grey0 = Colors.grey.shade200;
   final Color grey1 = Colors.grey.shade400;
 
   @override
   Widget build(BuildContext context) {
-    return BaseWidget<ChatBoxTeacherDetailViewModel>(
-        viewModel: ChatBoxTeacherDetailViewModel(),
+    return BaseWidget<ChatBoxDetailViewModel>(
+        viewModel: ChatBoxDetailViewModel(),
         onViewModelReady: (viewModel) {
           _viewModel = viewModel;
           WidgetsBinding.instance.addPostFrameCallback((_) {

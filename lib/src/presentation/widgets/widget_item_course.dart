@@ -42,7 +42,6 @@ class _WidgetItemCourseState extends State<WidgetItemCourse> {
 
   Widget _buildFeeInfo() {
     final bool isChargeable = widget.course?.feeType == 'CHARGEABLE';
-    final formatter = NumberFormat.currency(locale: 'vi_VN', symbol: '\$');
 
     return Container(
       margin: const EdgeInsets.only(top: 8),

@@ -35,46 +35,6 @@ class _NotificationDetailTeacherScreenState
               style: styleLargeBold.copyWith(color: white),
             ),
             centerTitle: true,
-            actions: [
-              IconButton(
-                icon: Icon(
-                  Icons.delete_outline,
-                  color: error,
-                ),
-                onPressed: () {
-                  // Hiển thị dialog xác nhận xóa
-                  showDialog(
-                    context: context,
-                    builder: (context) => AlertDialog(
-                      title: Text('Xác nhận'),
-                      content: Text('Bạn có chắc chắn muốn xóa thông báo này?'),
-                      actions: [
-                        TextButton(
-                          onPressed: () => Navigator.pop(context),
-                          child: Text('Hủy'),
-                        ),
-                        TextButton(
-                          onPressed: () {
-                            Navigator.pop(context);
-                            Get.back();
-                            // Hiển thị snackbar
-                            Get.snackbar(
-                              'Thành công',
-                              'Đã xóa thông báo',
-                              snackPosition: SnackPosition.BOTTOM,
-                              backgroundColor: success,
-                              colorText: Colors.white,
-                              margin: EdgeInsets.all(16),
-                            );
-                          },
-                          child: Text('Xóa'),
-                        ),
-                      ],
-                    ),
-                  );
-                },
-              ),
-            ],
           ),
           body: SafeArea(
             child: _buildNotificationContent(),

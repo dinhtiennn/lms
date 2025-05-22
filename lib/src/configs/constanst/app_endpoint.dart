@@ -130,6 +130,9 @@ class AppEndpoint {
   //api chat box
   static const String CHATBOXS = '/lms/chatBox';
   static const String MESSAGES = '/lms/chatBox/{id}/messages';
+  static const String MEMBERS = '/lms/chatBox/{id}/members';
+  static const String DELETEMEMBER = '/lms/chatBox/{chatBoxId}/members/{memberUsername}';
+  static const String RENAMECHATBOX = '/lms/chatBox/rename';
   static const String READMESSAGES = '/lms/chatBox/{id}/messages/markAsRead';
   static const String SEARCHUSER = '/lms/chatmember/search';
   static const String SEARCHCHATBOX = '/lms/chatBox/searchGroupByName';

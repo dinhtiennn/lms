@@ -59,46 +59,7 @@ class NotificationTeacherViewModel extends BaseViewModel with StompListener {
   void onStompNotificationReceived(dynamic data) {
     try {
       logger.i("Nhận thông báo mới từ socket: $data");
-
-      if (data != null) {
-        // Parse JSON dữ liệu từ socket
-        final Map<String, dynamic> notificationData = jsonDecode(data);
-        final typeStr = notificationData['type'];
-        final type = notificationTypeValues.map[typeStr] ?? NotificationType.MESSAGE;
-        // Tạo model NotificationModel từ dữ liệu nhận được
-        final app_model.NotificationModel newNotification = app_model.NotificationModel(
-          notificationId: notificationData['notificationId'],
-          notificationType: type,
-          isRead: false,
-          createdAt: AppUtils.fromUtcStringToVnTime(notificationData['createdDate']),
-          description: notificationData['message'],
-          commentId: notificationData['parentCommentId'],
-          commentReplyId: notificationData['commentReplyId'],
-        );
-
-        // Thêm thông báo mới vào đầu danh sách
-        if (notifications.value != null) {
-          final currentNotifications = notifications.value!.notifications ?? [];
-
-          final app_model.NotificationView updatedNotificationView = app_model.NotificationView(
-            countUnreadNotification: notifications.value!.countUnreadNotification,
-            notifications: [
-              newNotification,
-              ...currentNotifications,
-            ],
-          );
-
-          // Cập nhật lại giá trị
-          notifications.value = updatedNotificationView;
-          logger.i("Đã thêm thông báo mới vào đầu danh sách");
-        } else {
-          // Nếu danh sách rỗng, tạo mới với thông báo vừa nhận
-          notifications.value = app_model.NotificationView(
-            notifications: [newNotification],
-          );
-          logger.i("Đã tạo danh sách mới với thông báo vừa nhận");
-        }
-      }
+      refresh();
     } catch (e) {
       logger.e("Lỗi khi xử lý thông báo từ socket: $e");
     }
@@ -129,7 +90,6 @@ class NotificationTeacherViewModel extends BaseViewModel with StompListener {
       _isLoading = true;
       // Chỉ hiển thị dialog loading nếu không phải trong quá trình khởi tạo
       if (WidgetsBinding.instance.schedulerPhase != SchedulerPhase.persistentCallbacks) {
-        setLoading(true);
       } else {
         notifyListeners(); // Vẫn thông báo cho UI biết state đã thay đổi
       }
@@ -169,7 +129,6 @@ class NotificationTeacherViewModel extends BaseViewModel with StompListener {
         _isLoading = false;
         // Chỉ ẩn dialog loading nếu không phải trong quá trình khởi tạo
         if (WidgetsBinding.instance.schedulerPhase != SchedulerPhase.persistentCallbacks) {
-          setLoading(false);
         } else {
           notifyListeners(); // Vẫn thông báo cho UI biết state đã thay đổi
         }
@@ -193,32 +152,23 @@ class NotificationTeacherViewModel extends BaseViewModel with StompListener {
     super.dispose();
   }
 
-  void notificationDetail(app_model.NotificationModel notification) {
-    Get.toNamed(Routers.notificationDetailTeacher, arguments: {'notification': notification});
+  void notificationDetail(app_model.NotificationModel notification) async {
+    if (notification.isRead == true) {
+      Get.toNamed(Routers.notificationDetailTeacher, arguments: {'notification': notification});
+    } else {
+      NetworkState resultMarkAsRead = await authRepository.markAsRead(notificationId: notification.notificationId);
+      if (resultMarkAsRead.isSuccess) {
+        Get.toNamed(Routers.notificationDetailTeacher, arguments: {'notification': notification})?.then((_) {
+          refresh();
+        });
+      }
+    }
   }
 
-  Future<void> markAllAsRead() async {
-    // Todo: Khi có API thực sự, code này sẽ được thay thế
-    // NetworkState result = await authRepository.markAllNotificationsAsRead();
-
-    await Future.delayed(Duration(milliseconds: 500)); // Giả lập độ trễ mạng
-
-    // Cập nhật trạng thái đã đọc cho tất cả thông báo trong danh sách hiện tại
-    if (notifications.value != null && notifications.value!.notifications != null) {
-      List<app_model.NotificationModel> currentNotifications = List.from(notifications.value!.notifications ?? []);
-
-      List<app_model.NotificationModel> updatedNotifications = currentNotifications.map((notification) {
-        return notification.copyWith(isRead: true);
-      }).toList();
-
-      notifications.value = app_model.NotificationView(
-        notifications: updatedNotifications,
-        countUnreadNotification: notifications.value!.countUnreadNotification,
-      );
-
-      notifications.notifyListeners();
-
-      showToast(title: "Đã đánh dấu tất cả là đã đọc", type: ToastificationType.success);
+  void readAllNotification() async {
+    NetworkState resultReadAllNotification = await authRepository.readAllNotification();
+    if (resultReadAllNotification.isSuccess) {
+      refresh();
     }
   }
 }

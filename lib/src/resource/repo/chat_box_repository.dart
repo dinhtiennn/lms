@@ -77,4 +77,58 @@ class ChatBoxRepository {
       return NetworkState.withErrorConvert(e);
     }
   }
+
+  Future<NetworkState<List<AccountModel>>> getMembers({String? chatBoxId}) async {
+    bool isDisconnect = await WifiService.isDisconnect();
+    if (isDisconnect) {
+      return NetworkState.withDisconnect();
+    }
+    try {
+      final response = await AppClients().get(AppEndpoint.MEMBERS.replaceAll('{id}', chatBoxId ?? ''));
+
+      return NetworkState(
+        status: response.statusCode ?? AppEndpoint.success,
+        successCode: response.data['code'] == 0,
+        result: AccountModel.listFromJson(response.data['result']),
+        message: response.data['message'] ?? '',
+      );
+    } catch (e) {
+      return NetworkState.withErrorConvert(e);
+    }
+  }
+
+  Future<NetworkState<List<AccountModel>>> removeMembers({String? chatBoxId, String? memberUserName}) async {
+    bool isDisconnect = await WifiService.isDisconnect();
+    if (isDisconnect) {
+      return NetworkState.withDisconnect();
+    }
+    try {
+      final response = await AppClients().delete(AppEndpoint.DELETEMEMBER
+          .replaceAll('{chatBoxId}', chatBoxId ?? '')
+          .replaceAll('{memberUsername}', memberUserName ?? ''));
+
+      return NetworkState(
+        status: response.statusCode ?? AppEndpoint.success,
+      );
+    } catch (e) {
+      return NetworkState.withErrorConvert(e);
+    }
+  }
+
+  Future<NetworkState> reNameChatBox({required String chatBoxId, required String newName}) async {
+    bool isDisconnect = await WifiService.isDisconnect();
+    if (isDisconnect) {
+      return NetworkState.withDisconnect();
+    }
+    try {
+      final response = await AppClients()
+          .put(AppEndpoint.RENAMECHATBOX, queryParameters: {'chatBoxId': chatBoxId, 'newName': newName});
+
+      return NetworkState(
+        status: response.statusCode ?? AppEndpoint.success,
+      );
+    } catch (e) {
+      return NetworkState.withErrorConvert(e);
+    }
+  }
 }

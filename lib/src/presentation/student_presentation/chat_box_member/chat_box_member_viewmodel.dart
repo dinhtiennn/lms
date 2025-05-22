@@ -8,7 +8,7 @@ import 'package:lms/src/resource/resource.dart';
 import 'package:lms/src/utils/utils.dart';
 import 'package:toastification/toastification.dart';
 
-class ChatBoxMemberTeacherViewModel extends BaseViewModel with StompListener {
+class ChatBoxMemberViewModel extends BaseViewModel with StompListener {
   ValueNotifier<ChatBoxModel?> chatBox = ValueNotifier(null);
   ValueNotifier<List<AccountModel>?> searchAccountResults = ValueNotifier(null);
   ValueNotifier<bool> isSearching = ValueNotifier(false);
@@ -21,8 +21,8 @@ class ChatBoxMemberTeacherViewModel extends BaseViewModel with StompListener {
     chatBox.value = Get.arguments['chatBox'];
 
     // Lấy thông tin người dùng hiện tại từ AppPrefs
-    TeacherModel? teacherModel = AppPrefs.getUser<TeacherModel>(TeacherModel.fromJson);
-    currentUserEmail = teacherModel?.email;
+    StudentModel? studentModel = AppPrefs.getUser<StudentModel>(StudentModel.fromJson);
+    currentUserEmail = studentModel?.email;
 
     await setupSocket();
   }

@@ -2,13 +2,17 @@ import 'dart:convert';
 
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
+import 'package:http/http.dart' as http;
+import 'package:lms/src/configs/configs.dart';
 
 import 'package:lms/src/presentation/presentation.dart';
+import 'package:lms/src/resource/model/model.dart';
 import 'package:lms/src/resource/resource.dart';
-import 'package:lms/src/utils/utils.dart';
+import 'package:lms/src/utils/app_prefs.dart';
+import 'package:lms/src/utils/app_utils.dart';
 import 'package:toastification/toastification.dart';
 
-class ChatViewModel extends BaseViewModel with StompListener {
+class ChatBoxViewModel extends BaseViewModel with StompListener {
   ValueNotifier<List<ChatBoxModel>?> chatboxes = ValueNotifier([]);
   ValueNotifier<bool> isLoading = ValueNotifier(false);
   TextEditingController chatNameController = TextEditingController();
@@ -25,6 +29,7 @@ class ChatViewModel extends BaseViewModel with StompListener {
   String? currentUserFullName;
 
   init() async {
+    // Lấy thông tin người dùng hiện tại
     StudentModel? studentModel = AppPrefs.getUser<StudentModel>(StudentModel.fromJson);
     currentUserEmail = studentModel?.email;
     currentUserFullName = studentModel?.fullName;
@@ -105,7 +110,7 @@ class ChatViewModel extends BaseViewModel with StompListener {
       final int offset = isRefresh ? 0 : chatboxes.value?.length ?? 0;
 
       NetworkState<List<ChatBoxModel>> resultChatBoxs =
-      await chatBoxRepository.chatBoxes(pageSize: pageSize, pageNumber: offset);
+          await chatBoxRepository.chatBoxes(pageSize: pageSize, pageNumber: offset);
 
       if (resultChatBoxs.isSuccess && resultChatBoxs.result != null) {
         final newChatboxs = resultChatBoxs.result!;
@@ -178,7 +183,7 @@ class ChatViewModel extends BaseViewModel with StompListener {
           updatedAt: DateTime.now(),
           lastMessage: receivedMessage.content,
           lastMessageAt: receivedMessage.createdAt,
-          lastMessageBy: receivedMessage.senderAccount,
+          lastMessageBy: receivedMessage.senderAccount?.accountFullname,
           group: chatBoxToUpdate.group,
         );
 
@@ -188,6 +193,66 @@ class ChatViewModel extends BaseViewModel with StompListener {
     } catch (e) {
       logger.e("Lỗi khi xử lý tin nhắn nhận được: $e");
     }
+  }
+
+  void goToDetail(ChatBoxModel chatBox) {
+    Get.toNamed(Routers.chatBoxDetail, arguments: {'chatBox': chatBox})?.then((_) {
+      refreshChatBoxs();
+    });
+  }
+
+  Future<void> createNewChatBox({
+    required List<AccountModel> members,
+  }) async {
+    if (currentUserEmail == null) {
+      showToast(title: "Không thể xác định người dùng hiện tại", type: ToastificationType.error);
+      return;
+    }
+
+    if (members.isEmpty) {
+      showToast(title: "Vui lòng chọn ít nhất một người dùng", type: ToastificationType.error);
+      return;
+    }
+
+    try {
+      isCreatingChat.value = true;
+      isCreatingChat.notifyListeners();
+
+      final request = ChatBoxCreateRequest(
+        anotherAccounts: members.map((e) => e.accountUsername).whereType<String>().toList(),
+        groupName: chatNameController.text,
+        currentAccountUsername: currentUserEmail!,
+      );
+
+      logger.i("Gửi yêu cầu tạo chat: ${jsonEncode(request.toJson())}");
+
+      // Gửi yêu cầu qua WebSocket
+      // final stompService = await StompService.instance();
+
+      stompService?.send(StompListenType.chatBoxCreate, jsonEncode(request.toJson()));
+
+      // Xóa danh sách người dùng đã chọn
+      selectedUsers.value = [];
+      selectedUsers.notifyListeners();
+    } catch (e) {
+      logger.e("Lỗi khi tạo chatbox mới: $e");
+      showToast(title: "Không thể tạo cuộc trò chuyện mới", type: ToastificationType.error);
+    } finally {
+      isCreatingChat.value = false;
+      isCreatingChat.notifyListeners();
+    }
+  }
+
+  void addUserToSelection(AccountModel userEmail) {
+    if (!selectedUsers.value.contains(userEmail)) {
+      selectedUsers.value = [...selectedUsers.value, userEmail];
+      selectedUsers.notifyListeners();
+    }
+  }
+
+  void removeUserFromSelection(AccountModel user) {
+    selectedUsers.value = selectedUsers.value.where((u) => u != user).toList();
+    selectedUsers.notifyListeners();
   }
 
   @override
@@ -207,10 +272,19 @@ class ChatViewModel extends BaseViewModel with StompListener {
           listener: this,
           chatBoxId: response['chatBoxId'],
         );
-
+        ChatBoxModel chatBoxModel = ChatBoxModel().copyWith(
+          id: response['chatBoxId'],
+          name: response['nameOfChatBox'],
+          memberAccountUsernames: AccountModel.listFromJson(response['listMember']),
+          createdBy: response['createdBy'],
+          group: response['group'],
+          createdAt: response['createdAt'] == null ? null : AppUtils.fromUtcStringToVnTime(response['createdAt']),
+        );
+        Get.toNamed(Routers.chatBoxDetail, arguments: {'chatBox': chatBoxModel})?.then((_) {
+          refreshChatBoxs();
+        });
         refreshChatBoxs();
       }
-
     } catch (e) {
       logger.e('Lỗi khi xử lý phản hồi tạo chatbox: $e');
     }
@@ -249,7 +323,7 @@ class ChatViewModel extends BaseViewModel with StompListener {
       }
       // Lọc kết quả để không bao gồm người dùng hiện tại
       List<AccountModel> filteredResults =
-      searchResults.value.where((user) => user.accountUsername != currentUserEmail).toList();
+          searchResults.value.where((user) => user.accountUsername != currentUserEmail).toList();
 
       searchResults.value = filteredResults;
       searchResults.notifyListeners();
@@ -268,7 +342,15 @@ class ChatViewModel extends BaseViewModel with StompListener {
     searchResults.notifyListeners();
   }
 
-  void chatDetail(ChatBoxModel chatbox) {
-    Get.toNamed(Routers.chatDetail, arguments: {'chatbox': chatbox});
+  void searchUserOrChatBox() async {
+    final result = await Get.toNamed(Routers.chatBoxSearch);
+
+    if (result is AccountModel) {
+      createNewChatBox(members: [result]);
+    } else if (result is ChatBoxModel) {
+      Get.toNamed(Routers.chatBoxDetail, arguments: {'chatBox': result})?.then((_) {
+        refreshChatBoxs();
+      });
+    }
   }
 }

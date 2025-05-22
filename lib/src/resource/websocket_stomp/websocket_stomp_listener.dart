@@ -34,4 +34,8 @@ mixin StompListener {
   void onStompChatBoxCreateReceived(dynamic data) {
     logger.i('↩️ STOMP CHATBOX CREATE RECEIVED MIXIN: $data');
   }
+
+  void onStompAddMemberReceived(dynamic data) {
+    logger.i('↩️ STOMP CHATBOX ADD MEMBER RECEIVED MIXIN: $data');
+  }
 }

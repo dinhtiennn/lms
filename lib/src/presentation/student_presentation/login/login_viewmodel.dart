@@ -137,8 +137,8 @@ class LoginViewModel extends BaseViewModel {
     }
   }
 
-  Future<void> loginWithGoogle() async {
-    NetworkState<StudentModel> result = await authRepository.loginGoogle();
+  // Future<void> loginWithGoogle() async {
+  //   NetworkState<StudentModel> result = await authRepository.loginGoogle();
     // if (result.isSuccess && (result.statusData ?? false)) {
     //   StudentModel student = result.result!;
     //   AppPrefs.accessToken = authModel.token;
@@ -159,7 +159,7 @@ class LoginViewModel extends BaseViewModel {
     //         status: result.statusData!);
     //   }
     // }
-  }
+  // }
 
   void forgotPassword() {
     Get.toNamed(Routers.forgotPassword);

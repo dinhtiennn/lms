@@ -4,6 +4,7 @@ import 'package:get/get.dart';
 import 'package:lms/src/presentation/presentation.dart';
 import 'package:lms/src/resource/resource.dart';
 import 'package:lms/src/utils/app_prefs.dart';
+import 'package:lms/src/utils/app_utils.dart';
 import 'package:toastification/toastification.dart';
 import 'package:image_picker/image_picker.dart';
 
@@ -21,8 +22,7 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel with StompListener {
   bool hasMoreMessages = true;
   final ValueNotifier<bool> loading = ValueNotifier(false);
 
-  TeacherModel? teacherModel =
-      AppPrefs.getUser<TeacherModel>(TeacherModel.fromJson);
+  TeacherModel? teacherModel = AppPrefs.getUser<TeacherModel>(TeacherModel.fromJson);
   String? currentUserEmail;
   String? currentUserFullName;
 
@@ -36,9 +36,7 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel with StompListener {
 
     if (chatbox.value == null || currentUserEmail == null) {
       logger.e("Không thể lấy thông tin chatbox hoặc người dùng hiện tại");
-      showToast(
-          title: "Đã xảy ra lỗi, vui lòng thử lại",
-          type: ToastificationType.error);
+      showToast(title: "Đã xảy ra lỗi, vui lòng thử lại", type: ToastificationType.error);
       return;
     }
 
@@ -58,8 +56,7 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel with StompListener {
   void _scrollListener() {
     // Chỉ kiểm tra loadmore khi người dùng chủ động cuộn lên
     if (scrollController.hasClients &&
-        scrollController.position.pixels <=
-            scrollController.position.minScrollExtent + 50 &&
+        scrollController.position.pixels <= scrollController.position.minScrollExtent + 50 &&
         !isLoading &&
         hasMoreMessages) {
       // Thêm log để theo dõi
@@ -86,9 +83,7 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel with StompListener {
       logger.i("WebSocket đã được kết nối thành công");
     } catch (e) {
       logger.e("Lỗi khi thiết lập kết nối WebSocket: $e");
-      showToast(
-          title: "Không thể kết nối đến máy chủ",
-          type: ToastificationType.error);
+      showToast(title: "Không thể kết nối đến máy chủ", type: ToastificationType.error);
 
       // Thử kết nối lại sau 3 giây
       Future.delayed(Duration(seconds: 3), () {
@@ -110,8 +105,7 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel with StompListener {
 
     try {
       NetworkState<List<MessageModel>> resultMessages =
-          await chatBoxRepository.messages(
-              id: chatbox.value?.id ?? '', pageSize: pageSize, pageNumber: 0);
+          await chatBoxRepository.messages(id: chatbox.value?.id ?? '', pageSize: pageSize, pageNumber: 0);
 
       if (resultMessages.isSuccess && resultMessages.result != null) {
         final newMessages = resultMessages.result!;
@@ -123,9 +117,7 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel with StompListener {
 
         // Cuộn xuống dưới cùng để hiển thị tin nhắn mới nhất
         WidgetsBinding.instance.addPostFrameCallback((_) {
-          if (scrollController.hasClients &&
-              messages.value != null &&
-              messages.value!.isNotEmpty) {
+          if (scrollController.hasClients && messages.value != null && messages.value!.isNotEmpty) {
             logger.i("Cuộn xuống dưới cùng sau khi tải tin nhắn lần đầu");
             scrollController.animateTo(
               scrollController.position.maxScrollExtent,
@@ -166,14 +158,12 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel with StompListener {
 
   Future<void> loadMoreMessages() async {
     if (!isLoading && hasMoreMessages) {
-      logger.i(
-          "Đang tải thêm tin nhắn cũ (trang ${(messages.value?.length ?? 0) ~/ pageSize})");
+      logger.i("Đang tải thêm tin nhắn cũ (trang ${(messages.value?.length ?? 0) ~/ pageSize})");
       await _loadMessages(isLoadMore: true);
     }
   }
 
-  Future<void> _loadMessages(
-      {bool isRefresh = false, bool isLoadMore = false}) async {
+  Future<void> _loadMessages({bool isRefresh = false, bool isLoadMore = false}) async {
     if (isLoading || chatbox.value?.id == null) return;
 
     isLoading = true;
@@ -185,17 +175,13 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel with StompListener {
 
     try {
       // Tính pageNumber dựa trên số lượng tin nhắn hiện tại
-      final int pageNumber =
-          isRefresh ? 0 : (messages.value?.length ?? 0) ~/ pageSize;
+      final int pageNumber = isRefresh ? 0 : messages.value?.length ?? 0;
 
-      logger.i(
-          "Tải tin nhắn: pageNumber=$pageNumber, pageSize=$pageSize, isRefresh=$isRefresh, isLoadMore=$isLoadMore");
+      logger
+          .i("Tải tin nhắn: pageNumber=$pageNumber, pageSize=$pageSize, isRefresh=$isRefresh, isLoadMore=$isLoadMore");
 
       NetworkState<List<MessageModel>> resultMessages =
-          await chatBoxRepository.messages(
-              id: chatbox.value?.id ?? '',
-              pageSize: pageSize,
-              pageNumber: pageNumber);
+          await chatBoxRepository.messages(id: chatbox.value?.id ?? '', pageSize: pageSize, pageNumber: pageNumber);
 
       if (resultMessages.isSuccess && resultMessages.result != null) {
         final newMessages = resultMessages.result!;
@@ -212,10 +198,7 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel with StompListener {
           messages.value = newMessages;
         } else if (newMessages.isNotEmpty) {
           // Nếu đang loadmore, thêm tin nhắn mới vào đầu danh sách
-          final List<MessageModel> updatedList = [
-            ...newMessages,
-            ...messages.value ?? []
-          ];
+          final List<MessageModel> updatedList = [...newMessages, ...messages.value ?? []];
           messages.value = updatedList;
         }
 
@@ -226,9 +209,7 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel with StompListener {
         // Xử lý vị trí cuộn sau khi cập nhật danh sách
         WidgetsBinding.instance.addPostFrameCallback((_) {
           if (scrollController.hasClients) {
-            if (isRefresh &&
-                messages.value != null &&
-                messages.value!.isNotEmpty) {
+            if (isRefresh && messages.value != null && messages.value!.isNotEmpty) {
               // Nếu refresh, cuộn xuống dưới cùng
               logger.i("Cuộn xuống dưới cùng sau khi refresh");
               scrollController.animateTo(
@@ -238,14 +219,12 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel with StompListener {
               );
             } else if (isLoadMore && savedHeight != null) {
               // Khi loadmore, giữ vị trí cuộn tương đối
-              final double newHeight =
-                  scrollController.position.maxScrollExtent;
+              final double newHeight = scrollController.position.maxScrollExtent;
               final double offset = newHeight - savedHeight;
 
               // Giữ vị trí tương đối bằng cách nhảy đến vị trí mới
               logger.i("Giữ vị trí cuộn sau khi loadmore: offset=$offset");
-              scrollController
-                  .jumpTo(scrollController.position.pixels + offset);
+              scrollController.jumpTo(scrollController.position.pixels + offset);
             }
           }
         });
@@ -294,12 +273,20 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel with StompListener {
     logger.i('Nhận tin nhắn từ WebSocket: $data');
 
     try {
-      final receivedMessage = MessageModel.fromJson(jsonDecode(data));
+      final response = jsonDecode(data);
+      MessageModel receivedMessage = MessageModel(
+        createdAt: response['createdAt'] == null ? null : AppUtils.fromUtcStringToVnTime(response['createdAt']),
+        chatBoxId: response['chatBoxId'],
+        id: response['id'],
+        content: response['content'],
+        senderAccount: AccountModel(
+            avatar: response['avatarSenderAccount'],
+            accountFullname: response['fullNameSenderAccount'],
+            accountUsername: response['senderAccount']),
+      );
 
       // Kiểm tra nếu tin nhắn này chưa có trong danh sách
-      final existingIndex =
-          messages.value?.indexWhere((msg) => msg.id == receivedMessage.id) ??
-              -1;
+      final existingIndex = messages.value?.indexWhere((msg) => msg.id == receivedMessage.id) ?? -1;
 
       if (existingIndex == -1) {
         // Thêm tin nhắn mới vào danh sách
@@ -333,9 +320,7 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel with StompListener {
 
   Future<void> sendMessage() async {
     if (chatbox.value?.id == null || currentUserEmail == null) {
-      showToast(
-          title: "Không thể xác định thông tin cuộc trò chuyện hoặc người dùng",
-          type: ToastificationType.error);
+      showToast(title: "Không thể xác định thông tin cuộc trò chuyện hoặc người dùng", type: ToastificationType.error);
       return;
     }
 
@@ -362,9 +347,7 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel with StompListener {
       messageController.clear();
     } catch (e) {
       logger.e("Lỗi khi gửi tin nhắn: $e");
-      showToast(
-          title: "Không thể gửi tin nhắn. Vui lòng thử lại",
-          type: ToastificationType.error);
+      showToast(title: "Không thể gửi tin nhắn. Vui lòng thử lại", type: ToastificationType.error);
     } finally {
       isSendingMessage.value = false;
       isSendingMessage.notifyListeners();
@@ -388,8 +371,16 @@ class ChatBoxTeacherDetailViewModel extends BaseViewModel with StompListener {
     super.dispose();
   }
 
-  void settingBoxChat() {
-    Get.toNamed(Routers.chatBoxInfoTeacher,
-        arguments: {'chatBox': chatbox.value});
+  void settingBoxChat() async {
+    try {
+      dynamic result = await Get.toNamed(Routers.chatBoxInfoTeacher, arguments: {'chatBox': chatbox.value});
+      if (result != null) {
+        chatbox.value = result;
+        chatbox.notifyListeners();
+        logger.i("Đã cập nhật thông tin chatbox từ màn hình cài đặt");
+      }
+    } catch (e) {
+      logger.e("Lỗi khi cập nhật thông tin chatbox: $e");
+    }
   }
 }

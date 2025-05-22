@@ -5,15 +5,15 @@ import 'package:lms/src/presentation/presentation.dart';
 import 'package:lms/src/resource/model/account_model.dart';
 import 'package:lms/src/resource/model/chat_box_model.dart';
 
-class ChatBoxMemberTeacherScreen extends StatefulWidget {
-  const ChatBoxMemberTeacherScreen({Key? key}) : super(key: key);
+class ChatBoxMemberScreen extends StatefulWidget {
+  const ChatBoxMemberScreen({Key? key}) : super(key: key);
 
   @override
-  State<ChatBoxMemberTeacherScreen> createState() => _ChatBoxMemberTeacherScreenState();
+  State<ChatBoxMemberScreen> createState() => _ChatBoxMemberScreenState();
 }
 
-class _ChatBoxMemberTeacherScreenState extends State<ChatBoxMemberTeacherScreen> {
-  late ChatBoxMemberTeacherViewModel _viewModel;
+class _ChatBoxMemberScreenState extends State<ChatBoxMemberScreen> {
+  late ChatBoxMemberViewModel _viewModel;
   final TextEditingController _searchController = TextEditingController();
 
   @override
@@ -24,8 +24,8 @@ class _ChatBoxMemberTeacherScreenState extends State<ChatBoxMemberTeacherScreen>
 
   @override
   Widget build(BuildContext context) {
-    return BaseWidget<ChatBoxMemberTeacherViewModel>(
-        viewModel: ChatBoxMemberTeacherViewModel(),
+    return BaseWidget<ChatBoxMemberViewModel>(
+        viewModel: ChatBoxMemberViewModel(),
         onViewModelReady: (viewModel) {
           _viewModel = viewModel;
           WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -33,7 +33,6 @@ class _ChatBoxMemberTeacherScreenState extends State<ChatBoxMemberTeacherScreen>
           });
         },
         builder: (context, viewModel, child) {
-
           return Scaffold(
             appBar: AppBar(
               title: Text(
@@ -47,19 +46,16 @@ class _ChatBoxMemberTeacherScreenState extends State<ChatBoxMemberTeacherScreen>
                 onPressed: () => Get.back(result: _viewModel.chatBox.value),
               ),
               actions: [
-                ValueListenableBuilder(
-                  valueListenable: _viewModel.chatBox,
-                  builder: (context, chatBox, child) {
-                    final bool isCreator = chatBox?.createdBy == _viewModel.currentUserEmail;
-                    return isCreator
-                        ? IconButton(
-                            icon: Icon(Icons.person_add, color: white),
-                            onPressed: () => _showAddMemberBottomSheet(context),
-                            tooltip: 'Thêm thành viên',
-                          )
-                        : SizedBox.shrink();
-                  },
-                )
+                ValueListenableBuilder(valueListenable: _viewModel.chatBox, builder: (context, chatBox, child) {
+                  final bool isCreator = chatBox?.createdBy == _viewModel.currentUserEmail;
+                  return isCreator
+                      ? IconButton(
+                    icon: Icon(Icons.person_add, color: white),
+                    onPressed: () => _showAddMemberBottomSheet(context),
+                    tooltip: 'Thêm thành viên',
+                  )
+                      : SizedBox.shrink();
+                },)
               ],
             ),
             body: SafeArea(child: _buildBody()),

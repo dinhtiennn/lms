@@ -5,16 +5,19 @@ import 'package:lms/src/configs/configs.dart';
 import 'package:lms/src/presentation/presentation.dart';
 import 'package:lms/src/resource/model/account_model.dart';
 import 'package:lms/src/resource/model/chat_box_model.dart';
+import 'package:toastification/toastification.dart';
 
 class ChatBoxInfoTeacherScreen extends StatefulWidget {
   const ChatBoxInfoTeacherScreen({Key? key}) : super(key: key);
 
   @override
-  State<ChatBoxInfoTeacherScreen> createState() => _ChatBoxInfoTeacherScreenState();
+  State<ChatBoxInfoTeacherScreen> createState() =>
+      _ChatBoxInfoTeacherScreenState();
 }
 
 class _ChatBoxInfoTeacherScreenState extends State<ChatBoxInfoTeacherScreen> {
   late ChatBoxInfoTeacherViewModel _viewModel;
+  final TextEditingController nameController = TextEditingController();
   final Color grey0 = Colors.grey.shade200;
   final Color grey1 = Colors.grey.shade400;
   final Color grey2 = Colors.grey.shade600;
@@ -53,7 +56,7 @@ class _ChatBoxInfoTeacherScreenState extends State<ChatBoxInfoTeacherScreen> {
       ),
       leading: IconButton(
         icon: const Icon(Icons.arrow_back, color: white),
-        onPressed: () => Get.back(),
+        onPressed: () => Get.back(result: _viewModel.chatbox.value),
       ),
     );
   }
@@ -71,6 +74,7 @@ class _ChatBoxInfoTeacherScreenState extends State<ChatBoxInfoTeacherScreen> {
         }
 
         final bool isGroup = chatbox.group ?? false;
+        final bool isCreator = chatbox.createdBy == _viewModel.currentUserEmail;
 
         return SingleChildScrollView(
           padding: const EdgeInsets.symmetric(vertical: 16),
@@ -79,6 +83,7 @@ class _ChatBoxInfoTeacherScreenState extends State<ChatBoxInfoTeacherScreen> {
             children: [
               _buildChatBoxInfoHeader(chatbox),
               const SizedBox(height: 24),
+              if (isGroup && isCreator) _buildRenameChatBox(chatbox),
               _buildChatBoxDetails(chatbox),
               if (isGroup) _buildMembersList(chatbox),
             ],
@@ -94,7 +99,9 @@ class _ChatBoxInfoTeacherScreenState extends State<ChatBoxInfoTeacherScreen> {
     return Column(
       children: [
         Text(
-          isGroup ? '${chatbox.memberAccountUsernames?.length ?? 0} thành viên' : 'Cuộc trò chuyện riêng',
+          isGroup
+              ? '${chatbox.memberAccountUsernames?.length ?? 0} thành viên'
+              : 'Cuộc trò chuyện riêng',
           style: styleSmall.copyWith(color: grey2),
           textAlign: TextAlign.left,
         ),
@@ -131,7 +138,9 @@ class _ChatBoxInfoTeacherScreenState extends State<ChatBoxInfoTeacherScreen> {
           _buildDetailItem(
             icon: Icons.calendar_today,
             title: 'Ngày tạo',
-            value: createdAt != null ? DateFormat('dd/MM/yyyy HH:mm').format(createdAt) : 'Không xác định',
+            value: createdAt != null
+                ? DateFormat('dd/MM/yyyy HH:mm').format(createdAt)
+                : 'Không xác định',
           ),
           const Divider(height: 24),
           _buildDetailItem(
@@ -219,43 +228,117 @@ class _ChatBoxInfoTeacherScreenState extends State<ChatBoxInfoTeacherScreen> {
               ),
             )
           else
-            ListView.separated(
-              physics: const NeverScrollableScrollPhysics(),
-              shrinkWrap: true,
-              itemCount: members.length,
-              separatorBuilder: (context, index) => const Divider(height: 1),
-              itemBuilder: (context, index) => _buildMemberItem(members[index]),
-            ),
+            ListTile(
+              title: Row(
+                children: [
+                  Icon(Icons.person),
+                  SizedBox(
+                    width: 4,
+                  ),
+                  Expanded(
+                      child: Text(
+                    'Xem thành viên',
+                    style: styleSmall.copyWith(color: grey2),
+                  ))
+                ],
+              ),
+              onTap: () {
+                _viewModel.toChatBoxMember(chatbox);
+              },
+            )
         ],
       ),
     );
   }
 
-  Widget _buildMemberItem(AccountModel member) {
-    return ListTile(
-      contentPadding: EdgeInsets.zero,
-      leading: WidgetImageNetwork(
-        url: member.avatar,
-        radiusAll: 100,
-        width: 100,
-        height: 100,
-        fit: BoxFit.cover,
-        widgetError: CircleAvatar(
-          backgroundColor: primary2.withOpacity(0.7),
-          radius: 20,
-          child: Text(
-            (member.avatar ?? '').split('').first,
-            style: const TextStyle(color: white, fontWeight: FontWeight.bold),
+  Widget _buildRenameChatBox(ChatBoxModel chatbox) {
+    return Container(
+      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: white,
+        borderRadius: BorderRadius.circular(12),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Thay đổi tên nhóm',
+            style: styleMediumBold.copyWith(color: grey3),
+          ),
+          const SizedBox(height: 16),
+          ListTile(
+            contentPadding: EdgeInsets.zero,
+            leading: Icon(Icons.edit, color: primary2),
+            title: Text(
+              'Đổi tên nhóm chat',
+              style: styleSmall.copyWith(color: grey2),
+            ),
+            subtitle: Text(
+              'Tên hiện tại: ${chatbox.name}',
+              style: styleSmall.copyWith(color: grey1),
+            ),
+            onTap: () => _showRenameDialog(chatbox),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showRenameDialog(ChatBoxModel chatbox) {
+    nameController.text = chatbox.name ?? '';
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: white,
+        title: Text(
+          'Đổi tên nhóm chat',
+          style: styleMediumBold.copyWith(color: grey2),
         ),
-      ),
-      title: Text(
-        member.accountFullname ?? '',
-        style: styleSmall.copyWith(color: grey3),
-      ),
-      subtitle: Text(
-        member.accountUsername ?? '',
-        style: styleVerySmall.copyWith(color: grey2),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            WidgetInput(
+              titleText: 'Nhập tên mới cho nhóm chat',
+              hintText: 'Tên nhóm mới',
+              style: styleSmall.copyWith(color: grey2),
+              hintStyle: styleSmall.copyWith(color: grey4),
+              titleStyle: styleSmall.copyWith(color: grey4),
+              controller: nameController,
+              borderRadius: BorderRadius.circular(8),
+              autoFocus: true,
+            ),
+          ],
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('Hủy', style: TextStyle(color: grey3)),
+          ),
+          TextButton(
+            onPressed: () {
+              final String newName = nameController.text.trim();
+              if (newName.isNotEmpty && newName != chatbox.name) {
+                _viewModel.reNameChatBox(newName);
+                Navigator.pop(context);
+              } else if (newName.isEmpty) {
+                _viewModel.showToast(
+                    title: 'Tên nhóm không được để trống',
+                    type: ToastificationType.error);
+              } else {
+                Navigator.pop(context);
+              }
+            },
+            child: Text('Lưu', style: TextStyle(color: primary2)),
+          ),
+        ],
       ),
     );
   }

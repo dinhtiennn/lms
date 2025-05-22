@@ -34,7 +34,7 @@ class _NotificationTeacherScreenState extends State<NotificationTeacherScreen> {
               centerTitle: true,
               actions: [
                 TextButton(
-                    onPressed: () => _viewModel.markAllAsRead(),
+                    onPressed: () => _viewModel.readAllNotification(),
                     child: Text('Đọc tất cả',
                         style: styleVerySmall.copyWith(
                             fontWeight: FontWeight.w500,

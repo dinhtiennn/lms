@@ -28,13 +28,17 @@ class EditTestViewModel extends BaseViewModel {
 
       // Format các trường ngày giờ
       if (test.value?.startedAt != null) {
-        startDateController.text = DateFormat('dd/MM/yyyy').format(test.value!.startedAt!);
-        startTimeController.text = DateFormat('HH:mm').format(test.value!.startedAt!);
+        startDateController.text =
+            DateFormat('dd/MM/yyyy').format(test.value!.startedAt!);
+        startTimeController.text =
+            DateFormat('HH:mm').format(test.value!.startedAt!);
       }
 
       if (test.value?.expiredAt != null) {
-        expiredAtDateController.text = DateFormat('dd/MM/yyyy').format(test.value!.expiredAt!);
-        expiredAtTimeController.text = DateFormat('HH:mm').format(test.value!.expiredAt!);
+        expiredAtDateController.text =
+            DateFormat('dd/MM/yyyy').format(test.value!.expiredAt!);
+        expiredAtTimeController.text =
+            DateFormat('HH:mm').format(test.value!.expiredAt!);
       }
 
       // Tải danh sách câu hỏi của bài kiểm tra
@@ -46,7 +50,8 @@ class EditTestViewModel extends BaseViewModel {
     if (test.value?.id == null) return;
 
     setLoading(true);
-    NetworkState<TestDetailModel> result = await groupRepository.testDetail(testId: test.value?.id);
+    NetworkState<TestDetailModel> result =
+        await groupRepository.testDetail(testId: test.value?.id);
     setLoading(false);
 
     if (result.isSuccess && result.result != null) {
@@ -69,8 +74,10 @@ class EditTestViewModel extends BaseViewModel {
 
   Map<String, dynamic> getTestUpdateInfo() {
     try {
-      final fullDateStartTimeString = '${startDateController.text} ${startTimeController.text}';
-      final fullDateEndTimeString = '${expiredAtDateController.text} ${expiredAtTimeController.text}';
+      final fullDateStartTimeString =
+          '${startDateController.text} ${startTimeController.text}';
+      final fullDateEndTimeString =
+          '${expiredAtDateController.text} ${expiredAtTimeController.text}';
       final format = DateFormat('dd/MM/yyyy HH:mm');
 
       return {
@@ -83,7 +90,9 @@ class EditTestViewModel extends BaseViewModel {
         'questions': questions.value,
       };
     } catch (e) {
-      showToast(title: 'Lỗi định dạng ngày tháng: $e', type: ToastificationType.error);
+      showToast(
+          title: 'Lỗi định dạng ngày tháng: $e',
+          type: ToastificationType.error);
       return {};
     }
   }
@@ -138,12 +147,15 @@ class EditTestViewModel extends BaseViewModel {
 
         if (now.isAfter(originalStartTime)) {
           isUpdating.value = false;
-          showToast(title: 'Đã hết thời hạn cập nhật bài kiểm tra', type: ToastificationType.error);
+          showToast(
+              title: 'Đã hết thời hạn cập nhật bài kiểm tra',
+              type: ToastificationType.error);
           return;
         }
       }
 
-      NetworkState<TestModel> resultUpdateTest = await groupRepository.updateTest(
+      NetworkState<TestModel> resultUpdateTest =
+          await groupRepository.updateTest(
         testId: testInfo['testId'],
         title: testInfo['title'],
         description: testInfo['description'],
@@ -154,7 +166,9 @@ class EditTestViewModel extends BaseViewModel {
 
       // Xử lý kết quả
       if (resultUpdateTest.isSuccess) {
-        showToast(title: 'Cập nhật bài kiểm tra thành công', type: ToastificationType.success);
+        showToast(
+            title: 'Cập nhật bài kiểm tra thành công',
+            type: ToastificationType.success);
         loadTestQuestions();
         if (context.mounted) {
           Navigator.pop(context);
@@ -164,7 +178,8 @@ class EditTestViewModel extends BaseViewModel {
         }
       } else {
         showToast(
-            title: 'Lỗi: ${resultUpdateTest.message ?? "Không thể cập nhật bài kiểm tra"}',
+            title:
+                'Lỗi: ${resultUpdateTest.message ?? "Không thể cập nhật bài kiểm tra"}',
             type: ToastificationType.error);
       }
 

@@ -35,7 +35,7 @@ class GroupModel {
 
 class PostModel {
   final String? id;
-  final dynamic title;
+  final String? title;
   final String? text;
   final DateTime? createdAt;
   final List<FileElement>? files;
@@ -70,23 +70,27 @@ class PostModel {
 }
 
 class FileElement {
+  final String? id;
   final String? fileName;
   final String? fileType;
   final String? fileUrl;
 
   FileElement({
+    this.id,
     this.fileName,
     this.fileType,
     this.fileUrl,
   });
 
   factory FileElement.fromJson(Map<String, dynamic> json) => FileElement(
+        id: json["id"],
         fileName: json["fileName"],
         fileType: json["fileType"],
         fileUrl: json["fileUrl"],
       );
 
   Map<String, dynamic> toJson() => {
+        "id": id,
         "fileName": fileName,
         "fileType": fileType,
         "fileUrl": fileUrl,

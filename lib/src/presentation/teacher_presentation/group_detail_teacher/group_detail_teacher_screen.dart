@@ -3,6 +3,7 @@ import 'package:android_path_provider/android_path_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:lms/src/configs/constanst/constants.dart';
 import 'package:lms/src/presentation/presentation.dart';
+import 'package:lms/src/presentation/teacher_presentation/group_detail_teacher/widget/post_comment_teacher.dart';
 import 'package:lms/src/resource/model/model.dart';
 import 'package:lms/src/utils/app_clients.dart';
 import 'package:lms/src/utils/app_valid.dart';
@@ -348,125 +349,487 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
 
   Widget _buildItemPost(
       {required BuildContext context, required PostModel post}) {
-    return Card(
-      color: white,
-      elevation: 2.0,
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: <Widget>[
-            Row(
-              children: [
-                Container(
-                  decoration: BoxDecoration(
-                      border: Border.all(color: grey5),
-                      borderRadius: BorderRadius.circular(100)),
-                  child: WidgetImageNetwork(
-                    url: _viewModel.teacher?.avatar,
-                    width: 50,
-                    height: 50,
-                    fit: BoxFit.cover,
-                    radiusAll: 100,
-                    widgetError: Center(
-                      child: Text(
-                        (_viewModel.teacher?.fullName?.isNotEmpty ?? false)
-                            ? (_viewModel.teacher?.fullName![0] ?? '')
-                                .toUpperCase()
-                            : "?",
-                        style: styleMediumBold.copyWith(color: primary),
+    return GestureDetector(
+      onLongPress: () {
+        _showPostOptionsBottomSheet(context, post);
+      },
+      child: Card(
+        color: white,
+        elevation: 2.0,
+        margin: const EdgeInsets.only(bottom: 16),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: <Widget>[
+              Row(
+                children: [
+                  Container(
+                    decoration: BoxDecoration(
+                        border: Border.all(color: grey5),
+                        borderRadius: BorderRadius.circular(100)),
+                    child: WidgetImageNetwork(
+                      url: _viewModel.teacher?.avatar,
+                      width: 50,
+                      height: 50,
+                      fit: BoxFit.cover,
+                      radiusAll: 100,
+                      widgetError: Center(
+                        child: Text(
+                          (_viewModel.teacher?.fullName?.isNotEmpty ?? false)
+                              ? (_viewModel.teacher?.fullName![0] ?? '')
+                                  .toUpperCase()
+                              : "?",
+                          style: styleMediumBold.copyWith(color: primary),
+                        ),
                       ),
                     ),
                   ),
-                ),
-                const SizedBox(width: 16),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        _viewModel.teacher?.fullName ?? '',
-                        style: styleMediumBold.copyWith(color: black),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          _viewModel.teacher?.fullName ?? '',
+                          style: styleMediumBold.copyWith(color: black),
+                        ),
+                        const SizedBox(height: 4),
+                        Text(
+                          '${post.createdAt?.day}/${post.createdAt?.month}/${post.createdAt?.year} ${post.createdAt?.hour}:${post.createdAt?.minute}:${post.createdAt?.second}',
+                          style: styleVerySmall.copyWith(color: grey3),
+                        ),
+                      ],
+                    ),
+                  ),
+                  IconButton(
+                    icon: const Icon(
+                      Icons.more_vert,
+                      color: grey3,
+                    ),
+                    onPressed: () => _showPostOptionsBottomSheet(context, post),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              Text(
+                post.text ?? '',
+                style: styleSmall.copyWith(color: grey2),
+              ),
+              if (post.files?.isNotEmpty ?? false) ...[
+                const SizedBox(height: 12),
+                Wrap(
+                  spacing: 8,
+                  runSpacing: 8,
+                  children: post.files!.map((file) {
+                    return InkWell(
+                      onTap: () {
+                        _downloadFile(file.fileUrl ?? '', context);
+                      },
+                      child: Chip(
+                        backgroundColor: grey5,
+                        avatar: Icon(
+                          Icons.download,
+                          color: primary,
+                        ),
+                        label: Text(
+                          file.fileName ?? '',
+                          style: styleVerySmall.copyWith(color: grey2),
+                        ),
+                        side: BorderSide.none,
                       ),
-                      const SizedBox(height: 4),
-                      Text(
-                        '${post.createdAt?.day}/${post.createdAt?.month}/${post.createdAt?.year} ${post.createdAt?.hour}:${post.createdAt?.minute}:${post.createdAt?.second}',
-                        style: styleVerySmall.copyWith(color: grey3),
+                    );
+                  }).toList(),
+                ),
+              ],
+              const SizedBox(height: 12),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: <Widget>[
+                  TextButton.icon(
+                    icon: const Icon(Icons.comment),
+                    label: const Text('Bình luận'),
+                    onPressed: () {
+                      // Lưu bài đăng hiện tại vào postSelected
+                      _viewModel.postSelected.value = post;
+                      // Tải comments của bài đăng này
+                      _viewModel.loadComments(isReset: true, pageSize: 20);
+                      // Hiển thị bottom sheet comment
+                      _showCommentBottomSheet(context);
+                    },
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  // Phương thức hiển thị bottom sheet với các tùy chọn cho bài đăng
+  void _showPostOptionsBottomSheet(BuildContext context, PostModel post) {
+    showModalBottomSheet(
+      backgroundColor: white,
+      context: context,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 8.0),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                ListTile(
+                  leading: Icon(Icons.edit, color: primary),
+                  title: Text('Chỉnh sửa bài đăng',
+                      style: styleSmall.copyWith(color: grey2)),
+                  onTap: () {
+                    Navigator.pop(context); // Đóng bottom sheet
+                    _showEditPostBottomSheet(
+                        context, post); // Hiển thị màn hình chỉnh sửa
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.delete_outline, color: error),
+                  title: Text('Xóa bài đăng',
+                      style: styleSmall.copyWith(color: error)),
+                  onTap: () {
+                    Navigator.pop(context); // Đóng bottom sheet
+                    _showDeleteConfirmDialog(
+                        context, post); // Hiển thị dialog xác nhận xóa
+                  },
+                ),
+                ListTile(
+                  leading: Icon(Icons.close, color: grey3),
+                  title: Text('Hủy', style: styleSmall),
+                  onTap: () {
+                    Navigator.pop(context); // Đóng bottom sheet
+                  },
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    );
+  }
+
+  // Hiển thị dialog xác nhận xóa
+  void _showDeleteConfirmDialog(BuildContext context, PostModel post) {
+    showDialog(
+      context: context,
+      builder: (context) => WidgetDialogConfirm(
+        titleStyle: styleMediumBold.copyWith(color: error),
+        colorButtonAccept: error,
+        title: 'Xóa bài đăng',
+        onTapConfirm: () {
+          _viewModel.delete(post.id ?? '');
+          if (context.mounted) {
+            Navigator.of(context).pop();
+          }
+        },
+        content: 'Xác nhận xóa bài ${post.title}?',
+      ),
+    );
+  }
+
+  // Hiển thị bottom sheet chỉnh sửa bài đăng
+  void _showEditPostBottomSheet(BuildContext context, PostModel post) {
+    // Controller cho tiêu đề và nội dung bài đăng
+    final descriptionController = TextEditingController(text: post.text);
+
+    // Danh sách file hiện tại và file bị đánh dấu để xóa
+    List<FileElement> currentFiles = List<FileElement>.from(post.files ?? []);
+    List<FileElement> filesToRemove = [];
+
+    // Xóa tất cả file đã chọn trong viewModel để tránh xung đột
+    _viewModel.filesPicker.value = [];
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      // Cho phép bottom sheet mở rộng khi bàn phím hiện lên
+      backgroundColor: white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (BuildContext context) {
+        return StatefulBuilder(builder: (context, setState) {
+          return Container(
+            height: MediaQuery.of(context).size.height * 0.9,
+            padding: EdgeInsets.only(
+              bottom: MediaQuery.of(context).viewInsets.bottom,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Header
+                Container(
+                  padding: const EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: primary2,
+                    borderRadius:
+                        const BorderRadius.vertical(top: Radius.circular(16)),
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          'Chỉnh sửa bài đăng',
+                          style: styleLargeBold.copyWith(color: white),
+                        ),
+                      ),
+                      IconButton(
+                        icon: Icon(Icons.close, color: white),
+                        onPressed: () {
+                          Navigator.pop(context);
+                        },
                       ),
                     ],
                   ),
                 ),
-                IconButton(
-                  icon: const Icon(
-                    Icons.delete_outline,
-                    color: Colors.red,
-                  ),
-                  onPressed: () => showDialog(
-                    context: context,
-                    builder: (context) => WidgetDialogConfirm(
-                      titleStyle: styleMediumBold.copyWith(color: error),
-                      colorButtonAccept: error,
-                      title: 'Xóa bài đăng',
-                      onTapConfirm: () {
-                        _viewModel.delete(post.id ?? '');
-                        if (context.mounted) {
-                          Navigator.of(context).pop();
-                        }
-                      },
-                      content: 'Xác nhận xóa bài ${post.title}?',
+
+                // Body
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: EdgeInsets.all(16),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SizedBox(
+                          height: 20,
+                        ),
+                        // Nội dung
+                        Text('Nội dung',
+                            style: styleMediumBold.copyWith(color: grey3)),
+                        const SizedBox(height: 8),
+                        WidgetInput(
+                          controller: descriptionController,
+                          hintText: 'Nhập nội dung bài đăng',
+                          style: styleSmall.copyWith(color: grey),
+                          maxLines: 5,
+                          borderRadius: BorderRadius.circular(12),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // File đính kèm hiện tại
+                        if (currentFiles.isNotEmpty) ...[
+                          Text('Tệp đính kèm hiện tại',
+                              style: styleMediumBold.copyWith(color: grey3)),
+                          const SizedBox(height: 8),
+                          ListView.builder(
+                            shrinkWrap: true,
+                            physics: NeverScrollableScrollPhysics(),
+                            itemCount: currentFiles.length,
+                            itemBuilder: (context, index) {
+                              final file = currentFiles[index];
+                              final isMarkedForRemoval =
+                                  filesToRemove.contains(file);
+                              return Card(
+                                elevation: 1,
+                                margin: EdgeInsets.only(bottom: 8),
+                                child: ListTile(
+                                  title: Text(
+                                    file.fileName ?? 'Tệp không tên',
+                                    style: styleSmall,
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  trailing: IconButton(
+                                    icon: Icon(
+                                      isMarkedForRemoval
+                                          ? Icons.check_box_outlined
+                                          : Icons.delete_outline,
+                                      color: isMarkedForRemoval
+                                          ? success
+                                          : warning,
+                                    ),
+                                    tooltip: isMarkedForRemoval
+                                        ? 'Giữ lại tệp này'
+                                        : 'Xóa tệp này',
+                                    onPressed: () {
+                                      setState(() {
+                                        if (isMarkedForRemoval) {
+                                          filesToRemove.remove(file);
+                                        } else {
+                                          filesToRemove.add(file);
+                                        }
+                                      });
+                                    },
+                                  ),
+                                  onTap: () {
+                                    if (file.fileUrl != null) {
+                                      _viewModel.showToast(
+                                          title:
+                                              'Xem trước hoặc tải tệp: ${file.fileName}',
+                                          type: ToastificationType.info);
+                                    }
+                                  },
+                                ),
+                              );
+                            },
+                          ),
+                          const SizedBox(height: 16),
+                        ],
+
+                        // File mới
+                        Text('Tệp mới tải lên',
+                            style: styleMediumBold.copyWith(color: grey3)),
+                        const SizedBox(height: 8),
+                        ValueListenableBuilder<List<File>>(
+                          valueListenable: _viewModel.filesPicker,
+                          builder: (context, files, child) {
+                            if (files.isEmpty) {
+                              return Padding(
+                                padding: const EdgeInsets.only(bottom: 8),
+                                child: Text(
+                                  'Chưa có tệp nào được chọn',
+                                  style: styleSmall.copyWith(color: grey),
+                                ),
+                              );
+                            }
+
+                            return ListView.builder(
+                              shrinkWrap: true,
+                              physics: NeverScrollableScrollPhysics(),
+                              itemCount: files.length,
+                              itemBuilder: (context, index) {
+                                final file = files[index];
+                                final fileName = file.path
+                                    .split(Platform.pathSeparator)
+                                    .last;
+                                return Card(
+                                  elevation: 1,
+                                  margin: EdgeInsets.only(bottom: 8),
+                                  child: ListTile(
+                                    title: Text(
+                                      fileName,
+                                      style: styleSmall,
+                                      maxLines: 1,
+                                      overflow: TextOverflow.ellipsis,
+                                    ),
+                                    trailing: IconButton(
+                                      icon: Icon(
+                                        Icons.close,
+                                        color: warning,
+                                      ),
+                                      tooltip: 'Hủy chọn tệp này',
+                                      onPressed: () =>
+                                          _viewModel.removeFile(file),
+                                    ),
+                                  ),
+                                );
+                              },
+                            );
+                          },
+                        ),
+                        const SizedBox(height: 8),
+
+                        // Nút chọn file
+                        OutlinedButton.icon(
+                          icon: Icon(
+                            Icons.add_box_outlined,
+                            color: primary,
+                          ),
+                          label: Text(
+                            'Chọn tệp mới',
+                            style: styleSmall.copyWith(color: primary),
+                          ),
+                          onPressed: () => _viewModel.pickFiles(),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: primary),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
+                  ),
+                ),
+
+                // Footer
+                Container(
+                  padding: EdgeInsets.all(16),
+                  decoration: BoxDecoration(
+                    color: white,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.black.withOpacity(0.1),
+                        blurRadius: 8,
+                        offset: Offset(0, -2),
+                      ),
+                    ],
+                  ),
+                  child: Row(
+                    children: [
+                      Expanded(
+                        child: OutlinedButton(
+                          onPressed: () {
+                            Navigator.pop(context);
+                          },
+                          style: OutlinedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            side: BorderSide(color: grey3),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text('Hủy',
+                              style: styleMedium.copyWith(color: grey3)),
+                        ),
+                      ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: ElevatedButton(
+                          onPressed: () {
+                            if (descriptionController.text.trim().isEmpty) {
+                              _viewModel.showToast(
+                                title: 'Vui lòng nhập nội dung bài đăng',
+                                type: ToastificationType.warning,
+                              );
+                              return;
+                            }
+
+                            // Danh sách file giữ lại (không bị đánh dấu xóa)
+                            List<FileElement> keptOldFiles = currentFiles
+                                .where((file) => !filesToRemove.contains(file))
+                                .toList();
+
+                            // Gọi hàm cập nhật bài đăng
+                            _viewModel.updatePost(
+                              post.id!,
+                              descriptionController.text.trim(),
+                              keptOldFiles,
+                              _viewModel.filesPicker.value,
+                            );
+                          },
+                          style: ElevatedButton.styleFrom(
+                            padding: EdgeInsets.symmetric(vertical: 12),
+                            backgroundColor: primary2,
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(8),
+                            ),
+                          ),
+                          child: Text('Lưu thay đổi',
+                              style: styleMedium.copyWith(color: white)),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
               ],
             ),
-            const SizedBox(height: 12),
-            Text(
-              post.text ?? '',
-              style: styleSmall.copyWith(color: grey2),
-            ),
-            if (post.files?.isNotEmpty ?? false) ...[
-              const SizedBox(height: 12),
-              Wrap(
-                spacing: 8,
-                runSpacing: 8,
-                children: post.files!.map((file) {
-                  return InkWell(
-                    onTap: () {
-                      _downloadFile(file.fileUrl ?? '', context);
-                    },
-                    child: Chip(
-                      backgroundColor: grey5,
-                      avatar: Icon(
-                        Icons.download,
-                        color: primary,
-                      ),
-                      label: Text(
-                        file.fileName ?? '',
-                        style: styleVerySmall.copyWith(color: grey2),
-                      ),
-                      side: BorderSide.none,
-                    ),
-                  );
-                }).toList(),
-              ),
-            ],
-            const SizedBox(height: 12),
-            const Divider(),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: <Widget>[
-                TextButton.icon(
-                  icon: const Icon(Icons.comment),
-                  label: const Text('Bình luận'),
-                  onPressed: () {},
-                ),
-              ],
-            ),
-          ],
-        ),
-      ),
-    );
+          );
+        });
+      },
+    ).then((_) {
+      // Xóa files trong viewModel khi đóng bottom sheet
+      _viewModel.filesPicker.value = [];
+    });
   }
 
   Future<bool> _requestStoragePermission(BuildContext context) async {
@@ -1080,7 +1443,7 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
                           valueListenable: _viewModel.selectedStudents,
                           builder: (context, listStudentSelected, child) =>
                               ListView.builder(
-                                physics: NeverScrollableScrollPhysics(),
+                            physics: NeverScrollableScrollPhysics(),
                             padding: const EdgeInsets.all(16),
                             itemCount: students.length,
                             itemBuilder: (context, index) {
@@ -1185,6 +1548,55 @@ class _GroupDetailTeacherScreenState extends State<GroupDetailTeacherScreen> {
           ],
         ),
       ),
+    );
+  }
+
+  void _showCommentBottomSheet(BuildContext context) {
+    // Lấy bài đăng hiện tại từ postSelected
+    PostModel? currentPost = _viewModel.postSelected.value;
+
+    if (currentPost == null) {
+      return; // Không mở bottom sheet nếu không có bài đăng nào được chọn
+    }
+
+    Widget commentWidget = PostCommentTeacher(
+      comments: _viewModel.comments,
+      commentSelected: _viewModel.commentSelected,
+      commentController: _viewModel.commentController,
+      onSendComment: ({CommentModel? comment}) async {
+        if (context.mounted) {
+          // Gửi comment hoặc reply
+          await _viewModel.send(comment: comment);
+        }
+      },
+      setCommentSelected: _viewModel.setCommentSelected,
+      onLoadMoreComments: (
+          {required PostModel post, int pageSize = 20, int pageNumber = 0}) {
+        _viewModel.loadComments(isReset: pageNumber == 0, pageSize: pageSize);
+      },
+      currentPost: currentPost,
+      animatedCommentId: _viewModel.animatedCommentId,
+      animatedReplyId: _viewModel.animatedReplyId,
+      avatarUrl: _viewModel.teacher?.avatar,
+      onLoadMoreReplies: _viewModel.loadMoreReplies,
+      onEditComment: _viewModel.editComment,
+      onEditReply: _viewModel.editReply,
+      onDispose: _viewModel.resetCommentState,
+      userEmail: _viewModel.teacher?.email,
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      scrollControlDisabledMaxHeightRatio: 0.6,
+      backgroundColor: Colors.white,
+      useSafeArea: true,
+      builder: (context) {
+        return commentWidget;
+      },
     );
   }
 }

@@ -579,6 +579,7 @@ class _ChatBoxTeacherDetailScreenState
               child: WidgetInput(
                 controller: _viewModel.messageController,
                 hintText: 'Nhập tin nhắn...',
+                maxLines: 5,
                 hintStyle: styleSmall.copyWith(color: grey4),
                 style: styleSmall.copyWith(color: grey),
                 borderRadius: BorderRadius.circular(24),

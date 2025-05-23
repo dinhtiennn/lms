@@ -286,7 +286,7 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
         getFeeTypeAPIValue(priceController.text.isEmpty ? FeeStatusType.NON_CHARGEABLE : FeeStatusType.CHARGEABLE);
 
     String? price = priceController.text.trim().replaceAll(',', '.');
-    if(price.isNotEmpty) statusSelected.value = StatusOption(Status.REQUEST, 'Yêu cầu tham gia', 'REQUEST');
+    if (price.isNotEmpty) statusSelected.value = StatusOption(Status.REQUEST, 'Yêu cầu tham gia', 'REQUEST');
 
     setLoading(false);
     NetworkState<CourseModel> resultUpdateCourse = await courseRepository.updateCourse(

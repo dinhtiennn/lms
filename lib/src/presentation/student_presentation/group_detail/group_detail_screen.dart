@@ -6,6 +6,7 @@ import 'package:get/get.dart';
 import 'package:lms/src/configs/constanst/constants.dart';
 
 import 'package:lms/src/presentation/presentation.dart';
+import 'package:lms/src/presentation/student_presentation/group_detail/widget/post_comment.dart';
 import 'package:lms/src/resource/resource.dart';
 import 'package:lms/src/utils/utils.dart';
 import 'package:loading_animation_widget/loading_animation_widget.dart';
@@ -39,7 +40,6 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
         onViewModelReady: (viewModel) {
           _viewModel = viewModel..init();
         },
-        // child: WidgetBackground(),
         builder: (context, viewModel, child) {
           return Scaffold(
             appBar: AppBar(
@@ -236,14 +236,21 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
               ),
             ],
             const SizedBox(height: 12),
-            const Divider(),
+            const SizedBox(height: 12),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: <Widget>[
                 TextButton.icon(
                   icon: const Icon(Icons.comment),
                   label: const Text('Bình luận'),
-                  onPressed: () {},
+                  onPressed: () {
+                    // Lưu bài đăng hiện tại vào postSelected
+                    _viewModel.setPost(post);
+                    // Tải comments của bài đăng này
+                    _viewModel.loadComments(isReset: true, pageSize: 20);
+                    // Hiển thị bottom sheet comment
+                    _showCommentBottomSheet(context);
+                  },
                 ),
               ],
             ),
@@ -373,23 +380,23 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
                       ? SizedBox(
                           width: double.infinity,
                           child: ElevatedButton(
-                                  onPressed: () {
-                                    _viewModel.startResult(test);
-                                  },
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: success,
-                                    padding: EdgeInsets.symmetric(vertical: 12),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Xem kết quả ',
-                                    style: styleMediumBold.copyWith(
-                                      color: white,
-                                    ),
-                                  ),
-                                ),
+                            onPressed: () {
+                              _viewModel.startResult(test);
+                            },
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: success,
+                              padding: EdgeInsets.symmetric(vertical: 12),
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                            ),
+                            child: Text(
+                              'Xem kết quả ',
+                              style: styleMediumBold.copyWith(
+                                color: white,
+                              ),
+                            ),
+                          ),
                         )
                       : SizedBox(
                           width: double.infinity,
@@ -733,5 +740,53 @@ class _GroupDetailScreenState extends State<GroupDetailScreen> {
       }
       debugPrint('Download error: $e');
     }
+  }
+
+  void _showCommentBottomSheet(BuildContext context) {
+    // Lấy bài đăng hiện tại từ postSelected
+    PostModel? currentPost = _viewModel.postSelected.value;
+
+    if (currentPost == null) {
+      return; // Không mở bottom sheet nếu không có bài đăng nào được chọn
+    }
+
+    Widget commentWidget = PostComment(
+      comments: _viewModel.comments,
+      commentSelected: _viewModel.commentSelected,
+      commentController: _viewModel.commentController,
+      onSendComment: ({CommentModel? comment}) async {
+        if (context.mounted) {
+          // Gửi comment hoặc reply
+          await _viewModel.send(comment: comment);
+        }
+      },
+      setCommentSelected: _viewModel.setCommentSelected,
+      onLoadMoreComments: ({required PostModel post, int pageSize = 20, int pageNumber = 0}) {
+        _viewModel.loadComments(isReset: pageNumber == 0, pageSize: pageSize);
+      },
+      currentPost: currentPost,
+      animatedCommentId: _viewModel.animatedCommentId,
+      animatedReplyId: _viewModel.animatedReplyId,
+      avatarUrl: _viewModel.student?.avatar,
+      onLoadMoreReplies: _viewModel.loadMoreReplies,
+      onEditComment: _viewModel.editComment,
+      onEditReply: _viewModel.editReply,
+      onDispose: _viewModel.resetCommentState,
+      userEmail: _viewModel.student?.email,
+    );
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      scrollControlDisabledMaxHeightRatio: 0.6,
+      backgroundColor: Colors.white,
+      useSafeArea: true,
+      builder: (context) {
+        return commentWidget;
+      },
+    );
   }
 }

@@ -16,6 +16,8 @@ enum StompListenType {
   addMember,
   comment,
   editComment,
+  commentPost,
+  editCommentPost,
   reply,
   editReply,
   notification,
@@ -239,6 +241,12 @@ class StompService {
       case StompListenType.editComment:
         listener.onStompCommentReceived(body);
         break;
+      case StompListenType.commentPost:
+        listener.onStompCommentPostReceived(body);
+        break;
+      case StompListenType.editCommentPost:
+        listener.onStompCommentPostReceived(body);
+        break;
       case StompListenType.reply:
         listener.onStompReplyReceived(body);
         break;
@@ -276,6 +284,10 @@ class StompService {
         return "/topic/comments";
       case StompListenType.editComment:
         return "/topic/comments";
+      case StompListenType.commentPost:
+        return "/topic/post-comments";
+      case StompListenType.editCommentPost:
+        return "/topic/post-comments";
       case StompListenType.reply:
         return "/topic/comment-replies";
       case StompListenType.editReply:
@@ -297,6 +309,10 @@ class StompService {
         return "/app/comment";
       case StompListenType.editComment:
         return "/app/comment/update";
+      case StompListenType.commentPost:
+        return "/app/post-comment";
+      case StompListenType.editCommentPost:
+        return "/app/post-comment/update";
       case StompListenType.reply:
         return "/app/comment-reply";
       case StompListenType.editReply:

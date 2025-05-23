@@ -275,7 +275,7 @@ class _HomeScreenState extends State<HomeScreen> {
 
   Widget _buildCourseCarouselHorizontal(List<CourseModel> courses) {
     return SizedBox(
-      height: MediaQuery.of(context).size.width * 0.8,
+      height: MediaQuery.of(context).size.width * 0.9,
       child: Align(
         alignment: Alignment.centerLeft,
         child: ListView.builder(

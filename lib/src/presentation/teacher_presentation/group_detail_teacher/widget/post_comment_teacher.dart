@@ -8,13 +8,13 @@ import 'package:logger/logger.dart';
 import 'package:provider/provider.dart';
 import 'dart:math';
 
-class CourseCommentTeacher extends StatefulWidget {
+class PostCommentTeacher extends StatefulWidget {
   final ValueNotifier<List<CommentModel>?> comments;
   final ValueNotifier<CommentModel?> commentSelected;
   final TextEditingController commentController;
   final Function({CommentModel? comment}) onSendComment;
   final Function({CommentModel? comment}) setCommentSelected;
-  final Function({required ChapterModel chapter, int pageSize, int pageNumber})
+  final Function({required PostModel post, int pageSize, int pageNumber})
       onLoadMoreComments;
   final Function({required String commentId}) onLoadMoreReplies;
   final Function({required String commentId, required String detail})
@@ -26,11 +26,11 @@ class CourseCommentTeacher extends StatefulWidget {
   final ValueNotifier<String?> animatedCommentId;
   final ValueNotifier<String?> animatedReplyId;
   final String? avatarUrl;
-  final ChapterModel? currentChapter;
+  final PostModel? currentPost;
   final Function() onDispose;
   final String? userEmail;
 
-  CourseCommentTeacher({
+  PostCommentTeacher({
     Key? key,
     required this.comments,
     required this.commentSelected,
@@ -45,15 +45,15 @@ class CourseCommentTeacher extends StatefulWidget {
     required this.onEditReply,
     required this.onDispose,
     required this.userEmail,
-    this.currentChapter,
+    this.currentPost,
     this.avatarUrl,
   }) : super(key: key);
 
   @override
-  State<CourseCommentTeacher> createState() => _CourseCommentTeacherState();
+  State<PostCommentTeacher> createState() => _PostCommentTeacherState();
 }
 
-class _CourseCommentTeacherState extends State<CourseCommentTeacher> {
+class _PostCommentTeacherState extends State<PostCommentTeacher> {
   // Theo dõi danh sách các comment đã được mở rộng
   final ValueNotifier<Set<String>> _expandedComments =
       ValueNotifier<Set<String>>({});
@@ -106,7 +106,7 @@ class _CourseCommentTeacherState extends State<CourseCommentTeacher> {
     widget.comments.addListener(_maintainScrollPosition);
 
     // Load comments khi bottom sheet được hiển thị
-    if (widget.currentChapter != null) {
+    if (widget.currentPost != null) {
       _loadInitialComments();
     }
   }
@@ -115,10 +115,7 @@ class _CourseCommentTeacherState extends State<CourseCommentTeacher> {
     _currentPage = 0;
     _isLoading = false;
     widget.onLoadMoreComments(
-        chapter: widget.currentChapter!,
-        pageSize: 20,
-        pageNumber: 0 // Luôn bắt đầu từ trang 0 khi tải lần đầu
-        );
+        post: widget.currentPost!, pageSize: 20, pageNumber: 0);
   }
 
   // Thêm hàm mới để xử lý khi danh sách comments thay đổi
@@ -190,7 +187,7 @@ class _CourseCommentTeacherState extends State<CourseCommentTeacher> {
   void _loadMoreComments() {
     if (!mounted || !_scrollController.hasClients) return;
 
-    if (!_isLoading && widget.currentChapter != null) {
+    if (!_isLoading && widget.currentPost != null) {
       setState(() {
         _isLoading = true;
       });
@@ -201,9 +198,7 @@ class _CourseCommentTeacherState extends State<CourseCommentTeacher> {
       logger.i("Tải thêm comments, pageNumber: $commentsLength");
 
       widget.onLoadMoreComments(
-          chapter: widget.currentChapter!,
-          pageSize: 20,
-          pageNumber: commentsLength);
+          post: widget.currentPost!, pageSize: 20, pageNumber: commentsLength);
 
       Future.delayed(Duration(seconds: 1), () {
         if (mounted) {
@@ -481,12 +476,34 @@ class _CourseCommentTeacherState extends State<CourseCommentTeacher> {
       final replyId = widget.animatedReplyId.value;
       logger.i("Phát hiện reply mới: $replyId");
 
-      // Với reply mới, chúng ta sẽ không tự động thêm vào danh sách
-      // Cập nhật UI để hiển thị animation nếu cần
+      // Khi có reply mới, chúng ta sẽ không tự động hiển thị reply đó
+      // mà chỉ cập nhật UI để hiển thị số lượng reply đã thay đổi
+      // và để người dùng chủ động nhấn vào nút "Xem thêm x phản hồi"
       setState(() {
-        // Rebuild UI
-        logger.i("Rebuild UI sau khi phát hiện reply mới");
+        // Rebuild UI để cập nhật số lượng phản hồi được hiển thị
+        logger.i("Rebuild UI để cập nhật số lượng phản hồi");
       });
+
+      // Thông báo nhỏ để người dùng biết có phản hồi mới
+      ScaffoldMessenger.of(context).clearSnackBars();
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Có phản hồi mới'),
+          duration: Duration(seconds: 1),
+          backgroundColor: primary.withOpacity(0.8),
+          behavior: SnackBarBehavior.floating,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(10),
+          ),
+          action: SnackBarAction(
+            label: 'Xem',
+            textColor: Colors.white,
+            onPressed: () {
+              // Không cần làm gì vì UI đã được cập nhật với nút "Xem x phản hồi"
+            },
+          ),
+        ),
+      );
     }
   }
 
@@ -507,7 +524,7 @@ class _CourseCommentTeacherState extends State<CourseCommentTeacher> {
     // Call onDispose callback to reset comment loading state
     widget.onDispose();
 
-    logger.i("CourseCommentTeacher đã dispose");
+    logger.i("PostCommentTeacher đã dispose");
     super.dispose();
   }
 

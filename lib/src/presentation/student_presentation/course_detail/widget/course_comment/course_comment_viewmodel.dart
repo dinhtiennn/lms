@@ -5,89 +5,68 @@ import 'package:get/get.dart';
 
 import 'package:lms/src/presentation/presentation.dart';
 import 'package:lms/src/resource/resource.dart';
+import 'package:lms/src/utils/app_prefs.dart';
 import 'package:lms/src/utils/app_utils.dart';
-import 'package:lms/src/utils/utils.dart';
 import 'package:toastification/toastification.dart';
 
-class GroupDetailViewModel extends BaseViewModel with StompListener {
-  StudentModel? student;
-  ValueNotifier<GroupModel?> group = ValueNotifier(null);
-
-  ValueNotifier<List<PostModel>?> posts = ValueNotifier(null);
-  ValueNotifier<List<TestModel>?> tests = ValueNotifier(null);
-  ValueNotifier<List<StudentModel>?> students = ValueNotifier(null);
-
-  ScrollController postScrollController = ScrollController();
-  ScrollController testScrollController = ScrollController();
-  ScrollController studentScrollController = ScrollController();
-
-  ValueNotifier<PostModel?> postSelected = ValueNotifier(null);
+class CourseCommentViewModel extends BaseViewModel with StompListener {
   late StompService stompService;
-  ValueNotifier<CommentModel?> commentSelected = ValueNotifier(null);
-  ValueNotifier<List<CommentModel>?> comments = ValueNotifier(null);
+  StudentModel? student;
   TextEditingController commentController = TextEditingController();
+  ValueNotifier<List<CommentModel>?> comments = ValueNotifier(null);
+  ValueNotifier<CommentModel?> commentSelected = ValueNotifier(null);
+  ValueNotifier<bool> canSend = ValueNotifier(false);
   ValueNotifier<String?> animatedCommentId = ValueNotifier(null);
   ValueNotifier<String?> animatedReplyId = ValueNotifier(null);
+  ValueNotifier<ChapterModel?> chapterCurrent = ValueNotifier(null);
+  ValueNotifier<CourseDetailModel?> courseDetailCurrent = ValueNotifier(null);
 
-  final int pageSize = 20;
-
-  int pageNumberPost = 0;
-  bool isLoadingPost = false;
-  bool hasMorePost = true;
-
-  int pageNumberTest = 0;
-  bool isLoadingTest = false;
-  bool hasMoreTest = true;
-
-  int pageNumberStudent = 0;
-  bool isLoadingStudent = false;
-  bool hasMoreStudent = true;
-
-  bool _isSocketConnected = false;
+  // Thêm ScrollController cho comments
+  final ScrollController commentsScrollController = ScrollController();
 
   bool hasMoreComments = true;
   bool isLoadingComments = false;
   int commentPageSize = 10;
 
   init() async {
+    chapterCurrent.value = Get.arguments['chapter'];
+    courseDetailCurrent.value = Get.arguments['courseDetail'];
     student = AppPrefs.getUser<StudentModel>(StudentModel.fromJson);
-    group.value = Get.arguments['group'];
+    // Thiết lập kết nối socket
+    commentsScrollController.addListener(_scrollListener);
+    await setupSocket();
+    // Khởi tạo lại các ValueNotifier nếu cần
+    if (!animatedCommentId.hasListeners) {
+      animatedCommentId = ValueNotifier(null);
+    }
+    if (!animatedReplyId.hasListeners) {
+      animatedReplyId = ValueNotifier(null);
+    }
+  }
 
-    refreshPost();
-    refreshTest();
-    refreshStudent();
-
-    setupSocket();
-
-    postScrollController.addListener(_onScrollPost);
-    testScrollController.addListener(_onScrollTest);
-    studentScrollController.addListener(_onScrollStudent);
+  void _scrollListener() {
+    if (commentsScrollController.position.pixels >= commentsScrollController.position.maxScrollExtent - 300) {
+      loadMoreComments();
+    }
   }
 
   Future<void> setupSocket() async {
     try {
-      // Kiểm tra kết nối đã được thiết lập chưa
-      if (_isSocketConnected && stompService != null) {
-        logger.i("Kết nối socket đã tồn tại, không cần thiết lập lại");
-        return;
-      }
-
-      logger.i("Đang thiết lập kết nối socket...");
-
       // Khởi tạo hoặc lấy instance của StompService
       stompService = await StompService.instance();
 
+      // Đăng ký listener cho từng loại kênh, xử lý lỗi riêng cho từng loại
       logger.i("Bắt đầu đăng ký các listener cho socket");
 
       try {
-        stompService.registerListener(type: StompListenType.commentPost, listener: this);
+        stompService.registerListener(type: StompListenType.comment, listener: this);
         logger.i("✅ Đăng ký thành công listener cho StompListenType.comment");
       } catch (e) {
         logger.e("❌ Lỗi khi đăng ký listener cho StompListenType.comment: $e");
       }
 
       try {
-        stompService.registerListener(type: StompListenType.editCommentPost, listener: this);
+        stompService.registerListener(type: StompListenType.editComment, listener: this);
         logger.i("✅ Đăng ký thành công listener cho StompListenType.editComment");
       } catch (e) {
         logger.e("❌ Lỗi khi đăng ký listener cho StompListenType.editComment: $e");
@@ -107,240 +86,31 @@ class GroupDetailViewModel extends BaseViewModel with StompListener {
         logger.e("❌ Lỗi khi đăng ký listener cho StompListenType.editReply: $e");
       }
 
-      _isSocketConnected = true;
-      logger.i("Socket đã được kết nối và đăng ký listener thành công");
-
-      // Tải comments ban đầu
-      loadComments();
+      logger.i("🚀 Socket đã được kết nối và đăng ký tất cả listener thành công");
     } catch (e) {
-      logger.e("Lỗi trong quá trình khởi tạo: $e");
-      _isSocketConnected = false;
+      logger.e("⛔ Lỗi khi thiết lập kết nối socket: $e");
     }
   }
 
-  void refreshPost() async {
-    pageNumberPost = 0;
-    hasMorePost = true;
-    posts.value = [];
-    await _loadPost();
-  }
-
-  void refreshTest() async {
-    pageNumberTest = 0;
-    hasMoreTest = true;
-    tests.value = [];
-    await _loadTest();
-  }
-
-  Future<void> refreshStudent() async {
-    pageNumberStudent = 0;
-    hasMoreStudent = true;
-    students.value = [];
-    await _loadStudent();
-  }
-
-  void _onScrollPost() {
-    if (!isLoadingPost &&
-        hasMorePost &&
-        postScrollController.position.pixels >= postScrollController.position.maxScrollExtent - 300) {
-      _loadPost();
-    }
-  }
-
-  void _onScrollTest() {
-    if (!isLoadingTest &&
-        hasMoreTest &&
-        testScrollController.position.pixels >= testScrollController.position.maxScrollExtent - 300) {
-      _loadTest();
-    }
-  }
-
-  void _onScrollStudent() {
-    if (!isLoadingStudent &&
-        hasMoreStudent &&
-        studentScrollController.position.pixels >= studentScrollController.position.maxScrollExtent - 300) {
-      _loadStudent();
-    }
-  }
-
-  Future<void> _loadPost() async {
-    if (isLoadingPost || !hasMorePost) return;
-
-    isLoadingPost = true;
-
-    try {
-      NetworkState<List<PostModel>> resultPosts = await groupRepository.getPosts(
-          groupId: group.value?.id ?? '', pageSize: pageSize, pageNumber: pageNumberPost);
-
-      if (resultPosts.isSuccess && resultPosts.result != null) {
-        if (resultPosts.result!.isEmpty) {
-          hasMorePost = false;
-        } else {
-          final currentPosts = posts.value ?? [];
-          posts.value = [...currentPosts, ...resultPosts.result!];
-          pageNumberPost += 1;
-        }
-      } else {
-        hasMorePost = false;
-      }
-    } catch (e) {
-      hasMorePost = false;
-    } finally {
-      isLoadingPost = false;
-    }
-  }
-
-  Future<void> _loadTest() async {
-    if (isLoadingTest || !hasMoreTest) return;
-
-    isLoadingTest = true;
-
-    try {
-      NetworkState<List<TestModel>> resultTests = await groupRepository.getTests(
-          groupId: group.value?.id ?? '', pageSize: pageSize, pageNumber: pageNumberTest);
-
-      if (resultTests.isSuccess && resultTests.result != null) {
-        if (resultTests.result!.isEmpty) {
-          hasMoreTest = false;
-        } else {
-          final currentTests = tests.value ?? [];
-
-          List<TestModel> newTests = [...currentTests, ...resultTests.result!];
-          tests.value = newTests;
-
-          await _checkTestSuccess(newTests);
-          // tests.value?.forEach(
-          //   (element) => logger.e(element.toString()),
-          // );
-          pageNumberTest += 1;
-        }
-      } else {
-        hasMoreTest = false;
-      }
-    } catch (e) {
-      hasMoreTest = false;
-    } finally {
-      isLoadingTest = false;
-    }
-  }
-
-  Future<void> _checkTestSuccess(List<TestModel> testsList) async {
-    if (testsList.isEmpty) return;
-
-    for (int i = 0; i < testsList.length; i++) {
-      TestModel test = testsList[i];
-
-      if (test.isSuccess == null) {
-        NetworkState<TestResultModel> resultHasDetail = await groupRepository.testStudentDetail(testId: test.id);
-
-        if (resultHasDetail.isSuccess && resultHasDetail.result != null) {
-          TestModel updatedTest = test.copyWith(isSuccess: true);
-
-          List<TestModel> updatedTests = List.from(tests.value ?? []);
-          updatedTests[i] = updatedTest;
-          tests.value = updatedTests;
-        } else {
-          TestModel updatedTest = test.copyWith(isSuccess: false);
-
-          List<TestModel> updatedTests = List.from(tests.value ?? []);
-          updatedTests[i] = updatedTest;
-          tests.value = updatedTests;
-        }
-      }
-    }
-  }
-
-  Future<void> _loadStudent() async {
-    if (isLoadingStudent || !hasMoreStudent) return;
-
-    isLoadingStudent = true;
-
-    try {
-      NetworkState<List<StudentModel>> resultStudents = await groupRepository.getStudents(
-          groupId: group.value?.id ?? '', pageSize: pageSize, pageNumber: pageNumberStudent);
-
-      if (resultStudents.isSuccess && resultStudents.result != null) {
-        if (resultStudents.result!.isEmpty) {
-          hasMoreStudent = false;
-        } else {
-          final currentStudents = students.value ?? [];
-          students.value = [...currentStudents, ...resultStudents.result!];
-          pageNumberStudent += 1;
-        }
-      } else {
-        hasMoreStudent = false;
-      }
-    } catch (e) {
-      hasMoreStudent = false;
-    } finally {
-      isLoadingStudent = false;
-    }
-  }
-
-  void startTest(TestModel test) async {
-    if (test.startedAt == null || test.expiredAt == null) {
-      showToast(title: 'Lỗi hệ thống, vui lòng thử lại sau!', type: ToastificationType.error);
-      return;
-    }
-
-    bool isExpired = AppUtils.isExpired(test.expiredAt!);
-
-    bool isNotStarted = !AppUtils.isExpired(test.startedAt!);
-
-    if (isExpired) {
-      showToast(title: 'Bài kiểm tra đã hết hạn!', type: ToastificationType.error);
-    } else if (isNotStarted) {
-      showToast(title: 'Chưa đến thời gian làm bài!', type: ToastificationType.info);
-    } else {
-      setLoading(true);
-      NetworkState resultStartTest = await groupRepository.startTest(testId: test.id);
-      setLoading(false);
-      if (resultStartTest.isSuccess) {
-        showToast(title: 'Bắt đầu làm bài kiểm tra', type: ToastificationType.success);
-        Get.toNamed(Routers.testDetail, arguments: {'test': test});
-      } else {
-        showToast(title: resultStartTest.message ?? '', type: ToastificationType.error);
-      }
-    }
-  }
-
-  void startResult(TestModel test) {
-    Get.toNamed(Routers.testResult, arguments: {'test': test});
+  void selectComment({CommentModel? comment}) {
+    commentSelected.value = comment;
+    commentSelected.notifyListeners();
   }
 
   Future<void> send({CommentModel? comment}) async {
-    // Đảm bảo STOMP đã được kết nối
-    if (stompService == null || !_isSocketConnected) {
-      logger.i("STOMP chưa kết nối, thiết lập kết nối...");
-      await setupSocket();
-
-      if (!_isSocketConnected) {
-        logger.e("Không thể kết nối STOMP, hủy gửi tin nhắn");
-        showToast(title: "Không thể kết nối đến máy chủ, vui lòng thử lại sau", type: ToastificationType.error);
-        return;
-      }
-    }
-
-    if (postSelected.value == null) {
-      logger.e("Không có nội dung hiện tại, hủy gửi tin nhắn");
-      return;
-    }
-
     if (comment == null) {
       logger.i('Đang gửi comment mới');
       logger.i('Student info: ${student}');
       try {
         final payload = {
-          'postId': postSelected.value?.id,
-          // 'courseId': courseDetail.value?.id ?? '',
+          'chapterId': chapterCurrent.value?.id,
+          'courseId': courseDetailCurrent.value?.id ?? '',
           'username': student?.email ?? '',
           'detail': commentController.text,
-          'createDateD': DateTime.now().toString(),
         };
 
-        logger.i('Gửi tin nhắn: ${jsonEncode(payload)}');
         stompService.send(
-          StompListenType.commentPost,
+          StompListenType.comment,
           jsonEncode(payload),
         );
         commentController.clear();
@@ -355,8 +125,8 @@ class GroupDetailViewModel extends BaseViewModel with StompListener {
         final payload = {
           'replyUsername': student?.email,
           'ownerUsername': commentSelected.value?.username,
-          'postId': postSelected.value?.id,
-          // 'courseId': courseDetail.value?.id ?? '',
+          'chapterId': chapterCurrent.value?.id,
+          'courseId': courseDetailCurrent.value?.id ?? '',
           'detail': commentController.text,
           'parentCommentId': commentSelected.value?.commentId,
         };
@@ -375,55 +145,12 @@ class GroupDetailViewModel extends BaseViewModel with StompListener {
     setCommentSelected();
   }
 
-  Future<void> editComment({required String commentId, required String detail}) async {
-    await StompService.instance();
-    if (postSelected.value == null) {
-      return;
-    }
-
-    try {
-      stompService.send(
-        StompListenType.editCommentPost,
-        jsonEncode({
-          'commentId': commentId,
-          'usernameOwner': student?.email ?? '',
-          'newDetail': detail,
-        }),
-      );
-    } catch (e) {
-      showToast(title: "Chỉnh sửa bình luận thất bại!", type: ToastificationType.error);
-      logger.e("Lỗi khi chỉnh sửa comment: $e");
-    }
-  }
-
-  Future<void> editReply({required String replyId, required String parentCommentId, required String detail}) async {
-    await StompService.instance();
-    if (postSelected.value == null) {
-      return;
-    }
-
-    try {
-      stompService.send(
-        StompListenType.editReply,
-        jsonEncode({
-          'commentReplyId': replyId,
-          'usernameReply': student?.email ?? '',
-          'newDetail': detail,
-        }),
-      );
-    } catch (e) {
-      showToast(title: "Chỉnh sửa phản hồi thất bại!", type: ToastificationType.error);
-      logger.e("Lỗi khi chỉnh sửa reply: $e");
-    }
-  }
-
   // Hàm thiết lập comment được chọn để phản hồi
   void setCommentSelected({CommentModel? comment}) {
     commentSelected.value = comment;
     commentSelected.notifyListeners();
   }
 
-  // Hàm tải comments của khóa học
   Future<void> loadComments({bool isReset = false, int? pageSize}) async {
     if (isReset) {
       hasMoreComments = true;
@@ -436,9 +163,10 @@ class GroupDetailViewModel extends BaseViewModel with StompListener {
     notifyListeners();
 
     try {
-      final String? postId = postSelected.value?.id;
+      final String? courseId = courseDetailCurrent.value?.id;
+      final String? chapterId = chapterCurrent.value?.id;
 
-      if (postId == null) {
+      if (courseId == null || chapterId == null) {
         logger.e("Không thể tải comments: courseId hoặc chapterId không tồn tại");
         isLoadingComments = false;
         notifyListeners();
@@ -451,10 +179,10 @@ class GroupDetailViewModel extends BaseViewModel with StompListener {
       // Tính toán pageNumber dựa trên kích thước hiện tại của danh sách comments
       final int pageNumber = (comments.value?.length ?? 0);
 
-      logger.i("Tải comments cho chapter: $postId, pageNumber: $pageNumber, pageSize: $effectivePageSize");
+      logger.i("Tải comments cho chapter: $chapterId, pageNumber: $pageNumber, pageSize: $effectivePageSize");
 
-      final NetworkState<List<CommentModel>> result = await commentRepository.commentInPost(
-        postId: postId,
+      final NetworkState<List<CommentModel>> result = await commentRepository.commentInChapter(
+        chapterId: chapterId,
         pageSize: effectivePageSize,
         pageNumber: pageNumber,
       );
@@ -553,13 +281,26 @@ class GroupDetailViewModel extends BaseViewModel with StompListener {
     }
   }
 
+  void safelyUpdateNotifier<T>(ValueNotifier<T> notifier, T value) {
+    // Kiểm tra trùng lặp dữ liệu trước khi cập nhật
+    if (notifier.value == value) {
+      logger.i("Dữ liệu không thay đổi, bỏ qua cập nhật ValueNotifier");
+      return;
+    }
+
+    notifier.value = value;
+    try {
+      notifier.notifyListeners();
+      logger.i("Đã cập nhật ValueNotifier thành công");
+    } catch (e) {
+      logger.e("Lỗi update ValueNotifier: $e");
+    }
+  }
+
   // Các hàm xử lý socket nhận comment, reply
   @override
-  void onStompCommentPostReceived(dynamic body) {
+  void onStompCommentReceived(dynamic body) {
     if (body == null) {
-      if (!_isSocketConnected) {
-        setupSocket();
-      }
       return;
     }
 
@@ -599,22 +340,41 @@ class GroupDetailViewModel extends BaseViewModel with StompListener {
         _addNewComment(comment);
       }
 
-      // Set animated comment ID cho hiệu ứng highlight
-      animatedCommentId.value = comment.commentId;
+      // Set animated comment ID cho hiệu ứng highlight - thêm kiểm tra _isDisposed
+      // if (!_isDisposed) {
+      safelyUpdateNotifier(animatedCommentId, comment.commentId);
+
       Future.delayed(Duration(seconds: 2), () {
-        animatedCommentId.value = null;
+        safelyUpdateNotifier(animatedCommentId, null);
       });
+      // }
     } catch (e) {
       logger.e("Lỗi khi xử lý comment từ socket: $e");
+    }
+  }
+
+  void _updateExistingComment(CommentModel updatedComment) {
+    if (comments.value == null) return;
+
+    final List<CommentModel> currentComments = List.from(comments.value!);
+    final int index = currentComments.indexWhere((comment) => comment.commentId == updatedComment.commentId);
+
+    if (index != -1) {
+      // Cập nhật nội dung comment nhưng giữ nguyên replies
+      final CommentModel existingComment = currentComments[index];
+      final updatedWithExistingReplies = updatedComment.copyWith(
+        commentReplyResponses: existingComment.commentReplyResponses,
+      );
+
+      currentComments[index] = updatedWithExistingReplies;
+      comments.value = currentComments;
+      comments.notifyListeners();
     }
   }
 
   @override
   void onStompReplyReceived(dynamic body) {
     if (body == null) {
-      if (!_isSocketConnected) {
-        setupSocket();
-      }
       return;
     }
 
@@ -675,17 +435,19 @@ class GroupDetailViewModel extends BaseViewModel with StompListener {
         _addNewReply(reply, actualParentCommentId);
       }
 
-      // Set animated reply ID cho hiệu ứng highlight
-      animatedReplyId.value = reply.commentReplyId;
+      // Set animated reply ID cho hiệu ứng highlight - sử dụng safelyUpdateNotifier để tránh lỗi
+
+      safelyUpdateNotifier(animatedReplyId, reply.commentReplyId);
+
       Future.delayed(Duration(seconds: 2), () {
-        animatedReplyId.value = null;
+        safelyUpdateNotifier(animatedReplyId, null);
       });
     } catch (e) {
       logger.e("Lỗi khi xử lý reply từ socket: $e");
     }
   }
 
-  // Hàm hỗ trợ thêm comment mới vào danh sách
+// Hàm hỗ trợ thêm comment mới vào danh sách
   void _addNewComment(CommentModel newComment) {
     if (comments.value == null) {
       comments.value = [newComment];
@@ -698,30 +460,11 @@ class GroupDetailViewModel extends BaseViewModel with StompListener {
         comments.value = [newComment, ...currentComments];
       }
     }
+
     comments.notifyListeners();
   }
 
-  // Hàm hỗ trợ cập nhật comment đã tồn tại
-  void _updateExistingComment(CommentModel updatedComment) {
-    if (comments.value == null) return;
-
-    final List<CommentModel> currentComments = List.from(comments.value!);
-    final int index = currentComments.indexWhere((comment) => comment.commentId == updatedComment.commentId);
-
-    if (index != -1) {
-      // Cập nhật nội dung comment nhưng giữ nguyên replies
-      final CommentModel existingComment = currentComments[index];
-      final updatedWithExistingReplies = updatedComment.copyWith(
-        commentReplyResponses: existingComment.commentReplyResponses,
-      );
-
-      currentComments[index] = updatedWithExistingReplies;
-      comments.value = currentComments;
-      comments.notifyListeners();
-    }
-  }
-
-  // Hàm hỗ trợ thêm reply mới vào comment cha
+// Hàm hỗ trợ thêm reply mới vào comment cha
   void _addNewReply(ReplyModel newReply, String parentCommentId) {
     if (comments.value == null) return;
 
@@ -736,26 +479,21 @@ class GroupDetailViewModel extends BaseViewModel with StompListener {
       final bool replyExists = existingReplies.any((reply) => reply.commentReplyId == newReply.commentReplyId);
 
       if (!replyExists) {
-        // Chỉ cập nhật số lượng phản hồi (countOfReply) mà không thêm reply vào danh sách
-        // Điều này cho phép hiển thị nút "Xem thêm x phản hồi" với số lượng đúng
-        // nhưng không tự động hiển thị reply mới
+        // Tạo bản sao của comment cha với danh sách replies đã cập nhật
         final CommentModel updatedParentComment = parentComment.copyWith(
           countOfReply: newReply.replyCount,
-          // Giữ nguyên danh sách replies hiện tại
-          commentReplyResponses: existingReplies,
         );
 
         // Cập nhật comment trong danh sách
         currentComments[commentIndex] = updatedParentComment;
         comments.value = currentComments;
-        comments.notifyListeners();
 
-        logger.i("Đã cập nhật số lượng phản hồi cho comment $parentCommentId: ${newReply.replyCount}");
+        comments.notifyListeners();
       }
     }
   }
 
-  // Hàm hỗ trợ cập nhật reply đã tồn tại
+// Hàm hỗ trợ cập nhật reply đã tồn tại
   void _updateExistingReply(ReplyModel updatedReply, String parentCommentId) {
     if (comments.value == null) return;
 
@@ -781,12 +519,13 @@ class GroupDetailViewModel extends BaseViewModel with StompListener {
         // Cập nhật comment trong danh sách
         currentComments[commentIndex] = updatedParentComment;
         comments.value = currentComments;
+
         comments.notifyListeners();
       }
     }
   }
 
-  // Hàm reset trạng thái của comment khi BottomSheet được đóng
+// Hàm reset trạng thái của comment khi BottomSheet được đóng
   void resetCommentState() {
     logger.i("Reset trạng thái comment");
     hasMoreComments = true;
@@ -800,7 +539,56 @@ class GroupDetailViewModel extends BaseViewModel with StompListener {
     commentSelected.notifyListeners();
   }
 
-  void setPost(PostModel post) {
-    postSelected.value = post;
+  Future<void> editComment({required String commentId, required String detail}) async {
+    try {
+      stompService.send(
+        StompListenType.editComment,
+        jsonEncode({
+          'commentId': commentId,
+          'usernameOwner': student?.email ?? '',
+          'newDetail': detail,
+        }),
+      );
+    } catch (e) {
+      showToast(title: "Chỉnh sửa bình luận thất bại!", type: ToastificationType.error);
+      logger.e("Lỗi khi chỉnh sửa comment: $e");
+    }
+  }
+
+  Future<void> editReply({required String replyId, required String parentCommentId, required String detail}) async {
+    await StompService.instance();
+
+    try {
+      stompService.send(
+        StompListenType.editReply,
+        jsonEncode({
+          'commentReplyId': replyId,
+          'usernameReply': student?.email ?? '',
+          'newDetail': detail,
+        }),
+      );
+    } catch (e) {
+      showToast(title: "Chỉnh sửa phản hồi thất bại!", type: ToastificationType.error);
+      logger.e("Lỗi khi chỉnh sửa reply: $e");
+    }
+  }
+
+// Thêm phương thức hủy đăng ký riêng để có thể gọi từ nhiều nơi
+  void unregisterStompListeners() {
+    if (stompService != null) {
+      try {
+        logger.i("Hủy đăng ký tất cả listener");
+        stompService.unregisterListener(type: StompListenType.comment, listener: this);
+        stompService.unregisterListener(type: StompListenType.editComment, listener: this);
+        stompService.unregisterListener(type: StompListenType.reply, listener: this);
+        stompService.unregisterListener(type: StompListenType.editReply, listener: this);
+      } catch (e) {
+        logger.e("Lỗi khi hủy đăng ký listener: $e");
+      }
+    }
+  }
+
+  void setCanSend(bool can) {
+    canSend.value = can;
   }
 }

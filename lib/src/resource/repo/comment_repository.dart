@@ -66,4 +66,32 @@ class CommentRepository {
       return NetworkState.withError(e);
     }
   }
+
+  Future<NetworkState<List<CommentModel>>> commentInPost({required String postId, required int pageSize, required int pageNumber}) async {
+
+    bool isDisconnect = await WifiService.isDisconnect();
+    if (isDisconnect) return NetworkState.withDisconnect();
+
+    try {
+      Response response = await AppClients().get(
+        AppEndpoint.COMMENTSPOST,
+        options: Options(
+          headers: {
+            'postId': postId,
+            'pageNumber': pageNumber,
+            'pageSize': pageSize,
+          },
+        ),
+      );
+      return NetworkState(
+        status: response.statusCode ?? AppEndpoint.success,
+        result: CommentModel.listFromJson(response.data['result']['content']),
+        message: response.data['message'] ?? '',
+        successCode: response.data['code'] == 0,
+      );
+    } catch (e) {
+      return NetworkState.withError(e);
+    }
+
+  }
 }

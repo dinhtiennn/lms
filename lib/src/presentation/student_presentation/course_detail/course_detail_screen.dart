@@ -26,7 +26,10 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
     return BaseWidget<CourseDetailViewModel>(
       viewModel: CourseDetailViewModel(),
       onViewModelReady: (viewModel) {
-        _viewModel = viewModel..init();
+        _viewModel = viewModel;
+        WidgetsBinding.instance.addPostFrameCallback((_) {
+          _viewModel.init();
+        });
       },
       builder: (context, viewModel, child) => Scaffold(
         appBar: AppBar(
@@ -52,7 +55,7 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
                     icon:
                         Icon(Icons.chat_bubble_outline, color: white, size: 20),
                     onPressed: () {
-                      _showCommentBottomSheet(context);
+                      _viewModel.toComment(content);
                     },
                   );
                 }
@@ -63,6 +66,14 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
               builder: (context) => IconButton(
                 icon: Icon(Icons.play_lesson_outlined, color: white, size: 20),
                 onPressed: () {
+                  CurrentContent? content = _viewModel.currentContent.value;
+                  ChapterModel chapter;
+                  if(content!= null && content is ChapterContent){
+                    chapter = content.chapter;
+                    if ((chapter.path?? '').isNotEmpty && (chapter.path?? '').endsWith('.mp4')) {
+                      _viewModel.videoPlayerHelper.value.pause();
+                    }
+                  }
                   Scaffold.of(context).openEndDrawer();
                 },
               ),
@@ -322,58 +333,6 @@ class _CourseDetailScreenState extends State<CourseDetailScreen> {
           size: 50,
         ),
       ],
-    );
-  }
-
-  void _showCommentBottomSheet(BuildContext context) {
-    CurrentContent? content = _viewModel.currentContent.value;
-    ChapterModel? currentChapter;
-
-    if(content != null && content is ChapterContent){
-      currentChapter = content.chapter;
-    }
-    // Lấy chapter hiện tại từ chapterSelected
-
-    Widget commentWidget = CourseComment(
-      comments: _viewModel.comments,
-      commentSelected: _viewModel.commentSelected,
-      commentController: _viewModel.commentController,
-      onSendComment: ({CommentModel? comment}) async {
-        if (context.mounted) {
-          // Gửi comment hoặc reply
-          await _viewModel.send(comment: comment);
-        }
-      },
-      setCommentSelected: _viewModel.setCommentSelected,
-      onLoadMoreComments: (
-          {required ChapterModel chapter,
-            int pageSize = 20,
-            int pageNumber = 0}) {
-        _viewModel.loadComments(isReset: pageNumber == 0, pageSize: pageSize);
-      },
-      currentChapter: currentChapter,
-      animatedCommentId: _viewModel.animatedCommentId,
-      animatedReplyId: _viewModel.animatedReplyId,
-      avatarUrl: _viewModel.student.value?.avatar,
-      onLoadMoreReplies: _viewModel.loadMoreReplies,
-      onEditComment: _viewModel.editComment,
-      onEditReply: _viewModel.editReply,
-      onDispose: _viewModel.resetCommentState,
-      userEmail: _viewModel.student.value?.email,
-    );
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      scrollControlDisabledMaxHeightRatio: 0.6,
-      backgroundColor: Colors.white,
-      useSafeArea: true,
-      builder: (context) {
-        return commentWidget;
-      },
     );
   }
 }

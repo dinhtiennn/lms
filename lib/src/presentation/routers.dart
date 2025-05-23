@@ -11,6 +11,7 @@ class Routers {
   static const String search = "/search";
   static const String course = "/course";
   static const String courseDetail = "/course-detail";
+  static const String courseComment = "/course-comment";
   static const String courseReview = "/course-review";
   static const String editProfile = "/edit-profile";
   static const String support = "/support";
@@ -80,6 +81,8 @@ class Routers {
         return animRoute(const CourseReviewScreen(), name: courseReview, beginOffset: _right, arguments: arguments);
       case courseDetail:
         return animRoute(const CourseDetailScreen(), name: courseDetail, beginOffset: _right, arguments: arguments);
+      case courseComment:
+        return animRoute(const CourseCommentScreen(), name: courseComment, beginOffset: _right, arguments: arguments);
       case editProfile:
         return animRoute(const ProfileScreen(), name: editProfile, beginOffset: _right, arguments: arguments);
       case support:

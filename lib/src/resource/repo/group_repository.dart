@@ -97,6 +97,7 @@ class GroupRepository {
     }
   }
 
+
   Future<NetworkState<PostModel>> createPost({
     String? groupId,
     String? title,
@@ -143,11 +144,11 @@ class GroupRepository {
   }
 
   Future<NetworkState<PostModel>> updatePost({
+    required String postId,
     String? groupId,
-    String? title,
     required String text,
-    required List<String> oldFileIds,
-    required List<File> filesPicker,
+    required List<String> removeFilesIds,
+    required List<File> newFilesPicker,
   }) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) {
@@ -156,17 +157,17 @@ class GroupRepository {
 
     try {
       final Map<String, dynamic> formMap = {
+        'postId': postId,
         'groupId': groupId,
-        'title': title,
         'text': text,
       };
 
-      for (int i = 0; i < oldFileIds.length; i++) {
-        formMap['oldFileIds[$i]'] = oldFileIds[i];
+      for (int i = 0; i < removeFilesIds.length; i++) {
+        formMap['oldFileIds[$i]'] = removeFilesIds[i];
       }
 
-      for (int i = 0; i < filesPicker.length; i++) {
-        final file = filesPicker[i];
+      for (int i = 0; i < newFilesPicker.length; i++) {
+        final file = newFilesPicker[i];
         formMap['fileUploadRequests[$i].file'] = await MultipartFile.fromFile(
           file.path,
         );
@@ -175,7 +176,7 @@ class GroupRepository {
 
       final formData = FormData.fromMap(formMap);
 
-      final response = await AppClients().post(
+      final response = await AppClients().put(
         AppEndpoint.UPDATEPOST,
         data: formData,
         options: Options(contentType: 'multipart/form-data'),
@@ -191,6 +192,7 @@ class GroupRepository {
       return NetworkState.withErrorConvert(e);
     }
   }
+
 
   Future<NetworkState<List<PostModel>>> getPosts({String? groupId, int pageSize = 0, int pageNumber = 20}) async {
     bool isDisconnect = await WifiService.isDisconnect();

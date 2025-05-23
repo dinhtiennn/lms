@@ -1,11 +1,11 @@
 class AppEndpoint {
   AppEndpoint._();
 
-  static const String baseUrl = "http://192.168.218.36:8080";
-
-  static const String baseWebsocket = 'http://192.168.218.36:8080/lms/ws';
-
-  static const String baseImageUrl = "http://192.168.218.36:8080";
+  // static const String baseUrl = "http://192.168.95.36:8080";
+  //
+  // static const String baseWebsocket = 'http://192.168.95.36:8080/lms/ws';
+  //
+  // static const String baseImageUrl = "http://192.168.95.36:8080";
 
   //
   // static const String baseUrl = "http://192.168.1.26:8080";
@@ -13,12 +13,12 @@ class AppEndpoint {
   // static const String baseWebsocket = 'http://192.168.1.26:8080/lms/ws';
   //
   // static const String baseImageUrl = "http://192.168.1.26:8080";
-  //
-  // static const String baseUrl = "http://192.168.1.11:8080";
-  //
-  // static const String baseWebsocket = 'http://192.168.1.11:8080/lms/ws';
-  //
-  // static const String baseImageUrl = "http://192.168.1.11:8080";
+
+  static const String baseUrl = "http://192.168.1.44:8080";
+
+  static const String baseWebsocket = 'http://192.168.1.44:8080/lms/ws';
+
+  static const String baseImageUrl = "http://192.168.1.44:8080";
 
   static const int connectionTimeout = 15000;
   static const int receiveTimeout = 15000;
@@ -90,8 +90,9 @@ class AppEndpoint {
   static const String PAYMENTCANCEL = '/lms/paypal/cancel';
 
   //api comment
-  static const String COMMENTS = '/lms/comments/unreadCommentsOfChapter/details';
-  static const String REPLIES = '/lms/comments/unreadCommentsOfChapter/details/reply';
+  static const String COMMENTS = '/lms/comments/getCommentByChapter/details';
+  static const String COMMENTSPOST = '/lms/comments/getCommentByPost/details';
+  static const String REPLIES = '/lms/comments/getCommentReplyByComment/details';
 
   //api teacher
   static const String PROFILETEACHER = '/lms/teacher/myinfo';

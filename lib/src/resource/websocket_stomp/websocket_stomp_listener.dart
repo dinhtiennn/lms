@@ -22,6 +22,9 @@ mixin StompListener {
   void onStompCommentReceived(dynamic data) {
     logger.i('↩️ STOMP COMMENT RECEIVED MIXIN: $data');
   }
+  void onStompCommentPostReceived(dynamic data) {
+    logger.i('↩️ STOMP COMMENT RECEIVED MIXIN: $data');
+  }
 
   void onStompReplyReceived(dynamic data) {
     logger.i('↩️ STOMP REPLY RECEIVED MIXIN: $data');

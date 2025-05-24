@@ -847,30 +847,26 @@ class _PostCommentTeacherState extends State<PostCommentTeacher> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Row(
-                              children: [
-                                Expanded(child: Text(
-                                  comment.fullname ?? '',
-                                  style: styleSmallBold.copyWith(
-                                    color:
-                                    primary.withAlpha((255 * 0.8).round()),
-                                    fontSize: 13,
+                            Expanded(child: Text(
+                              comment.fullname ?? '',
+                              style: styleSmallBold.copyWith(
+                                color:
+                                primary.withAlpha((255 * 0.8).round()),
+                                fontSize: 13,
+                              ),
+                            ),),
+                            if (comment.lastUpdate != null)
+                              Padding(
+                                padding: const EdgeInsets.only(left: 4),
+                                child: Text(
+                                  '(đã chỉnh sửa)',
+                                  style: styleVerySmall.copyWith(
+                                    color: grey3,
+                                    fontSize: 10,
+                                    fontStyle: FontStyle.italic,
                                   ),
-                                ),),
-                                if (comment.lastUpdate != null)
-                                  Padding(
-                                    padding: const EdgeInsets.only(left: 4),
-                                    child: Text(
-                                      '(đã chỉnh sửa)',
-                                      style: styleVerySmall.copyWith(
-                                        color: grey3,
-                                        fontSize: 10,
-                                        fontStyle: FontStyle.italic,
-                                      ),
-                                    ),
-                                  ),
-                              ],
-                            ),
+                                ),
+                              ),
                             Text(
                               AppUtils.getTimeAgo(comment.createdDate),
                               style: styleVerySmall.copyWith(

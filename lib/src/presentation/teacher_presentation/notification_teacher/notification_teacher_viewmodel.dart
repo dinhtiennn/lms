@@ -158,6 +158,9 @@ class NotificationTeacherViewModel extends BaseViewModel with StompListener {
     } else {
       NetworkState resultMarkAsRead = await authRepository.markAsRead(notificationId: notification.notificationId);
       if (resultMarkAsRead.isSuccess) {
+        if (Get.isRegistered<NavigationTeacherViewModel>()) {
+          Get.find<NavigationTeacherViewModel>().loadNotificationUnRead();
+        }
         Get.toNamed(Routers.notificationDetailTeacher, arguments: {'notification': notification})?.then((_) {
           refresh();
         });
@@ -168,6 +171,9 @@ class NotificationTeacherViewModel extends BaseViewModel with StompListener {
   void readAllNotification() async {
     NetworkState resultReadAllNotification = await authRepository.readAllNotification();
     if (resultReadAllNotification.isSuccess) {
+      if (Get.isRegistered<NavigationTeacherViewModel>()) {
+        Get.find<NavigationTeacherViewModel>().loadNotificationUnRead();
+      }
       refresh();
     }
   }

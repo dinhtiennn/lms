@@ -90,38 +90,31 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
       logger.i("Bắt đầu đăng ký các listener cho socket");
 
       try {
-        stompService.registerListener(
-            type: StompListenType.commentPost, listener: this);
+        stompService.registerListener(type: StompListenType.commentPost, listener: this);
         logger.i("✅ Đăng ký thành công listener cho StompListenType.comment");
       } catch (e) {
         logger.e("❌ Lỗi khi đăng ký listener cho StompListenType.comment: $e");
       }
 
       try {
-        stompService.registerListener(
-            type: StompListenType.editCommentPost, listener: this);
-        logger
-            .i("✅ Đăng ký thành công listener cho StompListenType.editComment");
+        stompService.registerListener(type: StompListenType.editCommentPost, listener: this);
+        logger.i("✅ Đăng ký thành công listener cho StompListenType.editComment");
       } catch (e) {
-        logger.e(
-            "❌ Lỗi khi đăng ký listener cho StompListenType.editComment: $e");
+        logger.e("❌ Lỗi khi đăng ký listener cho StompListenType.editComment: $e");
       }
 
       try {
-        stompService.registerListener(
-            type: StompListenType.reply, listener: this);
+        stompService.registerListener(type: StompListenType.reply, listener: this);
         logger.i("✅ Đăng ký thành công listener cho StompListenType.reply");
       } catch (e) {
         logger.e("❌ Lỗi khi đăng ký listener cho StompListenType.reply: $e");
       }
 
       try {
-        stompService.registerListener(
-            type: StompListenType.editReply, listener: this);
+        stompService.registerListener(type: StompListenType.editReply, listener: this);
         logger.i("✅ Đăng ký thành công listener cho StompListenType.editReply");
       } catch (e) {
-        logger
-            .e("❌ Lỗi khi đăng ký listener cho StompListenType.editReply: $e");
+        logger.e("❌ Lỗi khi đăng ký listener cho StompListenType.editReply: $e");
       }
 
       _isSocketConnected = true;
@@ -159,8 +152,7 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
   void _onScrollPost() {
     if (!isLoadingPost &&
         hasMorePost &&
-        postScrollController.position.pixels >=
-            postScrollController.position.maxScrollExtent - 300) {
+        postScrollController.position.pixels >= postScrollController.position.maxScrollExtent - 300) {
       _loadPost();
     }
   }
@@ -168,8 +160,7 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
   void _onScrollTest() {
     if (!isLoadingTest &&
         hasMoreTest &&
-        testScrollController.position.pixels >=
-            testScrollController.position.maxScrollExtent - 300) {
+        testScrollController.position.pixels >= testScrollController.position.maxScrollExtent - 300) {
       _loadTest();
     }
   }
@@ -177,8 +168,7 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
   void _onScrollStudent() {
     if (!isLoadingStudent &&
         hasMoreStudent &&
-        studentScrollController.position.pixels >=
-            studentScrollController.position.maxScrollExtent - 300) {
+        studentScrollController.position.pixels >= studentScrollController.position.maxScrollExtent - 300) {
       _loadStudent();
     }
   }
@@ -196,9 +186,7 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
 
   void createPost(BuildContext context) async {
     NetworkState<PostModel> resultPost = await groupRepository.createPost(
-        groupId: group.value?.id ?? '',
-        text: descriptionPost.text,
-        filesPicker: filesPicker.value);
+        groupId: group.value?.id ?? '', text: descriptionPost.text, filesPicker: filesPicker.value);
     //todo lỗi server nên tạm thời không kiểm tra điều kiện
     if (resultPost.isSuccess && resultPost.result != null) {
       filesPicker.value = [];
@@ -207,29 +195,23 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
       hasMorePost = true;
       posts.value = [];
       await _loadPost();
-      showToast(
-          title: 'Thêm bài đăng thành công!', type: ToastificationType.success);
+      showToast(title: 'Thêm bài đăng thành công!', type: ToastificationType.success);
       if (context.mounted) {
         Navigator.pop(context);
       }
     } else {
-      showToast(
-          title: 'Lỗi ${resultPost.message}', type: ToastificationType.error);
+      showToast(title: 'Lỗi ${resultPost.message}', type: ToastificationType.error);
     }
   }
 
-  void updatePost(String postId, String description,
-      List<FileElement> keptOldFiles, List<File> newlyPickedFiles) async {
+  void updatePost(
+      String postId, String description, List<FileElement> keptOldFiles, List<File> newlyPickedFiles) async {
     if (group.value?.id == null) {
-      showToast(
-          title: 'Lỗi: Không tìm thấy thông tin nhóm.',
-          type: ToastificationType.error);
+      showToast(title: 'Lỗi: Không tìm thấy thông tin nhóm.', type: ToastificationType.error);
       return;
     }
     if (postId.isEmpty) {
-      showToast(
-          title: 'Lỗi: Không tìm thấy thông tin bài đăng.',
-          type: ToastificationType.error);
+      showToast(title: 'Lỗi: Không tìm thấy thông tin bài đăng.', type: ToastificationType.error);
       return;
     }
 
@@ -238,8 +220,7 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
       text: description,
       newFilesPicker: newlyPickedFiles,
       postId: postId,
-      removeFilesIds:
-          keptOldFiles.map((e) => e.id!).where((id) => id.isNotEmpty).toList(),
+      removeFilesIds: keptOldFiles.map((e) => e.id!).where((id) => id.isNotEmpty).toList(),
     );
 
     if (resultPost.isSuccess && resultPost.result != null) {
@@ -248,9 +229,7 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
       hasMorePost = true;
       posts.value = [];
       await _loadPost();
-      showToast(
-          title: 'Cập nhật bài đăng thành công!',
-          type: ToastificationType.success);
+      showToast(title: 'Cập nhật bài đăng thành công!', type: ToastificationType.success);
 
       filesPicker.value = [];
 
@@ -258,9 +237,7 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
         Navigator.pop(context);
       }
     } else {
-      showToast(
-          title: 'Lỗi cập nhật bài đăng: ${resultPost.message}',
-          type: ToastificationType.error);
+      showToast(title: 'Lỗi cập nhật bài đăng: ${resultPost.message}', type: ToastificationType.error);
     }
   }
 
@@ -270,11 +247,8 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
     isLoadingPost = true;
 
     try {
-      NetworkState<List<PostModel>> resultPosts =
-          await groupRepository.getPosts(
-              groupId: group.value?.id ?? '',
-              pageSize: pageSize,
-              pageNumber: pageNumberPost);
+      NetworkState<List<PostModel>> resultPosts = await groupRepository.getPosts(
+          groupId: group.value?.id ?? '', pageSize: pageSize, pageNumber: pageNumberPost);
 
       if (resultPosts.isSuccess && resultPosts.result != null) {
         if (resultPosts.result!.isEmpty) {
@@ -300,11 +274,8 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
     isLoadingTest = true;
 
     try {
-      NetworkState<List<TestModel>> resultTests =
-          await groupRepository.getTests(
-              groupId: group.value?.id ?? '',
-              pageSize: pageSize,
-              pageNumber: pageNumberTest);
+      NetworkState<List<TestModel>> resultTests = await groupRepository.getTests(
+          groupId: group.value?.id ?? '', pageSize: pageSize, pageNumber: pageNumberTest);
 
       if (resultTests.isSuccess && resultTests.result != null) {
         if (resultTests.result!.isEmpty) {
@@ -330,11 +301,8 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
     isLoadingStudent = true;
 
     try {
-      NetworkState<List<StudentModel>> resultStudents =
-          await groupRepository.getStudents(
-              groupId: group.value?.id ?? '',
-              pageSize: pageSize,
-              pageNumber: pageNumberStudent);
+      NetworkState<List<StudentModel>> resultStudents = await groupRepository.getStudents(
+          groupId: group.value?.id ?? '', pageSize: pageSize, pageNumber: pageNumberStudent);
 
       if (resultStudents.isSuccess && resultStudents.result != null) {
         if (resultStudents.result!.isEmpty) {
@@ -360,8 +328,7 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
       showToast(title: 'Xóa post thành công', type: ToastificationType.success);
       refreshPost();
     } else {
-      showToast(
-          title: 'Lỗi ${resultPosts.message}', type: ToastificationType.error);
+      showToast(title: 'Lỗi ${resultPosts.message}', type: ToastificationType.error);
     }
   }
 
@@ -378,8 +345,7 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
   }
 
   void removeSelectedStudent(StudentModel student) {
-    selectedStudents.value =
-        selectedStudents.value.where((s) => s.id != student.id).toList();
+    selectedStudents.value = selectedStudents.value.where((s) => s.id != student.id).toList();
     selectedStudents.notifyListeners();
   }
 
@@ -391,8 +357,7 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
     }
 
     NetworkState<List<StudentModel>> resultSearchStudent =
-        await studentRepository.searchStudentNotInGroup(
-            groupId: group.value?.id ?? '', keyword: keyword);
+        await studentRepository.searchStudentNotInGroup(groupId: group.value?.id ?? '', keyword: keyword);
     if (resultSearchStudent.isSuccess && resultSearchStudent.result != null) {
       studentsSearch.value = resultSearchStudent.result;
       studentsSearch.notifyListeners();
@@ -411,43 +376,34 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
     selectedStudents.value = [];
   }
 
-  void addAllStudentToGroup(
-      BuildContext context, List<StudentModel> students) async {
-    NetworkState resultAddStudents = await groupRepository.addStudents(
-        groupId: group.value?.id ?? '', students: students);
+  void addAllStudentToGroup(BuildContext context, List<StudentModel> students) async {
+    NetworkState resultAddStudents =
+        await groupRepository.addStudents(groupId: group.value?.id ?? '', students: students);
     if (resultAddStudents.isSuccess) {
       await refreshStudent();
-      showToast(
-          title: 'Thêm sinh viên vào nhóm thành công',
-          type: ToastificationType.success);
+      showToast(title: 'Thêm sinh viên vào nhóm thành công', type: ToastificationType.success);
       if (context.mounted) {
         Navigator.pop(context);
       }
     } else {
-      showToast(
-          title: resultAddStudents.message ?? '',
-          type: ToastificationType.error);
+      showToast(title: resultAddStudents.message ?? '', type: ToastificationType.error);
     }
   }
 
   void removeStudent({String? studentId, required BuildContext context}) async {
     setLoading(true);
-    NetworkState resultRemoveStudent = await groupRepository.removeStudent(
-        groupId: group.value?.id, studentId: studentId);
+    NetworkState resultRemoveStudent =
+        await groupRepository.removeStudent(groupId: group.value?.id, studentId: studentId);
     if (resultRemoveStudent.isSuccess) {
       setLoading(false);
       await refreshStudent();
       if (context.mounted) {
         Navigator.pop(context);
       }
-      showToast(
-          title: 'Xóa sinh viên khỏi nhóm thành công',
-          type: ToastificationType.success);
+      showToast(title: 'Xóa sinh viên khỏi nhóm thành công', type: ToastificationType.success);
     } else {
       setLoading(false);
-      showToast(
-          title: resultRemoveStudent.message ?? '',
-          type: ToastificationType.error);
+      showToast(title: resultRemoveStudent.message ?? '', type: ToastificationType.error);
     }
   }
 
@@ -460,9 +416,7 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
 
       if (!_isSocketConnected) {
         logger.e("Không thể kết nối STOMP, hủy gửi tin nhắn");
-        showToast(
-            title: "Không thể kết nối đến máy chủ, vui lòng thử lại sau",
-            type: ToastificationType.error);
+        showToast(title: "Không thể kết nối đến máy chủ, vui lòng thử lại sau", type: ToastificationType.error);
         return;
       }
     }
@@ -484,7 +438,7 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
           'createDateD': DateTime.now().toString(),
         };
 
-        logger.i('Gửi tin nhắn đến /app/comment: ${jsonEncode(payload)}');
+        logger.i('Gửi tin nhắn đến /app/post-comment: ${jsonEncode(payload)}');
         stompService.send(
           StompListenType.commentPost,
           jsonEncode(payload),
@@ -495,8 +449,7 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
         showToast(title: "Gửi thất bại!!!", type: ToastificationType.error);
       }
     } else {
-      logger
-          .i('Đang gửi reply cho comment: ${commentSelected.value?.username}');
+      logger.i('Đang gửi reply cho comment: ${commentSelected.value?.username}');
       try {
         logger.i('Comment được chọn: ${commentSelected.value}');
         final payload = {
@@ -516,15 +469,13 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
         commentController.clear();
       } catch (e) {
         logger.e("Lỗi khi gửi reply: $e");
-        showToast(
-            title: "Gửi phản hồi thất bại!!!", type: ToastificationType.error);
+        showToast(title: "Gửi phản hồi thất bại!!!", type: ToastificationType.error);
       }
     }
     setCommentSelected();
   }
 
-  Future<void> editComment(
-      {required String commentId, required String detail}) async {
+  Future<void> editComment({required String commentId, required String detail}) async {
     await StompService.instance();
     if (postSelected.value == null) {
       return;
@@ -540,17 +491,12 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
         }),
       );
     } catch (e) {
-      showToast(
-          title: "Chỉnh sửa bình luận thất bại!",
-          type: ToastificationType.error);
+      showToast(title: "Chỉnh sửa bình luận thất bại!", type: ToastificationType.error);
       logger.e("Lỗi khi chỉnh sửa comment: $e");
     }
   }
 
-  Future<void> editReply(
-      {required String replyId,
-      required String parentCommentId,
-      required String detail}) async {
+  Future<void> editReply({required String replyId, required String parentCommentId, required String detail}) async {
     await StompService.instance();
     if (postSelected.value == null) {
       return;
@@ -566,9 +512,7 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
         }),
       );
     } catch (e) {
-      showToast(
-          title: "Chỉnh sửa phản hồi thất bại!",
-          type: ToastificationType.error);
+      showToast(title: "Chỉnh sửa phản hồi thất bại!", type: ToastificationType.error);
       logger.e("Lỗi khi chỉnh sửa reply: $e");
     }
   }
@@ -595,8 +539,7 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
       final String? postId = postSelected.value?.id;
 
       if (postId == null) {
-        logger
-            .e("Không thể tải comments: courseId hoặc chapterId không tồn tại");
+        logger.e("Không thể tải comments: courseId hoặc chapterId không tồn tại");
         isLoadingComments = false;
         notifyListeners();
         return;
@@ -608,11 +551,9 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
       // Tính toán pageNumber dựa trên kích thước hiện tại của danh sách comments
       final int pageNumber = (comments.value?.length ?? 0);
 
-      logger.i(
-          "Tải comments cho chapter: $postId, pageNumber: $pageNumber, pageSize: $effectivePageSize");
+      logger.i("Tải comments cho chapter: $postId, pageNumber: $pageNumber, pageSize: $effectivePageSize");
 
-      final NetworkState<List<CommentModel>> result =
-          await commentRepository.commentInPost(
+      final NetworkState<List<CommentModel>> result = await commentRepository.commentInPost(
         postId: postId,
         pageSize: effectivePageSize,
         pageNumber: pageNumber,
@@ -630,8 +571,7 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
           // Loại bỏ các comment trùng lặp
           final updatedComments = [...existingComments];
           for (final comment in newComments) {
-            if (!existingComments
-                .any((c) => c.commentId == comment.commentId)) {
+            if (!existingComments.any((c) => c.commentId == comment.commentId)) {
               updatedComments.add(comment);
             }
           }
@@ -665,22 +605,18 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
     try {
       // Tìm comment hiện tại
       final existingComments = List<CommentModel>.from(comments.value!);
-      final commentIndex =
-          existingComments.indexWhere((c) => c.commentId == commentId);
+      final commentIndex = existingComments.indexWhere((c) => c.commentId == commentId);
 
       if (commentIndex == -1) return;
 
       final comment = existingComments[commentIndex];
 
       // Sử dụng chính xác số lượng replies hiện tại làm pageNumber
-      final int currentRepliesCount =
-          comment.commentReplyResponses?.length ?? 0;
+      final int currentRepliesCount = comment.commentReplyResponses?.length ?? 0;
 
-      logger.i(
-          "Tải replies cho comment: $commentId, pageNumber: $currentRepliesCount");
+      logger.i("Tải replies cho comment: $commentId, pageNumber: $currentRepliesCount");
 
-      final NetworkState<List<ReplyModel>> result =
-          await commentRepository.getReplies(
+      final NetworkState<List<ReplyModel>> result = await commentRepository.getReplies(
         commentId: commentId,
         replyPageSize: 5, // Số lượng replies mỗi lần tải
         pageNumber: currentRepliesCount,
@@ -693,8 +629,8 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
         // Loại bỏ các reply trùng lặp
         final List<ReplyModel> uniqueNewReplies = [];
         for (final newReply in newReplies) {
-          if (!(comment.commentReplyResponses ?? []).any((existingReply) =>
-              existingReply.commentReplyId == newReply.commentReplyId)) {
+          if (!(comment.commentReplyResponses ?? [])
+              .any((existingReply) => existingReply.commentReplyId == newReply.commentReplyId)) {
             uniqueNewReplies.add(newReply);
           }
         }
@@ -856,8 +792,7 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
     } else {
       // Kiểm tra xem comment đã tồn tại chưa
       final List<CommentModel> currentComments = List.from(comments.value!);
-      final bool exists = currentComments
-          .any((comment) => comment.commentId == newComment.commentId);
+      final bool exists = currentComments.any((comment) => comment.commentId == newComment.commentId);
 
       if (!exists) {
         comments.value = [newComment, ...currentComments];
@@ -871,8 +806,7 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
     if (comments.value == null) return;
 
     final List<CommentModel> currentComments = List.from(comments.value!);
-    final int index = currentComments
-        .indexWhere((comment) => comment.commentId == updatedComment.commentId);
+    final int index = currentComments.indexWhere((comment) => comment.commentId == updatedComment.commentId);
 
     if (index != -1) {
       // Cập nhật nội dung comment nhưng giữ nguyên replies
@@ -892,17 +826,14 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
     if (comments.value == null) return;
 
     final List<CommentModel> currentComments = List.from(comments.value!);
-    final int commentIndex = currentComments
-        .indexWhere((comment) => comment.commentId == parentCommentId);
+    final int commentIndex = currentComments.indexWhere((comment) => comment.commentId == parentCommentId);
 
     if (commentIndex != -1) {
       final CommentModel parentComment = currentComments[commentIndex];
 
       // Kiểm tra xem reply đã tồn tại chưa
-      final List<ReplyModel> existingReplies =
-          parentComment.commentReplyResponses ?? [];
-      final bool replyExists = existingReplies
-          .any((reply) => reply.commentReplyId == newReply.commentReplyId);
+      final List<ReplyModel> existingReplies = parentComment.commentReplyResponses ?? [];
+      final bool replyExists = existingReplies.any((reply) => reply.commentReplyId == newReply.commentReplyId);
 
       if (!replyExists) {
         // Chỉ cập nhật số lượng phản hồi (countOfReply) mà không thêm reply vào danh sách
@@ -919,8 +850,7 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
         comments.value = currentComments;
         comments.notifyListeners();
 
-        logger.i(
-            "Đã cập nhật số lượng phản hồi cho comment $parentCommentId: ${newReply.replyCount}");
+        logger.i("Đã cập nhật số lượng phản hồi cho comment $parentCommentId: ${newReply.replyCount}");
       }
     }
   }
@@ -930,16 +860,13 @@ class GroupDetailTeacherViewModel extends BaseViewModel with StompListener {
     if (comments.value == null) return;
 
     final List<CommentModel> currentComments = List.from(comments.value!);
-    final int commentIndex = currentComments
-        .indexWhere((comment) => comment.commentId == parentCommentId);
+    final int commentIndex = currentComments.indexWhere((comment) => comment.commentId == parentCommentId);
 
     if (commentIndex != -1) {
       final CommentModel parentComment = currentComments[commentIndex];
-      final List<ReplyModel> replies =
-          parentComment.commentReplyResponses ?? [];
+      final List<ReplyModel> replies = parentComment.commentReplyResponses ?? [];
 
-      final int replyIndex = replies.indexWhere(
-          (reply) => reply.commentReplyId == updatedReply.commentReplyId);
+      final int replyIndex = replies.indexWhere((reply) => reply.commentReplyId == updatedReply.commentReplyId);
 
       if (replyIndex != -1) {
         // Tạo bản sao danh sách replies và cập nhật reply

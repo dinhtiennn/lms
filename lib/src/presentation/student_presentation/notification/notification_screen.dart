@@ -36,7 +36,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     onPressed: () => showDialog(
                           context: context,
                           builder: (context) => WidgetDialogConfirm(
-                            titleStyle: styleMediumBold.copyWith(color: primary3),
+                            titleStyle:
+                                styleMediumBold.copyWith(color: primary3),
                             colorButtonAccept: primary3,
                             title: 'Đánh dấu đọc tất cả',
                             onTapConfirm: () {
@@ -79,7 +80,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
             return SingleChildScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               child: SizedBox(
-                height: MediaQuery.of(context).size.height * 0.8, // Đảm bảo chiều cao đủ để kéo
+                height: MediaQuery.of(context).size.height *
+                    0.8, // Đảm bảo chiều cao đủ để kéo
                 child: Center(
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
@@ -103,8 +105,10 @@ class _NotificationScreenState extends State<NotificationScreen> {
 
           return ListView.builder(
             controller: _viewModel.scrollController,
-            physics: const AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
-            padding: const EdgeInsets.symmetric(vertical: 16).copyWith(bottom: Get.height / 15),
+            physics: const AlwaysScrollableScrollPhysics(
+                parent: BouncingScrollPhysics()),
+            padding: const EdgeInsets.symmetric(vertical: 16)
+                .copyWith(bottom: Get.height / 15),
             itemBuilder: (context, index) {
               if (index == notifications.length) {
                 return ValueListenableBuilder<bool>(
@@ -121,7 +125,8 @@ class _NotificationScreenState extends State<NotificationScreen> {
               }
 
               final notification = notifications[index];
-              final notificationType = _getNotificationType(notification.notificationType);
+              final notificationType =
+                  _getNotificationType(notification.notificationType);
 
               return _buildItemNotification(
                 title: _getNotificationTitle(notification),
@@ -151,6 +156,18 @@ class _NotificationScreenState extends State<NotificationScreen> {
         return 'reply';
       case NotificationType.CHAT_MESSAGE:
         return 'chat';
+      case NotificationType.JOIN_CLASS_PENDING:
+        return 'class_request';
+      case NotificationType.JOIN_CLASS_REJECTED:
+        return 'class_rejected';
+      case NotificationType.JOIN_CLASS_APPROVED:
+        return 'class_approved';
+      case NotificationType.POST_CREATED:
+        return 'post';
+      case NotificationType.POST_COMMENT:
+        return 'post_comment';
+      case NotificationType.POST_COMMENT_REPLY:
+        return 'post_reply';
       default:
         return 'system';
     }
@@ -161,11 +178,23 @@ class _NotificationScreenState extends State<NotificationScreen> {
       case NotificationType.COMMENT:
         return 'Bình luận mới';
       case NotificationType.MESSAGE:
-        return 'Tin nhắn mới';
+        return 'Tin nhắn hệ thống';
       case NotificationType.COMMENT_REPLY:
         return 'Phản hồi bình luận';
       case NotificationType.CHAT_MESSAGE:
         return 'Tin nhắn trò chuyện';
+      case NotificationType.JOIN_CLASS_PENDING:
+        return 'Yêu cầu tham gia lớp học';
+      case NotificationType.JOIN_CLASS_REJECTED:
+        return 'Từ chối tham gia lớp học';
+      case NotificationType.JOIN_CLASS_APPROVED:
+        return 'Chấp nhận tham gia lớp học';
+      case NotificationType.POST_CREATED:
+        return 'Bài đăng mới';
+      case NotificationType.POST_COMMENT:
+        return 'Bình luận bài đăng';
+      case NotificationType.POST_COMMENT_REPLY:
+        return 'Phản hồi bình luận bài đăng';
       default:
         return 'Thông báo';
     }
@@ -196,34 +225,57 @@ class _NotificationScreenState extends State<NotificationScreen> {
     required String time,
     required bool isRead,
     required String type,
-    Function()? onTap,
+    required VoidCallback onTap,
   }) {
-    // Xác định màu và biểu tượng dựa trên loại thông báo
-    Color accentColor;
     IconData iconData;
+    Color accentColor;
 
     switch (type) {
       case 'comment':
-        accentColor = Colors.green;
-        iconData = Icons.comment;
+        iconData = Icons.comment_outlined;
+        accentColor = primary3;
         break;
       case 'reply':
-        accentColor = Colors.orange;
-        iconData = Icons.reply_all;
+        iconData = Icons.reply_outlined;
+        accentColor = primary3;
         break;
       case 'chat':
-        accentColor = Colors.purple;
-        iconData = Icons.chat;
+        iconData = Icons.chat_outlined;
+        accentColor = primary2;
+        break;
+      case 'class_request':
+        iconData = Icons.class_outlined;
+        accentColor = warning;
+        break;
+      case 'class_rejected':
+        iconData = Icons.cancel_outlined;
+        accentColor = error;
+        break;
+      case 'class_approved':
+        iconData = Icons.check_circle_outlined;
+        accentColor = success;
+        break;
+      case 'post':
+        iconData = Icons.post_add_outlined;
+        accentColor = primary2;
+        break;
+      case 'post_comment':
+        iconData = Icons.comment_outlined;
+        accentColor = primary3;
+        break;
+      case 'post_reply':
+        iconData = Icons.reply_outlined;
+        accentColor = primary3;
         break;
       case 'system':
       default:
-        accentColor = primary3;
-        iconData = Icons.notifications;
+        iconData = Icons.notifications_outlined;
+        accentColor = grey3;
         break;
     }
 
     return Container(
-      margin: const EdgeInsets.symmetric(vertical: 8, horizontal: 16),
+      margin: EdgeInsets.symmetric(vertical: 8, horizontal: 16),
       decoration: BoxDecoration(
         color: white,
         borderRadius: BorderRadius.circular(16),
@@ -231,7 +283,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           BoxShadow(
             color: black.withAlpha((255 * 0.05).round()),
             blurRadius: 8,
-            offset: const Offset(0, 2),
+            offset: Offset(0, 2),
           ),
         ],
       ),
@@ -241,7 +293,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
           onTap: onTap,
           borderRadius: BorderRadius.circular(16),
           child: Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               gradient: LinearGradient(
@@ -263,7 +315,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(10),
+                  padding: EdgeInsets.all(10),
                   decoration: BoxDecoration(
                     color: accentColor.withAlpha(10),
                     shape: BoxShape.circle,
@@ -274,7 +326,7 @@ class _NotificationScreenState extends State<NotificationScreen> {
                     size: 22,
                   ),
                 ),
-                const SizedBox(width: 16),
+                SizedBox(width: 16),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -282,18 +334,14 @@ class _NotificationScreenState extends State<NotificationScreen> {
                       Row(
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
-                          Expanded(
-                            child: Text(
-                              title,
-                              style: styleSmallBold.copyWith(
-                                color: black,
-                                fontWeight: isRead ? FontWeight.normal : FontWeight.bold,
-                              ),
-                              maxLines: 1,
-                              overflow: TextOverflow.ellipsis,
+                          Text(
+                            title,
+                            style: styleSmallBold.copyWith(
+                              color: black,
+                              fontWeight:
+                                  isRead ? FontWeight.normal : FontWeight.bold,
                             ),
                           ),
-                          const SizedBox(width: 8),
                           Text(
                             time,
                             style: styleVerySmall.copyWith(
@@ -302,12 +350,13 @@ class _NotificationScreenState extends State<NotificationScreen> {
                           ),
                         ],
                       ),
-                      const SizedBox(height: 8),
+                      SizedBox(height: 8),
                       Text(
                         message,
                         style: styleSmall.copyWith(
                           color: isRead ? grey4 : blackLight,
-                          fontWeight: isRead ? FontWeight.normal : FontWeight.w500,
+                          fontWeight:
+                              isRead ? FontWeight.normal : FontWeight.w500,
                         ),
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,

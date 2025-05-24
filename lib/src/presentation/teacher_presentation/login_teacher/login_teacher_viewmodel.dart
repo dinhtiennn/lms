@@ -99,7 +99,8 @@ class LoginTeacherViewModel extends BaseViewModel {
     bool checked = false;
     setLoading(true);
 
-    NetworkState<String> resultToken = await authRepository.getToken(username: username, password: password);
+    NetworkState<String> resultToken =
+        await authRepository.getToken(username: username, password: password, role: 'TEACHER');
     setLoading(false);
 
     if (resultToken.isSuccess && resultToken.result != null) {
@@ -114,13 +115,13 @@ class LoginTeacherViewModel extends BaseViewModel {
         checked = true;
       } else {
         await showToast(
-          title: resultProfile.message ?? 'unknown_error'.tr,
+          title: 'Sai thông tin đăng nhập',
           type: ToastificationType.error,
         );
       }
     } else {
       await showToast(
-        title: resultToken.message ?? 'unknown_error'.tr,
+        title: 'Sai thông tin đăng nhập',
         type: ToastificationType.error,
       );
     }
@@ -128,10 +129,10 @@ class LoginTeacherViewModel extends BaseViewModel {
       // Khởi tạo StompService
       await StompService.instance();
 
-      if(context.mounted){
+      if (context.mounted) {
         Navigator.of(context).pushNamedAndRemoveUntil(
           Routers.navigationTeacher,
-              (route) => false,
+          (route) => false,
         );
       }
     }

@@ -16,6 +16,7 @@ class AuthRepository {
   Future<NetworkState<String>> getToken({
     required String username,
     required String password,
+    required String role,
   }) async {
     final isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
@@ -26,6 +27,7 @@ class AuthRepository {
         data: {
           'username': username,
           'password': password,
+          'rolerequest': role,
         },
         options: Options(
           extra: {'noAuth': true},

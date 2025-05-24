@@ -98,7 +98,7 @@ class LoginViewModel extends BaseViewModel {
     setLoading(true);
 
     NetworkState<String> resultToken =
-        await authRepository.getToken(username: username, password: password);
+        await authRepository.getToken(username: username, password: password, role: 'STUDENT');
     setLoading(false);
 
     if (resultToken.isSuccess && resultToken.result != null) {
@@ -114,13 +114,13 @@ class LoginViewModel extends BaseViewModel {
         checked = true;
       } else {
         await showToast(
-          title: resultProfile.message ?? 'unknown_error'.tr,
+          title: 'Sai thông tin đăng nhập',
           type: ToastificationType.error,
         );
       }
     } else {
       await showToast(
-        title: resultToken.message ?? 'unknown_error'.tr,
+        title: 'Sai thông tin đăng nhập',
         type: ToastificationType.error,
       );
     }

@@ -52,29 +52,29 @@ class _NavigationTeacherScreenState extends State<NavigationTeacherScreen>
       ),
       PersistentBottomNavBarItem(
         icon: badges.Badge(
-          // badgeContent: ValueListenableBuilder(
-          //   valueListenable: _viewModel.notificationView,
-          //   builder: (context, notificationView, child) {
-          //     final count = notificationView?.countUnreadNotification ?? 0;
-          //     final displayText = count > 99 ? '99+' : count.toString();
-          //     return Text(
-          //       displayText,
-          //       style: styleVerySmall.copyWith(color: white, fontSize: 8),
-          //     );
-          //   },
-          // ),
-          badgeContent: ValueListenableBuilder(valueListenable: _viewModel.notificationView, builder: (context, notificationView, child) => Text(
-            (notificationView?.countUnreadNotification ?? 0).toString(),
-            style: styleVerySmall.copyWith(color: white, fontSize: 8),
-          ),),
+          badgeContent: ValueListenableBuilder(
+            valueListenable: _viewModel.notificationView,
+            builder: (context, notificationView, child) {
+              final count = notificationView?.countUnreadNotification ?? 0;
+              if (count == 0) return const SizedBox.shrink();
+              final displayText = count > 99 ? '99+' : count.toString();
+              return Text(
+                displayText,
+                style: styleVerySmall.copyWith(color: white, fontSize: 8),
+              );
+            },
+          ),
           badgeStyle: badges.BadgeStyle(
-            badgeColor: Colors.red,
+            badgeColor: error,
+            padding: EdgeInsets.all(4),
             shape: badges.BadgeShape.circle,
           ),
+          showBadge: true,
+          position: badges.BadgePosition.topEnd(top: -8, end: -8),
           child: Image(image: AssetImage(AppImages.png('bell'))),
         ),
-        title: "notification",
-        activeColorPrimary: Colors.blue,
+        title: "Thông báo",
+        activeColorPrimary: primary2,
         activeColorSecondary: black,
       ),
       PersistentBottomNavBarItem(

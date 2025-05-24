@@ -169,8 +169,8 @@ class _WidgetItemCourseState extends State<WidgetItemCourse> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Text(
-                            'LMS',
+                          Text(
+                            widget.course?.name?.split('').toList().first ?? '',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 28,

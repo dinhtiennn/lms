@@ -18,6 +18,7 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
 
   //Các biến của chỉnh sửa khóa học
   var formKey = GlobalKey<FormState>();
+  TextEditingController materialNameController = TextEditingController();
   TextEditingController courseNameController = TextEditingController();
   TextEditingController courseDescriptionController = TextEditingController();
   TextEditingController startDateController = TextEditingController();
@@ -349,14 +350,17 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
       showToast(title: 'Lỗi hệ thống, vui lòng thử lại sau!', type: ToastificationType.warning);
       return;
     }
+    setLoading(true);
 
     NetworkState<LessonModel> resultAddLesson = await courseRepository.addLesson(
         description: lessonNameController.text, courseId: courseDetail.value?.id, order: countLessonLength + 1);
+    setLoading(false);
 
     if (resultAddLesson.isSuccess && resultAddLesson.result != null) {
       await _loadCourseDetail();
       showToast(title: 'Thêm bài học thành công', type: ToastificationType.success);
       lessonNameController.text = '';
+      Get.back();
       if (Get.isRegistered<HomeTeacherViewModel>()) {
         Get.find<HomeTeacherViewModel>().refresh();
         await Future.delayed(const Duration(seconds: 1));
@@ -375,21 +379,15 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
       return;
     }
 
-    String? type;
-    final extension = filePickerMaterial.value!.path.split('.').last.toLowerCase();
-
-    // Kiểm tra nếu là file ảnh
-    if (['mov', 'mp4'].contains(extension)) {
-      type = 'video';
-    } else {
-      type = 'file';
-    }
+    setLoading(true);
 
     NetworkState<LessonMaterialModel> resultAddMaterial = await courseRepository.addMaterial(
       id: lesson.id,
+      name: materialNameController.text,
       file: filePickerMaterial.value,
-      type: type,
+      type: 'file',
     );
+    setLoading(false);
 
     if (resultAddMaterial.isSuccess && resultAddMaterial.result != null) {
       showToast(
@@ -397,6 +395,8 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
         type: ToastificationType.success,
       );
       await _loadCourseDetail();
+      materialNameController.clear();
+      Get.back();
       filePickerMaterial.value = null;
       if (Get.isRegistered<HomeTeacherViewModel>()) {
         Get.find<HomeTeacherViewModel>().refresh();
@@ -438,7 +438,7 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
     } else {
       type = 'file';
     }
-
+    setLoading(true);
     NetworkState<ChapterModel> resultAddChapter = await courseRepository.addMChapter(
       lessonId: lesson.id,
       name: chapterNameController.text,
@@ -446,6 +446,7 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
       file: filePickerChapter.value,
       type: type,
     );
+    setLoading(false);
 
     if (resultAddChapter.isSuccess && resultAddChapter.result != null) {
       showToast(
@@ -453,6 +454,7 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
         type: ToastificationType.success,
       );
       await _loadCourseDetail();
+      Get.back();
       chapterNameController.text = '';
       filePickerChapter.value = null;
       if (Get.isRegistered<HomeTeacherViewModel>()) {
@@ -583,11 +585,13 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
       );
       return;
     }
-    logger.e(quizs.value.toString());
+    setLoading(true);
+
     NetworkState<List<LessonQuizModel>> result = await courseRepository.addQuiz(
       lessonId: lesson.id,
       quizs: quizs.value!,
     );
+    setLoading(false);
 
     if (result.isSuccess && result.result != null) {
       await _loadCourseDetail();
@@ -1382,6 +1386,65 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
         await Future.delayed(const Duration(seconds: 1));
       }
       Get.back();
+    }
+  }
+
+  void updateLesson(LessonModel? lesson) async {
+    NetworkState resultUpdateLesson = await courseRepository.updateLesson(lesson: lesson);
+    if (resultUpdateLesson.isSuccess) {
+      _loadCourseDetail();
+      showToast(
+        title: 'Cập nhật bài học thành công',
+        type: ToastificationType.success,
+      );
+    }
+  }
+
+  void updateChapter(ChapterModel? chapter) {
+    logger.w('Update chapter: ${chapter.toString()}');
+  }
+
+  void deleteLesson(LessonModel? lesson) async {
+    NetworkState resultDeleteLesson = await courseRepository.deleteLesson(lessonId: lesson?.id ?? '');
+    if (resultDeleteLesson.isSuccess) {
+      _loadCourseDetail();
+      showToast(
+        title: 'Xóa bài học thành công',
+        type: ToastificationType.success,
+      );
+    }
+  }
+
+  void deleteChapter(ChapterModel? chapter) async {
+    NetworkState resultDeleteChapter = await courseRepository.deleteChapter(chapterId: chapter?.id ?? '');
+    if (resultDeleteChapter.isSuccess) {
+      _loadCourseDetail();
+      showToast(
+        title: 'Xóa chương thành công',
+        type: ToastificationType.success,
+      );
+    }
+  }
+
+  void deleteMaterial(LessonMaterialModel? material) async {
+    NetworkState resultDeleteMaterial = await courseRepository.deleteMaterial(materialId: material?.id ?? '');
+    if (resultDeleteMaterial.isSuccess) {
+      _loadCourseDetail();
+      showToast(
+        title: 'Xóa chương tài liệu thành công',
+        type: ToastificationType.success,
+      );
+    }
+  }
+
+  void deleteQuiz(LessonQuizModel? quiz) async {
+    NetworkState resultDeleteMaterial = await courseRepository.deleteQuiz(quizId: quiz?.id ?? '');
+    if (resultDeleteMaterial.isSuccess) {
+      _loadCourseDetail();
+      showToast(
+        title: 'Xóa chương bài kiểm tra thành công',
+        type: ToastificationType.success,
+      );
     }
   }
 }

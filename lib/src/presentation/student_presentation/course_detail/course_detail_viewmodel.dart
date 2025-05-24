@@ -461,9 +461,10 @@ class CourseDetailViewModel extends BaseViewModel {
   }
 
   void setChapterProgress(ChapterModel chapterNew) async {
+    setLoading(true);
     NetworkState<ProgressModel> resultProgressChapter =
         await courseRepository.getProgressChapter(chapterId: chapterNew.id);
-
+    setLoading(false);
     final isCompleted = resultProgressChapter.result?.isCompleted;
     if (resultProgressChapter.isSuccess && isCompleted != null) {
       return;
@@ -495,13 +496,17 @@ class CourseDetailViewModel extends BaseViewModel {
     if (lesson.progress?.isCompleted != null) {
       return;
     }
+    setLoading(true);
     await courseRepository.setLessonProgress(lessonId: lesson.id);
+    setLoading(false);
     _loadCourseDetail();
   }
 
   Future<void> setCompletedLesson(LessonModel lesson, {bool toast = true}) async {
     if (lesson.progress?.isCompleted == false) {
+      setLoading(true);
       NetworkState resultCompleteLesson = await courseRepository.setCompleteLessonProgress(lessonId: lesson.id);
+      setLoading(false);
       if (resultCompleteLesson.isSuccess && resultCompleteLesson.result != null) {
         toast ? showToast(title: 'Bạn có thể chuyển qua bài học tiếp theo!', type: ToastificationType.success) : null;
         _loadCourseDetail();

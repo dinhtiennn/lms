@@ -1,24 +1,11 @@
 class AppEndpoint {
   AppEndpoint._();
 
-  // static const String baseUrl = "http://192.168.95.36:8080";
-  //
-  // static const String baseWebsocket = 'http://192.168.95.36:8080/lms/ws';
-  //
-  // static const String baseImageUrl = "http://192.168.95.36:8080";
+  static const String baseUrl = "http://192.168.95.36:8080";
 
-  //
-  // static const String baseUrl = "http://192.168.1.26:8080";
-  //
-  // static const String baseWebsocket = 'http://192.168.1.26:8080/lms/ws';
-  //
-  // static const String baseImageUrl = "http://192.168.1.26:8080";
+  static const String baseWebsocket = 'http://192.168.95.36:8080/lms/ws';
 
-  static const String baseUrl = "http://192.168.1.44:8080";
-
-  static const String baseWebsocket = 'http://192.168.1.44:8080/lms/ws';
-
-  static const String baseImageUrl = "http://192.168.1.44:8080";
+  static const String baseImageUrl = "http://192.168.95.36:8080";
 
   static const int connectionTimeout = 15000;
   static const int receiveTimeout = 15000;
@@ -75,9 +62,14 @@ class AppEndpoint {
   static const String LISTREQUESTTOCOURSE = '/lms/joinclass/studentrequest';
   static const String JOINCOURSE = '/lms/joinclass/pending';
   static const String CREATELESSON = '/lms/lesson/create';
+  static const String UPDATELESSON = '/lms/lesson/update';
+  static const String DELETELESSON = '/lms/lesson/{id}';
   static const String ADDMATERIAL = '/lms/lessonmaterial/create';
+  static const String DELETEMATERIAL = '/lms/lessonmaterial/{id}';
   static const String ADDCHAPTER = '/lms/chapter/create';
+  static const String DELETECHAPTER = '/lms/chapter/delete';
   static const String CREATEQUIZ = '/lms/lessonquiz/{id}/create';
+  static const String DELETEQUIZ = '/lms/lessonquiz/{id}';
   static const String STUDENTSOFCOURSE = '/lms/studentcourse/studentofcourse';
   static const String DELETESTUDENTOFCOURSE = '/lms/studentcourse/delete';
   static const String ADDSTUDENT = '/lms/studentcourse/addstudents';

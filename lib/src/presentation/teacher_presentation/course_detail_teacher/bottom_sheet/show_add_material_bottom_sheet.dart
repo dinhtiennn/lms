@@ -4,7 +4,7 @@ import 'package:lms/src/configs/configs.dart';
 import 'package:lms/src/presentation/presentation.dart';
 import 'package:lms/src/resource/resource.dart';
 
-void showAddMaterialBottomSheet(BuildContext context, LessonModel lesson,
+void showAddMaterialBottomSheet(BuildContext context, LessonModel lesson, TextEditingController materialNameController,
     CourseDetailTeacherViewModel viewModel) {
   showModalBottomSheet(
     context: context,
@@ -24,8 +24,7 @@ void showAddMaterialBottomSheet(BuildContext context, LessonModel lesson,
             padding: const EdgeInsets.all(16),
             decoration: BoxDecoration(
               color: primary2,
-              borderRadius:
-                  const BorderRadius.vertical(top: Radius.circular(20)),
+              borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
             ),
             child: Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -69,8 +68,7 @@ void showAddMaterialBottomSheet(BuildContext context, LessonModel lesson,
                           ),
                           const SizedBox(height: 8),
                           Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 16, vertical: 16),
+                            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
                             decoration: BoxDecoration(
                               border: Border.all(color: grey5),
                               borderRadius: BorderRadius.circular(12),
@@ -90,6 +88,16 @@ void showAddMaterialBottomSheet(BuildContext context, LessonModel lesson,
                         ],
                       );
                     },
+                  ),
+                  const SizedBox(height: 16),
+                  WidgetInput(
+                    hintStyle: styleSmall.copyWith(color: grey5),
+                    hintText: 'Nhập tên tài liệu',
+                    titleStyle: styleSmall.copyWith(color: grey),
+                    titleText: 'Tên tài liệu',
+                    style: styleSmall.copyWith(color: grey2),
+                    controller: materialNameController,
+                    borderRadius: BorderRadius.circular(12),
                   ),
                   const SizedBox(height: 16),
                   // Upload tài liệu
@@ -123,9 +131,7 @@ void showAddMaterialBottomSheet(BuildContext context, LessonModel lesson,
                                 child: ValueListenableBuilder<XFile?>(
                                   valueListenable: viewModel.filePickerMaterial,
                                   builder: (context, file, child) => Text(
-                                    file != null
-                                        ? file.path.split('/').last
-                                        : 'Chọn file',
+                                    file != null ? file.path.split('/').last : 'Chọn file',
                                     style: styleSmall.copyWith(color: grey2),
                                   ),
                                 ),

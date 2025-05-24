@@ -429,7 +429,7 @@ class CourseRepository {
     }
   }
 
-  Future<NetworkState<LessonMaterialModel>> addMaterial({String? id, XFile? file, String? type}) async {
+  Future<NetworkState<LessonMaterialModel>> addMaterial({String? id, XFile? file, String? type, String? name}) async {
     bool isDisconnect = await WifiService.isDisconnect();
     if (isDisconnect) return NetworkState.withDisconnect();
 
@@ -438,8 +438,8 @@ class CourseRepository {
     );
 
     try {
-      Response response = await AppClients()
-          .post(AppEndpoint.ADDMATERIAL, data: FormData.fromMap({'id': id, 'file': getFile, 'type': type}));
+      Response response = await AppClients().post(AppEndpoint.ADDMATERIAL,
+          data: FormData.fromMap({'id': id, 'name': name, 'file': getFile, 'type': type}));
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         result: LessonMaterialModel.fromJson(response.data['result']),
@@ -523,6 +523,101 @@ class CourseRepository {
       Response response = await AppClients().delete(
         AppEndpoint.DELETESTUDENTOFCOURSE,
         data: FormData.fromMap({'courseId': courseId, 'studentId': studentId}),
+      );
+      return NetworkState(
+        status: response.statusCode ?? AppEndpoint.success,
+        result: response.data['result'],
+        message: response.data['message'] ?? '',
+        successCode: response.data['code'] == 0,
+      );
+    } catch (e) {
+      return NetworkState.withError(e);
+    }
+  }
+
+  Future<NetworkState> updateLesson({LessonModel? lesson}) async {
+    bool isDisconnect = await WifiService.isDisconnect();
+    if (isDisconnect) return NetworkState.withDisconnect();
+
+    try {
+      Response response = await AppClients().put(AppEndpoint.UPDATELESSON, data: {
+        'idLesson': lesson?.id,
+        'description': lesson?.description,
+        'order': lesson?.order,
+      });
+      return NetworkState(
+        status: response.statusCode ?? AppEndpoint.success,
+        result: response.data['result'],
+        message: response.data['message'] ?? '',
+        successCode: response.data['code'] == 0,
+      );
+    } catch (e) {
+      return NetworkState.withError(e);
+    }
+  }
+
+  Future<NetworkState> deleteMaterial({required String materialId}) async {
+    bool isDisconnect = await WifiService.isDisconnect();
+    if (isDisconnect) return NetworkState.withDisconnect();
+
+    try {
+      Response response = await AppClients().delete(
+        AppEndpoint.DELETEMATERIAL.replaceAll('{id}', materialId),
+      );
+      return NetworkState(
+        status: response.statusCode ?? AppEndpoint.success,
+        result: response.data['result'],
+        message: response.data['message'] ?? '',
+        successCode: response.data['code'] == 0,
+      );
+    } catch (e) {
+      return NetworkState.withError(e);
+    }
+  }
+
+  Future<NetworkState> deleteLesson({required String lessonId}) async {
+    bool isDisconnect = await WifiService.isDisconnect();
+    if (isDisconnect) return NetworkState.withDisconnect();
+
+    try {
+      Response response =
+          await AppClients().delete(AppEndpoint.DELETELESSON.replaceAll('{id}', lessonId));
+      return NetworkState(
+        status: response.statusCode ?? AppEndpoint.success,
+        result: response.data['result'],
+        message: response.data['message'] ?? '',
+        successCode: response.data['code'] == 0,
+      );
+    } catch (e) {
+      return NetworkState.withError(e);
+    }
+  }
+
+  Future<NetworkState> deleteChapter({required String chapterId}) async {
+    bool isDisconnect = await WifiService.isDisconnect();
+    if (isDisconnect) return NetworkState.withDisconnect();
+
+    try {
+      Response response =
+          await AppClients().delete(AppEndpoint.DELETECHAPTER, data: FormData.fromMap({'chapterId': chapterId}));
+      return NetworkState(
+        status: response.statusCode ?? AppEndpoint.success,
+        result: response.data['result'],
+        message: response.data['message'] ?? '',
+        successCode: response.data['code'] == 0,
+      );
+    } catch (e) {
+      return NetworkState.withError(e);
+    }
+  }
+
+  Future<NetworkState> deleteQuiz({required String quizId}) async {
+    bool isDisconnect = await WifiService.isDisconnect();
+    if (isDisconnect) return NetworkState.withDisconnect();
+
+    try {
+      Response response = await AppClients().delete(
+        AppEndpoint.DELETEQUIZ.replaceAll('{id}', quizId),
       );
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,

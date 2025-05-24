@@ -76,44 +76,62 @@ class LessonModel {
 }
 
 class LessonMaterialModel {
+  final String? id;
+  final String? fileName;
   final String? path;
 
   LessonMaterialModel({
+    this.id,
+    this.fileName,
     this.path,
   });
 
-  factory LessonMaterialModel.fromJson(Map<String, dynamic> json) => LessonMaterialModel(
-        path: json["path"],
+  LessonMaterialModel copyWith({
+    String? id,
+    String? fileName,
+    String? path,
+  }) =>
+      LessonMaterialModel(
+        id: id ?? this.id,
+        fileName: fileName ?? this.fileName,
+        path: path ?? this.path,
       );
 
-  Map<String, dynamic> toJson() => {
-        "path": path,
-      };
+  factory LessonMaterialModel.fromJson(Map<String, dynamic> json) => LessonMaterialModel(
+    id: json["id"],
+    fileName: json["fileName"],
+    path: json["path"],
+  );
 
-  @override
-  String toString() {
-    return 'LessonMaterialModel{path: $path}';
-  }
+  Map<String, dynamic> toJson() => {
+    "id": id,
+    "fileName": fileName,
+    "path": path,
+  };
 }
 
 class LessonQuizModel {
+  final String? id;
   final String? question;
   final String? option;
   final String? answer;
 
   LessonQuizModel({
+    this.id,
     this.question,
     this.option,
     this.answer,
   });
 
   factory LessonQuizModel.fromJson(Map<String, dynamic> json) => LessonQuizModel(
+        id: json["id"],
         question: json["question"],
         option: json["option"],
         answer: json["answer"],
       );
 
   Map<String, dynamic> toJson() => {
+        "id": id,
         "question": question,
         "option": option,
         "answer": answer,

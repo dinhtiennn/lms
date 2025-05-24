@@ -71,8 +71,7 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                             case 'manage_students':
                               _viewModel.getStudentsOfCourse().then((_) {
                                 print(courseDetail?.feeType);
-                                showManageStudentsBottomSheet(popupContext, _viewModel,
-                                    courseDetail?.feeType ?? '');
+                                showManageStudentsBottomSheet(popupContext, _viewModel, courseDetail?.feeType ?? '');
                               });
                               break;
                             case 'manage_students_request':
@@ -498,8 +497,17 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
           lesson.description ?? '',
           style: styleSmallBold.copyWith(color: black),
         ),
+        trailing: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            IconButton(
+              icon: Icon(Icons.more_vert, color: primary2),
+              onPressed: () => _showLessonOptionsBottomSheet(lesson),
+            ),
+            const Icon(Icons.expand_more),
+          ],
+        ),
         shape: const Border(),
-        showTrailingIcon: true,
         children: [
           // Tài liệu bài học
           Padding(
@@ -517,7 +525,12 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                       ),
                     ),
                     IconButton(
-                      onPressed: () => showAddMaterialBottomSheet(context, lesson, _viewModel),
+                      onPressed: () => showAddMaterialBottomSheet(
+                        context,
+                        lesson,
+                        _viewModel.materialNameController,
+                        _viewModel,
+                      ),
                       icon: Icon(
                         Icons.add_circle_outline,
                         color: primary3,
@@ -530,10 +543,18 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                   (material) => ListTile(
                     leading: Icon(Icons.file_present, color: primary2),
                     title: Text(
-                      (material.path ?? '').split('/').last,
+                      material.fileName ?? '',
                       style: styleSmall.copyWith(color: grey2),
                     ),
                     onTap: () => Get.toNamed(Routers.courseMaterialDetailTeacher, arguments: {'material': material}),
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete_outline, color: error),
+                      onPressed: () => _showDeleteConfirmationDialog(
+                        'Xóa tài liệu',
+                        'Bạn có chắc chắn muốn xóa tài liệu này?',
+                        () => _viewModel.deleteMaterial(material),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -591,6 +612,46 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                           _showCommentBottomSheet(context);
                         },
                       ),
+                      PopupMenuButton<String>(
+                        color: white,
+                        icon: Icon(Icons.more_vert, color: primary2),
+                        onSelected: (value) {
+                          switch (value) {
+                            case 'edit_chapter':
+                              _showEditChapterBottomSheet(chapter);
+                              break;
+                            case 'delete_chapter':
+                              _showDeleteConfirmationDialog(
+                                'Xóa chương học',
+                                'Bạn có chắc chắn muốn xóa chương học này?',
+                                () => _viewModel.deleteChapter(chapter),
+                              );
+                              break;
+                          }
+                        },
+                        itemBuilder: (BuildContext context) => [
+                          PopupMenuItem(
+                            value: 'edit_chapter',
+                            child: Row(
+                              children: [
+                                Icon(Icons.edit_note_outlined, color: primary3, size: 20),
+                                SizedBox(width: 8),
+                                Text('Sửa chương học', style: styleSmall.copyWith(color: grey2)),
+                              ],
+                            ),
+                          ),
+                          PopupMenuItem(
+                            value: 'delete_chapter',
+                            child: Row(
+                              children: [
+                                Icon(Icons.delete_outline, color: error, size: 20),
+                                SizedBox(width: 8),
+                                Text('Xóa chương học', style: styleSmall.copyWith(color: error)),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
                     ],
                   ),
                 ),
@@ -641,6 +702,14 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                       style: styleSmall.copyWith(color: grey2),
                     ),
                     onTap: () => Get.toNamed(Routers.courseQuizsDetailTeacher, arguments: {'lesson': lesson}),
+                    trailing: IconButton(
+                      icon: Icon(Icons.delete_outline, color: error),
+                      onPressed: () => _showDeleteConfirmationDialog(
+                        'Xóa bài kiểm tra',
+                        'Bạn có chắc chắn muốn xóa bài kiểm tra này?',
+                        () => _viewModel.deleteQuiz(quiz),
+                      ),
+                    ),
                   ),
                 ),
               ],
@@ -707,6 +776,222 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
           Navigator.pop(context);
         },
         content: 'Xác nhận xóa khóa học',
+      ),
+    );
+  }
+
+  void _showLessonOptionsBottomSheet(LessonModel lesson) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.white,
+      useSafeArea: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Container(
+        padding: EdgeInsets.symmetric(vertical: 20).copyWith(bottom: MediaQuery.paddingOf(context).bottom),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Text(
+              'Tùy chọn bài học',
+              style: styleMediumBold.copyWith(color: primary2),
+            ),
+            SizedBox(height: 20),
+            ListTile(
+              leading: Icon(Icons.edit_outlined, color: primary3),
+              title: Text(
+                'Sửa bài học',
+                style: styleSmall.copyWith(color: grey2),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _showEditLessonBottomSheet(lesson);
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.delete_outline, color: error),
+              title: Text(
+                'Xóa bài học',
+                style: styleSmall.copyWith(color: error),
+              ),
+              onTap: () {
+                Navigator.pop(context);
+                _showDeleteConfirmationDialog(
+                  'Xóa bài học',
+                  'Bạn có chắc chắn muốn xóa bài học này?',
+                  () => _viewModel.deleteLesson(lesson),
+                );
+              },
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditLessonBottomSheet(LessonModel lesson) {
+    final TextEditingController descriptionController = TextEditingController(text: lesson.description);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      useSafeArea: true,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom > 0
+              ? MediaQuery.of(context).viewInsets.bottom
+              : MediaQuery.paddingOf(context).bottom,
+          left: 16,
+          right: 16,
+          top: 16,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Sửa bài học',
+              style: styleMediumBold.copyWith(color: primary2),
+            ),
+            SizedBox(height: 16),
+            TextField(
+              controller: descriptionController,
+              style: styleSmall.copyWith(color: grey2),
+              decoration: InputDecoration(
+                labelText: 'Mô tả bài học',
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: primary2),
+                ),
+              ),
+              maxLines: 3,
+            ),
+            SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Hủy', style: styleSmall.copyWith(color: grey3)),
+                ),
+                SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    final updatedLesson = LessonModel(
+                      description: descriptionController.text,
+                      id: lesson.id,
+                      chapters: lesson.chapters,
+                      lessonMaterials: lesson.lessonMaterials,
+                      lessonQuizs: lesson.lessonQuizs,
+                      order: lesson.order,
+                    );
+                    _viewModel.updateLesson(updatedLesson);
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primary2,
+                  ),
+                  child: Text('Lưu', style: styleSmall.copyWith(color: white)),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showEditChapterBottomSheet(ChapterModel chapter) {
+    final TextEditingController nameController = TextEditingController(text: chapter.name);
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.white,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom > 0
+              ? MediaQuery.of(context).viewInsets.bottom
+              : MediaQuery.paddingOf(context).bottom,
+          left: 16,
+          right: 16,
+          top: 16,
+        ),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              'Sửa chương học',
+              style: styleMediumBold.copyWith(color: primary2),
+            ),
+            SizedBox(height: 16),
+            TextField(
+              style: styleSmall.copyWith(color: grey2),
+              controller: nameController,
+              decoration: InputDecoration(
+                labelText: 'Tên chương học',
+                border: OutlineInputBorder(),
+                focusedBorder: OutlineInputBorder(
+                  borderSide: BorderSide(color: primary2),
+                ),
+              ),
+            ),
+            SizedBox(height: 16),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.end,
+              children: [
+                TextButton(
+                  onPressed: () => Navigator.pop(context),
+                  child: Text('Hủy', style: styleSmall.copyWith(color: grey3)),
+                ),
+                SizedBox(width: 8),
+                ElevatedButton(
+                  onPressed: () {
+                    final updatedChapter = ChapterModel(
+                      name: nameController.text,
+                      id: chapter.id,
+                      type: chapter.type,
+                      path: chapter.path,
+                    );
+                    _viewModel.updateChapter(updatedChapter);
+                    Navigator.pop(context);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: primary2,
+                  ),
+                  child: Text('Lưu', style: styleSmall.copyWith(color: white)),
+                ),
+              ],
+            ),
+            SizedBox(height: 16),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showDeleteConfirmationDialog(String title, String content, Function() onConfirm) {
+    showDialog(
+      context: context,
+      builder: (context) => WidgetDialogConfirm(
+        title: title,
+        content: content,
+        titleStyle: styleMediumBold.copyWith(color: error),
+        colorButtonAccept: error,
+        onTapConfirm: () {
+          onConfirm();
+          Navigator.pop(context);
+        },
       ),
     );
   }

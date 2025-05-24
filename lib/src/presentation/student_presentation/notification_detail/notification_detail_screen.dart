@@ -8,7 +8,8 @@ class NotificationDetailScreen extends StatefulWidget {
   const NotificationDetailScreen({Key? key}) : super(key: key);
 
   @override
-  State<NotificationDetailScreen> createState() => _NotificationDetailScreenState();
+  State<NotificationDetailScreen> createState() =>
+      _NotificationDetailScreenState();
 }
 
 class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
@@ -71,32 +72,44 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
                                   children: [
                                     Expanded(
                                       child: SingleChildScrollView(
-                                        physics: AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+                                        physics: AlwaysScrollableScrollPhysics(
+                                            parent: BouncingScrollPhysics()),
                                         padding: EdgeInsets.all(0),
                                         child: Column(
-                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                          crossAxisAlignment:
+                                              CrossAxisAlignment.start,
                                           children: [
                                             // Header với thông tin cơ bản
                                             Container(
                                               padding: EdgeInsets.all(24),
                                               decoration: BoxDecoration(
-                                                color: accentColor.withAlpha(10),
+                                                color:
+                                                    accentColor.withAlpha(10),
                                                 borderRadius: BorderRadius.only(
-                                                  bottomLeft: Radius.circular(24),
-                                                  bottomRight: Radius.circular(24),
+                                                  bottomLeft:
+                                                      Radius.circular(24),
+                                                  bottomRight:
+                                                      Radius.circular(24),
                                                 ),
                                               ),
                                               child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
                                                   Row(
-                                                    crossAxisAlignment: CrossAxisAlignment.start,
+                                                    crossAxisAlignment:
+                                                        CrossAxisAlignment
+                                                            .start,
                                                     children: [
                                                       Container(
-                                                        padding: EdgeInsets.all(12),
-                                                        decoration: BoxDecoration(
-                                                          color: accentColor.withAlpha(20),
-                                                          shape: BoxShape.circle,
+                                                        padding:
+                                                            EdgeInsets.all(12),
+                                                        decoration:
+                                                            BoxDecoration(
+                                                          color: accentColor
+                                                              .withAlpha(20),
+                                                          shape:
+                                                              BoxShape.circle,
                                                         ),
                                                         child: Icon(
                                                           iconData,
@@ -107,16 +120,24 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
                                                       SizedBox(width: 16),
                                                       Expanded(
                                                         child: Column(
-                                                          crossAxisAlignment: CrossAxisAlignment.start,
+                                                          crossAxisAlignment:
+                                                              CrossAxisAlignment
+                                                                  .start,
                                                           children: [
                                                             Text(
                                                               title,
-                                                              style: styleMediumBold.copyWith(color: black),
+                                                              style: styleMediumBold
+                                                                  .copyWith(
+                                                                      color:
+                                                                          black),
                                                             ),
                                                             SizedBox(height: 4),
                                                             Text(
                                                               time,
-                                                              style: styleVerySmall.copyWith(color: grey4),
+                                                              style: styleVerySmall
+                                                                  .copyWith(
+                                                                      color:
+                                                                          grey4),
                                                             ),
                                                           ],
                                                         ),
@@ -131,11 +152,13 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
                                             Padding(
                                               padding: EdgeInsets.all(24),
                                               child: Column(
-                                                crossAxisAlignment: CrossAxisAlignment.start,
+                                                crossAxisAlignment:
+                                                    CrossAxisAlignment.start,
                                                 children: [
                                                   Text(
                                                     'Nội dung chi tiết',
-                                                    style: styleSmallBold.copyWith(color: black),
+                                                    style: styleSmallBold
+                                                        .copyWith(color: black),
                                                   ),
                                                   SizedBox(height: 12),
                                                   Text(
@@ -148,6 +171,86 @@ class _NotificationDetailScreenState extends State<NotificationDetailScreen> {
                                                 ],
                                               ),
                                             ),
+
+                                            // Hiển thị các nút hành động nếu có
+                                            if (actions.isNotEmpty)
+                                              Padding(
+                                                padding: EdgeInsets.symmetric(
+                                                    horizontal: 24,
+                                                    vertical: 16),
+                                                child: Column(
+                                                  crossAxisAlignment:
+                                                      CrossAxisAlignment.start,
+                                                  children: [
+                                                    SizedBox(height: 12),
+                                                    ...actions
+                                                        .map(
+                                                            (action) => Padding(
+                                                                  padding: EdgeInsets
+                                                                      .only(
+                                                                          bottom:
+                                                                              8),
+                                                                  child:
+                                                                      ElevatedButton(
+                                                                    onPressed:
+                                                                        action
+                                                                            .onTap,
+                                                                    style: ElevatedButton
+                                                                        .styleFrom(
+                                                                      backgroundColor: action
+                                                                              .outlined
+                                                                          ? white
+                                                                          : action
+                                                                              .color,
+                                                                      shape:
+                                                                          RoundedRectangleBorder(
+                                                                        borderRadius:
+                                                                            BorderRadius.circular(8),
+                                                                        side: action.outlined
+                                                                            ? BorderSide(color: action.color)
+                                                                            : BorderSide.none,
+                                                                      ),
+                                                                      padding: EdgeInsets.symmetric(
+                                                                          horizontal:
+                                                                              24,
+                                                                          vertical:
+                                                                              12),
+                                                                    ),
+                                                                    child: Row(
+                                                                      mainAxisSize:
+                                                                          MainAxisSize
+                                                                              .min,
+                                                                      children: [
+                                                                        Icon(
+                                                                          action
+                                                                              .icon,
+                                                                          color: action.outlined
+                                                                              ? action.color
+                                                                              : white,
+                                                                          size:
+                                                                              20,
+                                                                        ),
+                                                                        SizedBox(
+                                                                            width:
+                                                                                8),
+                                                                        Text(
+                                                                          action
+                                                                              .label,
+                                                                          style:
+                                                                              styleSmall.copyWith(
+                                                                            color: action.outlined
+                                                                                ? action.color
+                                                                                : white,
+                                                                          ),
+                                                                        ),
+                                                                      ],
+                                                                    ),
+                                                                  ),
+                                                                ))
+                                                        .toList(),
+                                                  ],
+                                                ),
+                                              ),
                                           ],
                                         ),
                                       ),

@@ -8,7 +8,8 @@ import 'package:lms/src/resource/resource.dart';
 import 'package:lms/src/utils/app_utils.dart';
 
 class NotificationViewModel extends BaseViewModel with StompListener {
-  ValueNotifier<app_model.NotificationView?> notifications = ValueNotifier(null);
+  ValueNotifier<app_model.NotificationView?> notifications =
+      ValueNotifier(null);
   ValueNotifier<bool> isLoadingMore = ValueNotifier(false);
   final ScrollController scrollController = ScrollController();
   bool hasMoreData = true;
@@ -39,7 +40,8 @@ class NotificationViewModel extends BaseViewModel with StompListener {
 
       // Đăng ký listener
       logger.i("Đăng ký listener thông báo");
-      stompService?.registerListener(type: StompListenType.notification, listener: this);
+      stompService?.registerListener(
+          type: StompListenType.notification, listener: this);
 
       _isSocketConnected = true;
       logger.i("Socket đã được kết nối và đăng ký listener thành công");
@@ -70,14 +72,16 @@ class NotificationViewModel extends BaseViewModel with StompListener {
   }
 
   void _onScroll() {
-    if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200) {
+    if (scrollController.position.pixels >=
+        scrollController.position.maxScrollExtent - 200) {
       loadMore();
     }
   }
 
   void loadMore() {
     if (!isLoadingMore.value && hasMoreData) {
-      final notificationsLength = notifications.value?.notifications?.length ?? 0;
+      final notificationsLength =
+          notifications.value?.notifications?.length ?? 0;
       loadNotification(offset: notificationsLength);
     }
   }
@@ -98,15 +102,18 @@ class NotificationViewModel extends BaseViewModel with StompListener {
     }
 
     NetworkState<app_model.NotificationView> resultNotifications =
-        await authRepository.getNotifications(pageSize: pageSize, pageNumber: offset);
+        await authRepository.getNotifications(
+            pageSize: pageSize, pageNumber: offset);
 
     if (resultNotifications.isSuccess && resultNotifications.result != null) {
       if (offset == 0) {
         notifications.value = resultNotifications.result;
       } else {
         if (notifications.value != null) {
-          final app_model.NotificationView updatedNotificationView = app_model.NotificationView(
-            countUnreadNotification: notifications.value!.countUnreadNotification,
+          final app_model.NotificationView updatedNotificationView =
+              app_model.NotificationView(
+            countUnreadNotification:
+                notifications.value!.countUnreadNotification,
             notifications: [
               ...(notifications.value!.notifications ?? []),
               ...(resultNotifications.result!.notifications ?? [])
@@ -118,7 +125,8 @@ class NotificationViewModel extends BaseViewModel with StompListener {
         }
       }
 
-      hasMoreData = (resultNotifications.result!.notifications?.length ?? 0) >= pageSize;
+      hasMoreData =
+          (resultNotifications.result!.notifications?.length ?? 0) >= pageSize;
     }
 
     if (offset == 0) {
@@ -131,11 +139,17 @@ class NotificationViewModel extends BaseViewModel with StompListener {
 
   void notificationDetail(NotificationModel notification) async {
     if (notification.isRead == true) {
-      Get.toNamed(Routers.notificationDetail, arguments: {'notification': notification});
+      Get.toNamed(Routers.notificationDetail,
+          arguments: {'notification': notification});
     } else {
-      NetworkState resultMarkAsRead = await authRepository.markAsRead(notificationId: notification.notificationId);
+      NetworkState resultMarkAsRead = await authRepository.markAsRead(
+          notificationId: notification.notificationId);
       if (resultMarkAsRead.isSuccess) {
-        Get.toNamed(Routers.notificationDetail, arguments: {'notification': notification})?.then((_) {
+        if (Get.isRegistered<NavigationViewModel>()) {
+          Get.find<NavigationViewModel>().loadNotificationUnRead();
+        }
+        Get.toNamed(Routers.notificationDetail,
+            arguments: {'notification': notification})?.then((_) {
           refresh();
         });
       }
@@ -143,8 +157,12 @@ class NotificationViewModel extends BaseViewModel with StompListener {
   }
 
   void readAllNotification() async {
-    NetworkState resultReadAllNotification = await authRepository.readAllNotification();
+    NetworkState resultReadAllNotification =
+        await authRepository.readAllNotification();
     if (resultReadAllNotification.isSuccess) {
+      if (Get.isRegistered<NavigationViewModel>()) {
+        Get.find<NavigationViewModel>().loadNotificationUnRead();
+      }
       Get.back();
       refresh();
     }
@@ -153,7 +171,8 @@ class NotificationViewModel extends BaseViewModel with StompListener {
   @override
   void dispose() {
     if (_isSocketConnected && stompService != null) {
-      stompService?.unregisterListener(type: StompListenType.notification, listener: this);
+      stompService?.unregisterListener(
+          type: StompListenType.notification, listener: this);
       logger.i("Đã hủy đăng ký listener thông báo");
     }
 

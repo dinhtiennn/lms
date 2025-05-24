@@ -15,7 +15,7 @@ class NavigationTeacherViewModel extends BaseViewModel with StompListener {
   StompService? stompService;
 
   init() async {
-    await _loadNotificationUnRead();
+    await loadNotificationUnRead();
     setupSocket();
     // Kiểm tra trạng thái kết nối và thiết lập lại nếu cần
     if (!_isSocketConnected) {
@@ -61,7 +61,7 @@ class NavigationTeacherViewModel extends BaseViewModel with StompListener {
     controller.index = index;
   }
 
-  Future<void> _loadNotificationUnRead() async {
+  Future<void> loadNotificationUnRead() async {
     NetworkState<NotificationView> resultNotifications =
         await authRepository.getNotifications(pageSize: 1, pageNumber: 0);
     if (resultNotifications.isSuccess && resultNotifications.result != null) {
@@ -76,7 +76,7 @@ class NavigationTeacherViewModel extends BaseViewModel with StompListener {
 
       if (data != null) {
         // Parse JSON dữ liệu từ socket
-        _loadNotificationUnRead();
+        loadNotificationUnRead();
       }
     } catch (e) {
       logger.e("Lỗi khi xử lý thông báo từ socket: $e");

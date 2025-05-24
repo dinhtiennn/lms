@@ -28,7 +28,9 @@ class NotificationDetailViewModel extends BaseViewModel {
         // Thiết lập UI dựa trên loại thông báo
         setupNotificationUI();
       } else {
-        showToast(title: 'Không tìm thấy thông tin thông báo', type: ToastificationType.error);
+        showToast(
+            title: 'Không tìm thấy thông tin thông báo',
+            type: ToastificationType.error);
       }
     } catch (e) {
       logger.e("Lỗi khi khởi tạo chi tiết thông báo: $e");
@@ -53,24 +55,62 @@ class NotificationDetailViewModel extends BaseViewModel {
     // Thiết lập icon, màu sắc và nút hành động dựa trên loại thông báo
     switch (notification.notificationType) {
       case NotificationType.COMMENT:
-        notificationIcon.value = Icons.comment;
-        notificationColor.value = success;
+        notificationIcon.value = Icons.comment_outlined;
+        notificationColor.value = primary3;
         notificationTitle.value = 'Bình luận mới';
+        setupCommentButtons();
         break;
       case NotificationType.COMMENT_REPLY:
-        notificationIcon.value = Icons.reply;
-        notificationColor.value = Colors.orange;
+        notificationIcon.value = Icons.reply_outlined;
+        notificationColor.value = primary3;
         notificationTitle.value = 'Phản hồi bình luận';
+        setupCommentButtons();
         break;
       case NotificationType.CHAT_MESSAGE:
-        notificationIcon.value = Icons.chat;
-        notificationColor.value = Colors.purple;
-        notificationTitle.value = 'Tin nhắn mới';
+        notificationIcon.value = Icons.chat_outlined;
+        notificationColor.value = primary2;
+        notificationTitle.value = 'Tin nhắn trò chuyện';
+        setupChatButtons();
+        break;
+      case NotificationType.JOIN_CLASS_PENDING:
+        notificationIcon.value = Icons.class_outlined;
+        notificationColor.value = warning;
+        notificationTitle.value = 'Yêu cầu tham gia lớp học';
+        setupClassRequestButtons();
+        break;
+      case NotificationType.JOIN_CLASS_REJECTED:
+        notificationIcon.value = Icons.cancel_outlined;
+        notificationColor.value = error;
+        notificationTitle.value = 'Từ chối tham gia lớp học';
+        break;
+      case NotificationType.JOIN_CLASS_APPROVED:
+        notificationIcon.value = Icons.check_circle_outlined;
+        notificationColor.value = success;
+        notificationTitle.value = 'Chấp nhận tham gia lớp học';
+        setupClassApprovedButtons();
+        break;
+      case NotificationType.POST_CREATED:
+        notificationIcon.value = Icons.post_add_outlined;
+        notificationColor.value = primary2;
+        notificationTitle.value = 'Bài đăng mới';
+        setupPostButtons();
+        break;
+      case NotificationType.POST_COMMENT:
+        notificationIcon.value = Icons.comment_outlined;
+        notificationColor.value = primary3;
+        notificationTitle.value = 'Bình luận bài đăng';
+        setupPostCommentButtons();
+        break;
+      case NotificationType.POST_COMMENT_REPLY:
+        notificationIcon.value = Icons.reply_outlined;
+        notificationColor.value = primary3;
+        notificationTitle.value = 'Phản hồi bình luận bài đăng';
+        setupPostCommentButtons();
         break;
       case NotificationType.MESSAGE:
       default:
-        notificationIcon.value = Icons.notifications;
-        notificationColor.value = primary3;
+        notificationIcon.value = Icons.notifications_outlined;
+        notificationColor.value = grey3;
         notificationTitle.value = 'Thông báo hệ thống';
         break;
     }
@@ -79,21 +119,110 @@ class NotificationDetailViewModel extends BaseViewModel {
     notifyListeners();
   }
 
-  Future<void> markAsRead() async {
-    try {
-      if (notificationData.value?.notificationId == null || notificationData.value?.isRead == true) {
-        return;
-      }
-      setLoading(true);
-      //todo: đánh dấu đọc đã đọc thông báo
-      // NetworkState resultMarkAsRead = authRepository.markAsRead(notificationData.value?.notificationId);
-      setLoading(false);
-      if (Get.isRegistered<NotificationViewModel>()) {
-        Get.find<NotificationViewModel>().refresh();
-      }
-    } catch (e) {
-      logger.e("Lỗi khi đánh dấu thông báo đã đọc: $e");
-    }
+  void setupCommentButtons() {
+    actionButtons.value = [
+      ActionButton(
+        label: 'Đi tới lớp học',
+        icon: Icons.class_outlined,
+        color: primary3,
+        onTap: () => viewComment(),
+      ),
+    ];
+  }
+
+  void setupChatButtons() {
+    actionButtons.value = [
+      ActionButton(
+        label: 'Mở cuộc trò chuyện',
+        icon: Icons.chat_outlined,
+        color: primary2,
+        onTap: () => openChat(),
+      ),
+    ];
+  }
+
+  void setupClassRequestButtons() {
+    actionButtons.value = [
+      ActionButton(
+        label: 'Xem lớp học',
+        icon: Icons.class_outlined,
+        color: warning,
+        onTap: () => viewClass(),
+      ),
+    ];
+  }
+
+  void setupClassApprovedButtons() {
+    actionButtons.value = [
+      ActionButton(
+        label: 'Xem lớp học',
+        icon: Icons.class_outlined,
+        color: success,
+        onTap: () => enterClass(),
+      ),
+    ];
+  }
+
+  void setupPostButtons() {
+    actionButtons.value = [
+      ActionButton(
+        label: 'Đi tới nhóm',
+        icon: Icons.visibility_outlined,
+        color: primary2,
+        onTap: () => viewPost(),
+      ),
+    ];
+  }
+
+  void setupPostCommentButtons() {
+    actionButtons.value = [
+      ActionButton(
+        label: 'Xem lớp học',
+        icon: Icons.class_outlined,
+        color: primary3,
+        onTap: () => viewPostComment(),
+      ),
+    ];
+  }
+
+  void viewComment() {
+    // TODO: Implement view comment action
+    Get.back();
+  }
+
+  void replyToComment() {
+    // TODO: Implement reply to comment action
+    Get.back();
+  }
+
+  void openChat() {
+    // TODO: Implement open chat action
+    Get.back();
+  }
+
+  void viewClass() {
+    // TODO: Implement view class action
+    Get.back();
+  }
+
+  void enterClass() {
+    // TODO: Implement enter class action
+    Get.back();
+  }
+
+  void viewPost() {
+    // TODO: Implement view post action
+    Get.back();
+  }
+
+  void viewPostComment() {
+    // TODO: Implement view post comment action
+    Get.back();
+  }
+
+  void replyToPostComment() {
+    // TODO: Implement reply to post comment action
+    Get.back();
   }
 
   @override
@@ -106,29 +235,5 @@ class NotificationDetailViewModel extends BaseViewModel {
     notificationTime.dispose();
     actionButtons.dispose();
     super.dispose();
-  }
-}
-// Extension cho NotificationModel
-extension NotificationModelExtension on NotificationModel {
-  NotificationModel copyWith({
-    String? notificationId,
-    String? receivedAccountId,
-    String? commentId,
-    String? commentReplyId,
-    NotificationType? notificationType,
-    bool? isRead,
-    String? description,
-    DateTime? createdAt,
-  }) {
-    return NotificationModel(
-      notificationId: notificationId ?? this.notificationId,
-      receivedAccountId: receivedAccountId ?? this.receivedAccountId,
-      commentId: commentId ?? this.commentId,
-      commentReplyId: commentReplyId ?? this.commentReplyId,
-      notificationType: notificationType ?? this.notificationType,
-      isRead: isRead ?? this.isRead,
-      description: description ?? this.description,
-      createdAt: createdAt ?? this.createdAt,
-    );
   }
 }

@@ -17,20 +17,3 @@ export 'document_model.dart';
 export 'chat_box_model.dart';
 export 'account_model.dart';
 export 'payment_model.dart';
-
-// Lớp hỗ trợ cho nút hành động
-class ActionButton {
-  final String label;
-  final IconData icon;
-  final Color color;
-  final Function onTap;
-  final bool outlined;
-
-  ActionButton({
-    required this.label,
-    required this.icon,
-    required this.color,
-    required this.onTap,
-    this.outlined = false,
-  });
-}

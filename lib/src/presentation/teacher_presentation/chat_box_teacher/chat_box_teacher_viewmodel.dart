@@ -158,10 +158,20 @@ class ChatBoxTeacherViewModel extends BaseViewModel with StompListener {
 
   @override
   void onStompChatReceived(dynamic data) {
+    final result = jsonDecode(data);
     logger.i('Nhận tin nhắn từ WebSocket: $data');
 
     try {
-      MessageModel receivedMessage = MessageModel.fromJson(jsonDecode(data));
+      MessageModel receivedMessage = MessageModel(
+        id: result['id'],
+        senderAccount: AccountModel(
+            accountUsername: result['senderAccount'],
+            accountFullname: result['fullNameSenderAccount'],
+            avatar: result['avatarSenderAccount']),
+        content: result['content'],
+        chatBoxId: result['chatBoxId'],
+        createdAt: result['createdAt'] == null ? null : AppUtils.fromUtcStringToVnTime(result['createdAt']),
+      );
       List<ChatBoxModel>? currentChatBoxes = chatboxes.value;
       if (currentChatBoxes == null) {
         return;

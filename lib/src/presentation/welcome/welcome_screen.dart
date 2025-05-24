@@ -11,9 +11,31 @@ class WelcomeScreen extends StatefulWidget {
   State<WelcomeScreen> createState() => _WelcomeScreenState();
 }
 
-class _WelcomeScreenState extends State<WelcomeScreen> {
+class _WelcomeScreenState extends State<WelcomeScreen>
+    with SingleTickerProviderStateMixin {
   late WelcomeViewModel _viewModel;
   int? _previousIndex;
+  late AnimationController _animationController;
+  late Animation<double> _fadeAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(milliseconds: 1000),
+      vsync: this,
+    );
+    _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+    _animationController.forward();
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -32,8 +54,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
         builder: (context, viewModel, child) {
           return Scaffold(
             extendBodyBehindAppBar: true,
-            backgroundColor: white,
-            body: SafeArea(child: _buildBody(screens)),
+            body: Container(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    white,
+                    Color(0xFFF5F5F5),
+                  ],
+                ),
+              ),
+              child: SafeArea(child: _buildBody(screens)),
+            ),
           );
         });
   }
@@ -43,61 +76,23 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Column(
         children: [
-          // Skip button
+          // Skip and Back buttons
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               ValueListenableBuilder<int>(
                 valueListenable: _viewModel.screenIndex,
                 builder: (context, index, child) => index != 0
-                    ? Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                  child: Material(
-                    color: const Color(0xFFD9D9D9),
-                    borderRadius: BorderRadius.circular(10),
-                    child: InkWell(
-                      onTap: () {
-                        _viewModel.previous();
-                      },
-                      splashColor: primary3,
-                      borderRadius: BorderRadius.circular(10),
-                      child: Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                        child: Center(
-                          child: Text(
-                            'BACK'.tr,
-                            style: styleVerySmall.copyWith(color: black),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                )
+                    ? _buildNavigationButton(
+                        text: 'BACK'.tr,
+                        onTap: () => _viewModel.previous(),
+                      )
                     : SizedBox(),
               ),
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-                child: Material(
-                  color: grey5,
-                  borderRadius: BorderRadius.circular(10),
-                  child: InkWell(
-                    onTap: () {
-                      _viewModel.chooseRole();
-                    },
-                    splashColor: primary3,
-                    borderRadius: BorderRadius.circular(10),
-                    child: Padding(
-                      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                      child: Center(
-                        child: Text(
-                          'Bỏ qua',
-                          style: styleVerySmall.copyWith(color: black),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-              )
+              _buildNavigationButton(
+                text: 'Bỏ qua',
+                onTap: () => _viewModel.chooseRole(),
+              ),
             ],
           ),
 
@@ -105,33 +100,19 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
             child: ValueListenableBuilder<int>(
               valueListenable: _viewModel.screenIndex,
               builder: (context, index, child) {
-                // Lưu index trước đó để xác định hướng
                 final previousIndex = _previousIndex ?? index;
                 final isForward = index < previousIndex;
-                print('previousIndex $previousIndex');
-                print('index $index');
-                print('isForward $isForward');
-                // Cập nhật index trước đó cho lần render tiếp theo
                 WidgetsBinding.instance.addPostFrameCallback((_) {
                   _previousIndex = index;
                 });
 
                 return PageTransitionSwitcher(
-                  duration: Duration(milliseconds: 300),
-                  reverse: !isForward, // Đảo ngược hiệu ứng khi index giảm
-                  transitionBuilder: (child, primaryAnimation, secondaryAnimation) {
-                    return SlideTransition(
-                      position: Tween<Offset>(
-                        begin: Offset(-1.0, 0), // Phải khi tăng, trái khi giảm
-                        end: Offset.zero,
-                      ).animate(primaryAnimation),
-                      child: SlideTransition(
-                        position: Tween<Offset>(
-                          begin: Offset.zero,
-                          end: Offset(1.0, 0), // Trái khi tăng, phải khi giảm
-                        ).animate(secondaryAnimation),
-                        child: child,
-                      ),
+                  duration: Duration(milliseconds: 500),
+                  reverse: !isForward,
+                  transitionBuilder: (child, animation, secondaryAnimation) {
+                    return FadeScaleTransition(
+                      animation: animation,
+                      child: child,
                     );
                   },
                   child: KeyedSubtree(
@@ -147,7 +128,7 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ValueListenableBuilder(
             valueListenable: _viewModel.screenIndex,
             builder: (context, index, child) => Padding(
-              padding: const EdgeInsets.symmetric(vertical: 12),
+              padding: const EdgeInsets.symmetric(vertical: 20),
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
@@ -161,249 +142,230 @@ class _WelcomeScreenState extends State<WelcomeScreen> {
           ),
 
           // Continue button
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 20),
-            margin: EdgeInsets.only(bottom: 12),
-            child: Material(
-              color: Colors.transparent,
-              child: Ink(
-                width: Get.width,
-                decoration: BoxDecoration(
-                  color: primary,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: InkWell(
-                  borderRadius: BorderRadius.circular(10),
-                  splashColor: Colors.grey.withAlpha((255 * 0.3).round()), // Tùy chỉnh màu splash
-                  onTap: () => _viewModel.onContinue(),
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(vertical: 12, horizontal: 16),
-                    padding: const EdgeInsets.symmetric(vertical: 8),
-                    child: Center(
-                      child: Text(
-                        'CONTINUE'.tr,
-                        style: styleMediumBold.copyWith(color: white),
+          FadeTransition(
+            opacity: _fadeAnimation,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              margin: EdgeInsets.only(bottom: 20),
+              child: Material(
+                elevation: 4,
+                color: Colors.transparent,
+                borderRadius: BorderRadius.circular(15),
+                child: Container(
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [primary2, primary],
+                      begin: Alignment.centerLeft,
+                      end: Alignment.centerRight,
+                    ),
+                    borderRadius: BorderRadius.circular(15),
+                    boxShadow: [
+                      BoxShadow(
+                        color: primary.withOpacity(0.3),
+                        blurRadius: 8,
+                        offset: Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Material(
+                    color: Colors.transparent,
+                    child: InkWell(
+                      borderRadius: BorderRadius.circular(15),
+                      onTap: () => _viewModel.onContinue(),
+                      child: Container(
+                        padding: EdgeInsets.symmetric(vertical: 16),
+                        child: Center(
+                          child: Text(
+                            'CONTINUE'.tr,
+                            style: styleMediumBold.copyWith(
+                              color: white,
+                              letterSpacing: 1,
+                            ),
+                          ),
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
             ),
-          )
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildScreen1() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: Get.width * 0.8,
-                height: Get.width * 0.8,
-                decoration: BoxDecoration(
-                  color: grey5,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: grey4,
-                    width: 12,
+  Widget _buildNavigationButton({
+    required String text,
+    required VoidCallback onTap,
+  }) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+      child: Material(
+        elevation: 2,
+        color: Colors.transparent,
+        borderRadius: BorderRadius.circular(12),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [Colors.white, Color(0xFFF8F8F8)],
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(color: grey5),
+          ),
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: onTap,
+              borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                child: Text(
+                  text,
+                  style: styleSmall.copyWith(
+                    color: black,
+                    fontWeight: FontWeight.w500,
                   ),
                 ),
-                child: Center(
-                  child: Image(image: AssetImage(AppImages.png('image1'))),
-                ),
               ),
-            ],
+            ),
           ),
         ),
+      ),
+    );
+  }
 
-        // Title text
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            'Welcome to Cybex IT Group where learning meets innovation!',
-            textAlign: TextAlign.center,
-            style: styleLarge.copyWith(color: black),
-          ),
-        ),
-
-        // Subtitle text
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            'Empowering your journey through cutting-edge IT education and expertise',
-            textAlign: TextAlign.center,
-            style: styleSmall.copyWith(color: black),
-          ),
-        ),
-      ],
+  Widget _buildScreen1() {
+    return _buildScreenContent(
+      image: 'image1',
+      title: 'Chào mừng đến với LMS 👋',
+      subtitle:
+          'Nơi kiến thức và sự sáng tạo hội tụ, mở ra cánh cửa tri thức mới',
     );
   }
 
   Widget _buildScreen2() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: Get.width * 0.8,
-                height: Get.width * 0.8,
-                decoration: BoxDecoration(
-                  color: grey5,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: grey4,
-                    width: 12,
-                  ),
-                ),
-                child: Center(
-                  child: Image(image: AssetImage(AppImages.png('image2'))),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Title text
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            'Discover our comprehensive courses',
-            textAlign: TextAlign.center,
-            style: styleLarge.copyWith(color: black),
-          ),
-        ),
-
-        // Subtitle text
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            'Learn with expert instructors and gain practical knowledge in the IT industry',
-            textAlign: TextAlign.center,
-            style: styleSmall.copyWith(color: black),
-          ),
-        ),
-      ],
+    return _buildScreenContent(
+      image: 'image2',
+      title: 'Khám phá kho khóa học đa dạng 🎓',
+      subtitle:
+          'Học cùng các chuyên gia hàng đầu và tiếp cận kiến thức thực tiễn trong ngành',
     );
   }
 
   Widget _buildScreen3() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: Get.width * 0.8,
-                height: Get.width * 0.8,
-                decoration: BoxDecoration(
-                  color: grey5,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: grey4,
-                    width: 12,
-                  ),
-                ),
-                child: Center(
-                  child: Image(image: AssetImage(AppImages.png('image3'))),
-                ),
-              ),
-            ],
-          ),
-        ),
-
-        // Title text
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            'Track your progress',
-            textAlign: TextAlign.center,
-            style: styleLarge.copyWith(color: black),
-          ),
-        ),
-
-        // Subtitle text
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            'Monitor your learning journey with detailed analytics and achievement badges',
-            textAlign: TextAlign.center,
-            style: styleSmall.copyWith(color: black),
-          ),
-        ),
-      ],
+    return _buildScreenContent(
+      image: 'image3',
+      title: 'Theo dõi tiến độ học tập 📊',
+      subtitle:
+          'Dễ dàng nắm bắt quá trình học tập với các chỉ số chi tiết và huy hiệu thành tích',
     );
   }
 
   Widget _buildScreen4() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Expanded(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Container(
-                width: Get.width * 0.8,
-                height: Get.width * 0.8,
-                decoration: BoxDecoration(
-                  color: grey5,
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: grey4,
-                    width: 12,
+    return _buildScreenContent(
+      image: 'image4',
+      title: 'Tham gia cộng đồng học tập 🤝',
+      subtitle:
+          'Kết nối với các học viên và chuyên gia, chia sẻ kinh nghiệm và phát triển cùng nhau',
+    );
+  }
+
+  Widget _buildScreenContent({
+    required String image,
+    required String title,
+    required String subtitle,
+  }) {
+    return FadeTransition(
+      opacity: _fadeAnimation,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Expanded(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: Get.width * 0.8,
+                  height: Get.width * 0.8,
+                  decoration: BoxDecoration(
+                    gradient: LinearGradient(
+                      colors: [Color(0xFFF8F8F8), white],
+                      begin: Alignment.topLeft,
+                      end: Alignment.bottomRight,
+                    ),
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: grey4.withOpacity(0.2),
+                        blurRadius: 15,
+                        spreadRadius: 5,
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: Image(
+                      image: AssetImage(AppImages.png(image)),
+                      width: Get.width * 0.6,
+                    ),
                   ),
                 ),
-                child: Center(
-                  child: Image(image: AssetImage(AppImages.png('image4'))),
-                ),
+              ],
+            ),
+          ),
+
+          // Title text
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 16),
+            child: Text(
+              title,
+              textAlign: TextAlign.center,
+              style: styleLarge.copyWith(
+                color: black,
+                height: 1.3,
+                fontWeight: FontWeight.bold,
               ),
-            ],
+            ),
           ),
-        ),
 
-        // Title text
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            'Join our community',
-            textAlign: TextAlign.center,
-            style: styleLarge.copyWith(color: black),
+          // Subtitle text
+          Padding(
+            padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 20),
+            child: Text(
+              subtitle,
+              textAlign: TextAlign.center,
+              style: styleSmall.copyWith(
+                color: grey2,
+                height: 1.5,
+              ),
+            ),
           ),
-        ),
-
-        // Subtitle text
-        Padding(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          child: Text(
-            'Connect with fellow learners and industry experts to enhance your learning experience',
-            textAlign: TextAlign.center,
-            style: styleSmall.copyWith(color: black),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 
   Widget _buildDot({required bool isActive}) {
-    return Container(
+    return AnimatedContainer(
+      duration: Duration(milliseconds: 300),
       margin: const EdgeInsets.symmetric(horizontal: 4),
-      width: 6.83,
-      height: 6.83,
+      width: isActive ? 24 : 8,
+      height: 8,
       decoration: BoxDecoration(
-        color: isActive ? black : const Color(0xFFD9D9D9),
-        border: Border.all(color: const Color(0xFFC6C6C6), width: 1),
-        shape: BoxShape.circle,
+        color: isActive ? primary : grey4,
+        borderRadius: BorderRadius.circular(4),
+        boxShadow: isActive
+            ? [
+                BoxShadow(
+                  color: primary.withOpacity(0.3),
+                  blurRadius: 4,
+                  offset: Offset(0, 2),
+                ),
+              ]
+            : null,
       ),
     );
   }

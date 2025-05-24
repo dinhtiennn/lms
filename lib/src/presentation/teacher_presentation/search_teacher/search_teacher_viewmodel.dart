@@ -51,7 +51,6 @@ class SearchTeacherViewModel extends BaseViewModel {
     NetworkState<List<CourseModel>> resultCourseSearch =
         await courseRepository.searchCourses(
             keyword: searchController.text,
-            teacher: teacher?.fullName,
             pageSize: pageSize,
             pageNumber: pageNumber);
 
@@ -81,6 +80,14 @@ class SearchTeacherViewModel extends BaseViewModel {
       if (isSearching.value) {
         getCoursesSearch(pageNumber: currentPageSearch + 1);
       }
+    }
+  }
+
+  void courseDetail(CourseModel course) {
+    if(course.teacher?.id == teacher?.id){
+      Get.toNamed(Routers.courseDetailTeacher, arguments: {'course': course});
+    }else{
+      Get.toNamed(Routers.courseReviewTeacher, arguments: {'course': course});
     }
   }
 

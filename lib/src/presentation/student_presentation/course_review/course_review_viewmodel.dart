@@ -12,10 +12,12 @@ class CourseReviewViewModel extends BaseViewModel {
   //hiển trạng thái join
   ValueNotifier<StatusJoin> joinStatus = ValueNotifier(StatusJoin.NOT_JOINED);
   ValueNotifier<CourseModel?> course = ValueNotifier(null);
+  ValueNotifier<CourseDetailModel?> courseDetail = ValueNotifier(null);
 
   init() async {
     setCourse(Get.arguments['course']);
     review = Get.arguments['review'];
+    loadCourseDetail();
     await getStatusJoin(course.value!);
   }
 
@@ -118,10 +120,6 @@ class CourseReviewViewModel extends BaseViewModel {
     }
   }
 
-  void allRequest() {
-    Get.toNamed(Routers.allRequestJoinCourseByStudent);
-  }
-
   Future<void> getStatusJoin(CourseModel course) async {
     NetworkState<String> resultStatusJoin = await courseRepository.getStatusJoin(courseId: course.id);
     if (resultStatusJoin.isSuccess && resultStatusJoin.result != null) {
@@ -170,5 +168,14 @@ class CourseReviewViewModel extends BaseViewModel {
   void handleNotJoined() {
     logger.i("Chưa tham gia - Trạng thái: ${joinStatus.value}");
     joinCourse();
+  }
+
+  void loadCourseDetail() async {
+    NetworkState<CourseDetailModel> resultCourseDetail =
+        await courseRepository.getCourseDetail(courseId: course.value?.id);
+    if (resultCourseDetail.isSuccess && resultCourseDetail.result != null) {
+      courseDetail.value = resultCourseDetail.result;
+      courseDetail.notifyListeners();
+    }
   }
 }

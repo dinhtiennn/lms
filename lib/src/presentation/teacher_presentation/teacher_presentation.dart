@@ -8,6 +8,7 @@ export 'account_teacher/account_teacher.dart';
 export 'profile_teacher/profile_teacher.dart';
 export 'create_course/create_course.dart';
 export 'course_detail_teacher/course_detail_teacher.dart';
+export 'course_review_teacher/course_review.dart';
 export 'group_teacher/group_teacher.dart';
 export 'group_detail_teacher/group_detail_teacher.dart';
 export 'create_test/create_test.dart';

@@ -302,7 +302,7 @@ class _ChatBoxTeacherScreenState extends State<ChatBoxTeacherScreen> {
                     chatBox.lastMessage != null
                         ? Text(
                             isGroup && !isOwnMessage
-                                ? '$lastMessageBy: ${chatBox.lastMessage}'
+                                ? '${chatBox.lastMessageBy}: ${chatBox.lastMessage}'
                                 : isOwnMessage
                                     ? 'Bạn: ${chatBox.lastMessage}'
                                     : chatBox.lastMessage!,

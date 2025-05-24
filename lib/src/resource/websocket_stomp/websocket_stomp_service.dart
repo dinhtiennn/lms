@@ -54,10 +54,8 @@ class StompService {
   StompClient? _client;
 
   void connect() async {
-    StudentModel? studentModel =
-        AppPrefs.getUser<StudentModel>(StudentModel.fromJson);
-    TeacherModel? teacherModel =
-        AppPrefs.getUser<TeacherModel>(TeacherModel.fromJson);
+    StudentModel? studentModel = AppPrefs.getUser<StudentModel>(StudentModel.fromJson);
+    TeacherModel? teacherModel = AppPrefs.getUser<TeacherModel>(TeacherModel.fromJson);
 
     // Thực hiện refresh token TRƯỚC KHI khởi tạo StompClient
     if (studentModel != null) {
@@ -77,12 +75,8 @@ class StompService {
           onDisconnect: _onDisconnect,
           heartbeatIncoming: Duration(seconds: 5),
           heartbeatOutgoing: Duration(seconds: 5),
-          stompConnectHeaders: {
-            'Authorization': 'Bearer ${AppPrefs.accessToken}'
-          },
-          webSocketConnectHeaders: {
-            'Authorization': 'Bearer ${AppPrefs.accessToken}'
-          },
+          stompConnectHeaders: {'Authorization': 'Bearer ${AppPrefs.accessToken}'},
+          webSocketConnectHeaders: {'Authorization': 'Bearer ${AppPrefs.accessToken}'},
           useSockJS: true),
     );
 
@@ -97,8 +91,7 @@ class StompService {
       if (type == StompListenType.chatBox) continue;
 
       final destination = _getDestination(type);
-      if (destination != null &&
-          !_subscribedDestinations.contains(destination)) {
+      if (destination != null && !_subscribedDestinations.contains(destination)) {
         final unsubscribe = _client!.subscribe(
           destination: destination,
           callback: (frame) {
@@ -146,9 +139,8 @@ class StompService {
       return;
     }
 
-    final existingIndex = _listeners.indexWhere((e) =>
-        e.listener == listener &&
-        e.listener.runtimeType == listener.runtimeType);
+    final existingIndex =
+        _listeners.indexWhere((e) => e.listener == listener && e.listener.runtimeType == listener.runtimeType);
 
     if (existingIndex != -1) {
       final existing = _listeners[existingIndex];
@@ -161,9 +153,7 @@ class StompService {
 
     // Rest of the method remains the same
     final destination = _getDestination(type, chatBoxId: chatBoxId);
-    if (_client?.connected == true &&
-        destination != null &&
-        !_subscribedDestinations.contains(destination)) {
+    if (_client?.connected == true && destination != null && !_subscribedDestinations.contains(destination)) {
       final unsubscribe = _client!.subscribe(
         destination: destination,
         callback: (frame) {
@@ -182,8 +172,7 @@ class StompService {
     } else if (_subscribedDestinations.contains(destination)) {
       _logger.i("ℹAlready subscribed to $destination");
     } else {
-      _logger.w(
-          "STOMP not connected or destination is null when registering for $type");
+      _logger.w("STOMP not connected or destination is null when registering for $type");
     }
     for (var element in _listeners) {
       _logger.e(element.toString());
@@ -217,9 +206,7 @@ class StompService {
     // Không hủy đăng ký khi còn listener khác đang nghe kênh đó
     final destination = _getDestination(type, chatBoxId: chatBoxId);
     final stillHasListener = _listeners.any((e) => e.events.contains(type));
-    if (!stillHasListener &&
-        destination != null &&
-        _unsubscribeMap.containsKey(destination)) {
+    if (!stillHasListener && destination != null && _unsubscribeMap.containsKey(destination)) {
       _unsubscribeMap[destination]!();
       _unsubscribeMap.remove(destination);
       _subscribedDestinations.remove(destination);
@@ -232,8 +219,7 @@ class StompService {
     }
   }
 
-  void _handleIncoming(
-      StompListenType type, StompListener listener, String? body) {
+  void _handleIncoming(StompListenType type, StompListener listener, String? body) {
     switch (type) {
       case StompListenType.comment:
         listener.onStompCommentReceived(body);
@@ -271,12 +257,10 @@ class StompService {
   String? _getDestination(StompListenType type, {String? chatBoxId}) {
     String? userName;
     if (AppPrefs.getUser<StudentModel>(StudentModel.fromJson) != null) {
-      StudentModel? studentModel =
-          AppPrefs.getUser<StudentModel>(StudentModel.fromJson);
+      StudentModel? studentModel = AppPrefs.getUser<StudentModel>(StudentModel.fromJson);
       userName = studentModel?.email;
     } else if (AppPrefs.getUser<TeacherModel>(TeacherModel.fromJson) != null) {
-      TeacherModel? teacherModel =
-          AppPrefs.getUser<TeacherModel>(TeacherModel.fromJson);
+      TeacherModel? teacherModel = AppPrefs.getUser<TeacherModel>(TeacherModel.fromJson);
       userName = teacherModel?.email;
     }
     switch (type) {
@@ -340,15 +324,61 @@ class StompService {
 
     // Kiểm tra xem lỗi là do 401 (Unauthorized)
     if (error.toString().contains("401")) {
-      _logger
-          .w("🔄 WebSocket lỗi 401, thử kết nối lại sau một khoảng trễ ngắn.");
+      _logger.w("🔄 WebSocket lỗi 401, thử kết nối lại sau một khoảng trễ ngắn.");
       // Có thể ngắt kết nối cũ trước khi thử lại
       _client?.deactivate(); // Hoặc disconnect() tùy theo logic của bạn
       _client = null;
 
+      String? refreshToken = AppPrefs.refreshToken;
+
+      if (refreshToken == null || refreshToken.isEmpty) {
+        _logger.e("❌ Refresh token không có sẵn");
+        forceLogout();
+        return;
+      }
+
+      // Nếu đang refresh token, không gọi lại API refresh
+      if (_isRefreshingToken) {
+        _logger.w("⏳ Đang refresh token, thêm request vào hàng đợi");
+        return;
+      }
+
+      // Bắt đầu quá trình refresh token
+      _isRefreshingToken = true;
+
+      try {
+        _logger.i("🔄 Bắt đầu refresh token");
+        final dio = Dio()
+          ..options.connectTimeout = const Duration(seconds: 10)
+          ..options.receiveTimeout = const Duration(seconds: 10)
+          ..options.sendTimeout = const Duration(seconds: 10);
+
+        final response = await dio.post(
+          '${AppEndpoint.baseUrl}${AppEndpoint.REFRESH}',
+          data: {'token': refreshToken},
+          options: Options(
+            headers: {'Content-Type': 'application/json'},
+            sendTimeout: const Duration(seconds: 10),
+            receiveTimeout: const Duration(seconds: 10),
+          ),
+        );
+
+        String? newToken;
+        if (response.statusCode == 200 && response.data['result']?['token'] != null) {
+          newToken = response.data['result']['token'];
+          AppPrefs.accessToken = newToken;
+          AppPrefs.refreshToken = newToken;
+          _logger.i("💡 🔁 Cập nhật token mới thành công: $newToken");
+        } else {
+          _logger.e("❌ Phản hồi refresh token không hợp lệ: ${response.data}");
+        }
+      } catch (e) {
+        _logger.e("❌ Exception khi refresh token: $e");
+      } finally {
+        _isRefreshingToken = false;
+      }
       // Đợi một chút trước khi thử kết nối lại để tránh spam
-      await Future.delayed(
-          Duration(seconds: 5)); // Điều chỉnh thời gian nếu cần
+      await Future.delayed(Duration(seconds: 5)); // Điều chỉnh thời gian nếu cần
       if (!_isRefreshingToken) {
         // Vẫn giữ cờ này để tránh gọi connect() nhiều lần từ các lỗi đồng thời
         _isRefreshingToken = true;
@@ -370,14 +400,11 @@ class StompService {
     AppPrefs.accessToken = null;
     AppPrefs.refreshToken = null;
 
-    Get.offAllNamed(Routers.login, arguments: {
-      'errMessage': 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!'
-    });
+    Get.offAllNamed(Routers.login, arguments: {'errMessage': 'Phiên đăng nhập đã hết hạn, vui lòng đăng nhập lại!'});
     disconnect();
   }
 
-  static Future<void> didChangeAppLifecycleState(
-      AppLifecycleState state) async {
+  static Future<void> didChangeAppLifecycleState(AppLifecycleState state) async {
     if (_instance == null) return;
 
     switch (state) {

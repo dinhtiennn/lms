@@ -29,8 +29,11 @@ class _HomeTeacherScreenState extends State<HomeTeacherScreen> {
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
-      _viewModel.loadMyCourse();
+    if (_scrollController.position.pixels >=
+        _scrollController.position.maxScrollExtent - 200) {
+      if (!_viewModel.isRefreshing) {
+        _viewModel.loadMyCourse();
+      }
     }
   }
 
@@ -48,49 +51,54 @@ class _HomeTeacherScreenState extends State<HomeTeacherScreen> {
         builder: (context, viewModel, child) {
           return Scaffold(
             appBar: AppBar(
-              title: ValueListenableBuilder<TeacherModel?>(valueListenable: _viewModel.teacher, builder: (context, teacher, child) => Row(
-                children: [
-                  WidgetImageNetwork(
-                      url: teacher?.avatar ?? '',
-                      width: 40,
-                      height: 40,
-                      radiusAll: 100,
-                      widgetError: Container(
+              title: ValueListenableBuilder<TeacherModel?>(
+                valueListenable: _viewModel.teacher,
+                builder: (context, teacher, child) => Row(
+                  children: [
+                    WidgetImageNetwork(
+                        url: teacher?.avatar ?? '',
                         width: 40,
                         height: 40,
-                        color: white,
-                        child: const Icon(
-                          Icons.person,
-                          size: 30,
-                          color: Colors.grey,
-                        ),
-                      )),
-                  SizedBox(
-                    width: 12,
-                  ),
-                  Expanded(
-                    child: ValueListenableBuilder<TeacherModel?>(
-                      valueListenable: _viewModel.teacher,
-                      builder: (context, teacher, child) => Padding(
-                        padding: EdgeInsets.symmetric(vertical: 5),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                          children: [
-                            Text('${'hi'.tr} 👋'.tr,
-                                style: styleVerySmall.copyWith(fontWeight: FontWeight.w600, color: white)),
-                            Text(
-                              'GV. ${teacher?.fullName ?? ''}',
-                              overflow: TextOverflow.ellipsis,
-                              style: styleVerySmall.copyWith(color: white),
-                            ),
-                          ],
+                        radiusAll: 100,
+                        widgetError: Container(
+                          width: 40,
+                          height: 40,
+                          color: white,
+                          child: const Icon(
+                            Icons.person,
+                            size: 30,
+                            color: Colors.grey,
+                          ),
+                        )),
+                    SizedBox(
+                      width: 12,
+                    ),
+                    Expanded(
+                      child: ValueListenableBuilder<TeacherModel?>(
+                        valueListenable: _viewModel.teacher,
+                        builder: (context, teacher, child) => Padding(
+                          padding: EdgeInsets.symmetric(vertical: 5),
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Text('${'hi'.tr} 👋'.tr,
+                                  style: styleVerySmall.copyWith(
+                                      fontWeight: FontWeight.w600,
+                                      color: white)),
+                              Text(
+                                'GV. ${teacher?.fullName ?? ''}',
+                                overflow: TextOverflow.ellipsis,
+                                style: styleVerySmall.copyWith(color: white),
+                              ),
+                            ],
+                          ),
                         ),
                       ),
                     ),
-                  ),
-                ],
-              ),),
+                  ],
+                ),
+              ),
               leadingWidth: 0,
               leading: SizedBox.shrink(),
               backgroundColor: primary2,
@@ -158,15 +166,19 @@ class _HomeTeacherScreenState extends State<HomeTeacherScreen> {
       },
       child: Container(
         color: white,
+        height: Get.height,
         child: SingleChildScrollView(
           controller: _scrollController,
-          physics: AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
+          physics:
+              AlwaysScrollableScrollPhysics(parent: BouncingScrollPhysics()),
           padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               _buildSearchBar(),
-              SizedBox(height: 24,),
+              SizedBox(
+                height: 24,
+              ),
               // Nút tạo khóa học
               WidgetButton(
                 text: 'Tạo khóa học',
@@ -211,7 +223,8 @@ class _HomeTeacherScreenState extends State<HomeTeacherScreen> {
                               child: Padding(
                                 padding: const EdgeInsets.all(16.0),
                                 child: CircularProgressIndicator(
-                                  valueColor: AlwaysStoppedAnimation<Color>(primary2),
+                                  valueColor:
+                                      AlwaysStoppedAnimation<Color>(primary2),
                                 ),
                               ),
                             );
@@ -239,10 +252,15 @@ class _HomeTeacherScreenState extends State<HomeTeacherScreen> {
   Widget _buildSearchBar() {
     return Container(
       decoration: BoxDecoration(
-          color: white, borderRadius: BorderRadius.circular(12), border: Border.all(color: grey5, width: 1)),
+          color: white,
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: grey5, width: 1)),
       child: WidgetInput(
         hintText: 'Tìm kiếm khóa học...',
-        prefix: Icon(Icons.search, size: 32,),
+        prefix: Icon(
+          Icons.search,
+          size: 32,
+        ),
         widthPrefix: 52,
         contentPadding: EdgeInsets.symmetric(vertical: 16),
         borderColor: Colors.transparent,

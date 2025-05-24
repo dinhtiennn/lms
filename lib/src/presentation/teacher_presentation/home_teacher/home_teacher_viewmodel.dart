@@ -13,16 +13,20 @@ class HomeTeacherViewModel extends BaseViewModel {
   int pageNumber = 0;
   bool hasMoreData = true;
   int pageSize = 4;
+  bool isRefreshing = false;
 
   init() async {
     await loadMyCourse();
     await loadTeacherInfo();
   }
 
-  void refresh() {
+  void refresh() async {
+    if (isRefreshing) return;
+    isRefreshing = true;
     pageNumber = 0;
     hasMoreData = true;
-    loadMyCourse();
+    await loadMyCourse();
+    isRefreshing = false;
   }
 
   void createCourse() {
@@ -44,7 +48,8 @@ class HomeTeacherViewModel extends BaseViewModel {
       isLoadingMore.notifyListeners();
     }
 
-    NetworkState<List<CourseModel>> result = await courseRepository.getCoursesByTeacher(
+    NetworkState<List<CourseModel>> result =
+        await courseRepository.getCoursesByTeacher(
       pageSize: pageSize,
       pageNumber: pageNumber,
     );
@@ -71,8 +76,8 @@ class HomeTeacherViewModel extends BaseViewModel {
     }
   }
 
-  void courseDetail(CourseModel course){
-    Get.toNamed(Routers.courseDetailTeacher, arguments: {'course' : course});
+  void courseDetail(CourseModel course) {
+    Get.toNamed(Routers.courseDetailTeacher, arguments: {'course': course});
   }
 
   void search() {
@@ -80,13 +85,14 @@ class HomeTeacherViewModel extends BaseViewModel {
   }
 
   void refreshTeacher() {
-    TeacherModel? teacher = AppPrefs.getUser<TeacherModel>(TeacherModel.fromJson);
-    if(teacher == null){
+    TeacherModel? teacher =
+        AppPrefs.getUser<TeacherModel>(TeacherModel.fromJson);
+    if (teacher == null) {
       showToast(title: 'Lỗi hệ thống vui lòng thử lại sau');
       Get.offAllNamed(Routers.login);
     }
     AppPrefs.setUser<TeacherModel>(teacher);
-    this.teacher.value = teacher!.copyWith(avatar: AppUtils.pathMediaToUrlAndRamdomParam(teacher.avatar));
+    this.teacher.value = teacher!.copyWith(
+        avatar: AppUtils.pathMediaToUrlAndRamdomParam(teacher.avatar));
   }
-
 }

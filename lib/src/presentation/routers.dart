@@ -50,6 +50,7 @@ class Routers {
   static const String courseFileDetailTeacher = "/course-file-detail-teacher";
   static const String courseMaterialDetailTeacher = "/course-material-detail-teacher";
   static const String courseQuizsDetailTeacher = "/course-quizs-detail-teacher";
+  static const String courseReviewTeacher = "/course-review-teacher";
   static const String groupDetailTeacher = "/group-detail-teacher";
   static const String createTest = "/create-test";
   static const String editTest = "/edit-test";
@@ -170,6 +171,9 @@ class Routers {
       case courseQuizsDetailTeacher:
         return animRoute(const CourseQuizDetailTeacherScreen(),
             name: courseQuizsDetailTeacher, beginOffset: _right, arguments: arguments);
+      case courseReviewTeacher:
+        return animRoute(const CourseReviewTeacherScreen(),
+            name: courseReviewTeacher, beginOffset: _right, arguments: arguments);
       case groupDetailTeacher:
         return animRoute(const GroupDetailTeacherScreen(),
             name: groupDetailTeacher, beginOffset: _right, arguments: arguments);

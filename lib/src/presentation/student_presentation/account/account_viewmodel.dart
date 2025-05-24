@@ -31,6 +31,10 @@ class AccountViewModel extends BaseViewModel {
     Get.toNamed(Routers.support);
   }
 
+  void allRequest() {
+    Get.toNamed(Routers.allRequestJoinCourseByStudent);
+  }
+
   void logout() async {
     try {
       final StompService? stompService = await StompService.instance();

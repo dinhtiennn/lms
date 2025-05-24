@@ -73,81 +73,88 @@ class _AccountScreenState extends State<AccountScreen> {
           ),
         ],
       ),
-      child: ValueListenableBuilder<StudentModel?>(valueListenable: _viewModel.student, builder: (context, student, child) => Row(
-        children: [
-          Container(
-            width: 60,
-            height: 60,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: primary.withAlpha((255 * 0.2).round()), width: 2),
-              boxShadow: [
-                BoxShadow(
-                  color: black.withAlpha((255 * 0.05).round()),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-            child: ClipRRect(
-                borderRadius: BorderRadius.circular(100),
-                child: student!.avatar != null
-                    ? WidgetImageNetwork(
-                  url: student.avatar,
-                  radiusAll: 100,
-                  width: 60,
-                  height: 60,
-                  fit: BoxFit.cover,
-                  widgetError: Container(
-                    decoration: BoxDecoration(
+      child: ValueListenableBuilder<StudentModel?>(
+        valueListenable: _viewModel.student,
+        builder: (context, student, child) => Row(
+          children: [
+            Container(
+              width: 60,
+              height: 60,
+              decoration: BoxDecoration(
+                shape: BoxShape.circle,
+                border: Border.all(color: primary.withAlpha((255 * 0.2).round()), width: 2),
+                boxShadow: [
+                  BoxShadow(
+                    color: black.withAlpha((255 * 0.05).round()),
+                    blurRadius: 8,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: ClipRRect(
+                  borderRadius: BorderRadius.circular(100),
+                  child: student!.avatar != null
+                      ? WidgetImageNetwork(
+                          url: student.avatar,
+                          radiusAll: 100,
+                          width: 60,
+                          height: 60,
+                          fit: BoxFit.cover,
+                          widgetError: Container(
+                            decoration: BoxDecoration(
                               color: white,
                               shape: BoxShape.circle,
-                      border: Border.all(color: primary.withAlpha((255 * 0.2).round()), width: 2),
-                    ),
-                    child: Icon(Icons.person, color: grey4,size: 32,),
+                              border: Border.all(color: primary.withAlpha((255 * 0.2).round()), width: 2),
+                            ),
+                            child: Icon(
+                              Icons.person,
+                              color: grey4,
+                              size: 32,
+                            ),
+                          ),
+                        )
+                      : _buildDefaultAvatar()),
+            ),
+            SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    student.fullName ?? '',
+                    style: styleMediumBold.copyWith(color: black),
+                    overflow: TextOverflow.ellipsis,
                   ),
-                )
-                    : _buildDefaultAvatar()),
-          ),
-          SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  student.fullName ?? '',
-                  style: styleMediumBold.copyWith(color: black),
-                  overflow: TextOverflow.ellipsis,
-                ),
-                SizedBox(height: 8),
-                Text(
-                  student.email ?? '',
-                  style: styleSmall.copyWith(color: grey5),
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: primary.withAlpha((255 * 0.1).round()),
-              shape: BoxShape.circle,
-            ),
-            child: IconButton(
-              icon: Icon(
-                Icons.arrow_forward_ios,
-                size: 14,
-                color: primary,
+                  SizedBox(height: 8),
+                  Text(
+                    student.email ?? '',
+                    style: styleSmall.copyWith(color: grey5),
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                ],
               ),
-              onPressed: () {
-                _viewModel.editProfile();
-              },
             ),
-          ),
-        ],
-      ),),
+            Container(
+              width: 36,
+              height: 36,
+              decoration: BoxDecoration(
+                color: primary.withAlpha((255 * 0.1).round()),
+                shape: BoxShape.circle,
+              ),
+              child: IconButton(
+                icon: Icon(
+                  Icons.arrow_forward_ios,
+                  size: 14,
+                  color: primary,
+                ),
+                onPressed: () {
+                  _viewModel.editProfile();
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
     );
   }
 
@@ -186,6 +193,13 @@ class _AccountScreenState extends State<AccountScreen> {
               iconBackgroundColor: success,
               onTap: () {
                 _viewModel.support();
+              }),
+          _buildItemAction(
+              title: 'Tất cả yêu cầu đăng ký khóa học',
+              image: 'support',
+              iconBackgroundColor: success,
+              onTap: () {
+                _viewModel.allRequest();
               }),
           _buildItemAction(
               title: 'change_password'.tr,

@@ -220,7 +220,7 @@ class _SearchTeacherScreenState extends State<SearchTeacherScreen> {
         course: course,
         joined: false,
         onTap: () {
-          Get.toNamed(Routers.courseDetailTeacher, arguments: {'course': course});
+          _viewModel.courseDetail(course);
         },
       ),
     );

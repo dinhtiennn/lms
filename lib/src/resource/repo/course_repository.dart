@@ -190,7 +190,7 @@ class CourseRepository {
 
     try {
       Response response = await AppClients().get(AppEndpoint.SEARCHCOURSE,
-          queryParameters: {'courseName': keyword, 'teacher': teacher, 'pageNumber': pageNumber, 'pageSize': pageSize});
+          queryParameters: {'courseName': keyword, 'pageNumber': pageNumber, 'pageSize': pageSize});
       return NetworkState(
         status: response.statusCode ?? AppEndpoint.success,
         result: CourseModel.listFromJson(response.data['result']['content']),

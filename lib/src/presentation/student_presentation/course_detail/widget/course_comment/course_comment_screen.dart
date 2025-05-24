@@ -68,6 +68,36 @@ class _CourseCommentScreenState extends State<CourseCommentScreen> {
             },
           ),
         ),
+        // Sử dụng ValueListenableBuilder cho phần hiển thị "Đang trả lời"
+        ValueListenableBuilder<CommentModel?>(
+          valueListenable: _viewModel.commentSelected,
+          builder: (context, replying, _) {
+            if (replying != null) {
+              return Container(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: 16, vertical: 8),
+                color: primary.withAlpha((255 * 0.05).round()),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        'Đang trả lời ${replying.fullname}',
+                        style: styleSmall.copyWith(color: primary),
+                      ),
+                    ),
+                    InkWell(
+                      onTap: () {
+                        _viewModel.setCommentSelected();
+                      },
+                      child: Icon(Icons.close, size: 16, color: grey3),
+                    ),
+                  ],
+                ),
+              );
+            }
+            return SizedBox.shrink();
+          },
+        ),
         _buildCommentInput(),
       ],
     );

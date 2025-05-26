@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:get/get.dart';
 import 'package:lms/src/configs/configs.dart';
 import 'package:lms/src/utils/app_valid.dart';
@@ -14,7 +15,6 @@ class LoginScreen extends StatefulWidget {
 
 class _LoginScreenState extends State<LoginScreen> {
   late LoginViewModel _viewModel;
-
   @override
   Widget build(BuildContext context) {
     return BaseWidget<LoginViewModel>(
@@ -68,9 +68,10 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   SizedBox(height: 24),
                   WidgetInput(
-                    validator: AppValid.validateRequireEnter(titleValid: 'Vui lòng nhập email'),
+                    validator: AppValid.validateRequireEnter(
+                        titleValid: 'Vui lòng nhập email'),
                     controller: _viewModel.userNameController,
-                    titleText: 'Email',
+                    titleText: 'Email sinh viên',
                     titleStyle: styleSmall.copyWith(color: grey2),
                     hintText: 'VD: example@husc.edu.vn',
                     hintStyle: styleVerySmall.copyWith(color: grey4),
@@ -79,7 +80,8 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   SizedBox(height: 16),
                   WidgetInput(
-                    validator: AppValid.validateRequireEnter(titleValid: 'Vui lòng nhập mật khẩu'),
+                    validator: AppValid.validateRequireEnter(
+                        titleValid: 'Vui lòng nhập mật khẩu'),
                     controller: _viewModel.passWordController,
                     titleText: 'Mật khẩu',
                     titleStyle: styleSmall.copyWith(color: grey2),
@@ -119,9 +121,13 @@ class _LoginScreenState extends State<LoginScreen> {
                             child: WidgetButton(
                               radius: BorderRadius.only(
                                 topLeft: Radius.circular(100),
-                                topRight: preferredBiometric != null ? Radius.circular(12) : Radius.circular(100),
+                                topRight: preferredBiometric != null
+                                    ? Radius.circular(12)
+                                    : Radius.circular(100),
                                 bottomLeft: Radius.circular(100),
-                                bottomRight: preferredBiometric != null ? Radius.circular(12) : Radius.circular(100),
+                                bottomRight: preferredBiometric != null
+                                    ? Radius.circular(12)
+                                    : Radius.circular(100),
                               ),
                               text: 'login'.tr,
                               onTap: _viewModel.login,
@@ -143,18 +149,20 @@ class _LoginScreenState extends State<LoginScreen> {
                                     bottomLeft: Radius.circular(12),
                                   ),
                                 ),
-                                child: preferredBiometric == BiometricType.strong
-                                    ? Icon(
-                                        Icons.fingerprint_outlined,
-                                        color: white,
-                                        size: 30,
-                                      )
-                                    : Image(
-                                        image: AssetImage(AppImages.png('face_id')),
-                                        color: white,
-                                        width: 30,
-                                        height: 30,
-                                      ),
+                                child:
+                                    preferredBiometric == BiometricType.strong
+                                        ? Icon(
+                                            Icons.fingerprint_outlined,
+                                            color: white,
+                                            size: 30,
+                                          )
+                                        : Image(
+                                            image: AssetImage(
+                                                AppImages.png('face_id')),
+                                            color: white,
+                                            width: 30,
+                                            height: 30,
+                                          ),
                               ),
                             ),
                         ],

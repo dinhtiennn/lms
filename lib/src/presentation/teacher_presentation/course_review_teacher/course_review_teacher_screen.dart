@@ -368,7 +368,7 @@ class _CourseReviewTeacherScreenState extends State<CourseReviewTeacherScreen> {
           children: [
             Expanded(
               child: Text(
-                'Danh sách bài học',
+                'Danh sách chương học',
                 style: styleMediumBold.copyWith(color: black),
               ),
             ),

@@ -55,14 +55,14 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   ),
                   SizedBox(height: 32),
                   Text(
-                    'Đăng ký',
+                    'Đăng ký tài khoản',
                     style: styleVeryLargeBold.copyWith(color: primary),
                   ),
                   SizedBox(height: 24),
                   WidgetInput(
                     validator: AppValid.validateRequireEnter(titleValid: 'Vui lòng nhập họ tên'),
                     controller: _viewModel.fullNameController,
-                    titleText: 'Họ và tên',
+                    titleText: 'Họ và tên sinh viên',
                     titleStyle: styleSmall.copyWith(color: grey2),
                     hintText: 'VD: Nguyễn Văn A',
                     hintStyle: styleVerySmall.copyWith(color: grey4),
@@ -129,7 +129,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
                   WidgetInput(
                     validator: AppValid.validatePasswordConfirm(_viewModel.passWordController),
                     controller: _viewModel.passWordConfirmController,
-                    titleText: 'Mật khẩu mới'.tr,
+                    titleText: 'Nhập lại mật khẩu',
                     titleStyle: styleSmall.copyWith(color: grey2),
                     hintText: 'VD: Abc123@',
                     hintStyle: styleVerySmall.copyWith(color: grey4),

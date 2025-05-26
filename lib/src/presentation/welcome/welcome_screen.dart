@@ -241,7 +241,7 @@ class _WelcomeScreenState extends State<WelcomeScreen>
   Widget _buildScreen1() {
     return _buildScreenContent(
       image: 'image1',
-      title: 'Chào mừng đến với LMS 👋',
+      title: 'Chào mừng đến với Hệ thống hỗ trợ học tập trực tuyến 👋',
       subtitle:
           'Nơi kiến thức và sự sáng tạo hội tụ, mở ra cánh cửa tri thức mới',
     );

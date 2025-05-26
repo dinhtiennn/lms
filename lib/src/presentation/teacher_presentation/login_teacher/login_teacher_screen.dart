@@ -64,7 +64,7 @@ class _LoginTeacherScreenState extends State<LoginTeacherScreen> {
                   ),
                   SizedBox(height: 32),
                   Text(
-                    'login'.tr,
+                    'Đăng nhập',
                     style: styleVeryLargeBold.copyWith(color: primary),
                   ),
                   SizedBox(height: 24),
@@ -72,7 +72,7 @@ class _LoginTeacherScreenState extends State<LoginTeacherScreen> {
                     validator: AppValid.validateRequireEnter(
                         titleValid: 'Vui lòng nhập mã giảng viên'),
                     controller: _viewModel.userNameController,
-                    titleText: 'Email',
+                    titleText: 'Email giảng viên',
                     titleStyle: styleSmall.copyWith(color: grey2),
                     hintText: 'VD: teacher@husc.edu.vn',
                     hintStyle: styleVerySmall.copyWith(color: grey4),

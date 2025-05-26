@@ -1,11 +1,11 @@
 class AppEndpoint {
   AppEndpoint._();
 
-  static const String baseUrl = "http://192.168.95.36:8080";
+  static const String baseUrl = "http://192.168.1.44:8080";
 
-  static const String baseWebsocket = 'http://192.168.95.36:8080/lms/ws';
+  static const String baseWebsocket = 'http://192.168.1.44:8080/lms/ws';
 
-  static const String baseImageUrl = "http://192.168.95.36:8080";
+  static const String baseImageUrl = "http://192.168.1.44:8080";
 
   static const int connectionTimeout = 15000;
   static const int receiveTimeout = 15000;

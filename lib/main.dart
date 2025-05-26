@@ -15,6 +15,10 @@ import 'src/utils/utils.dart';
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   SystemChrome.setEnabledSystemUIMode(SystemUiMode.edgeToEdge);
+  SystemChrome.setSystemUIOverlayStyle(SystemUiOverlayStyle(
+    statusBarColor: Colors.grey[50],
+    statusBarIconBrightness: Brightness.dark,
+  ));
   await Firebase.initializeApp();
   await AppPrefs.initListener();
   await initializeDateFormatting('vi_VN', null);

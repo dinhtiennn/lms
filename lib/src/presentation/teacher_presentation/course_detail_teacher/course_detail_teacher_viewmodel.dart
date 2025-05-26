@@ -1383,7 +1383,8 @@ class CourseDetailTeacherViewModel extends BaseViewModel with StompListener {
     if (resultRemoveCourse.isSuccess) {
       if (Get.isRegistered<HomeTeacherViewModel>()) {
         Get.find<HomeTeacherViewModel>().refresh();
-        await Future.delayed(const Duration(seconds: 1));
+        showToast(title: 'Xóa khóa học thành công', type: ToastificationType.success);
+        await Future.delayed(const Duration(milliseconds: 500));
       }
       Get.back();
     }

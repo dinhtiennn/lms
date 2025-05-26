@@ -67,11 +67,15 @@ class _ChooseRoleScreenState extends State<ChooseRoleScreen> {
                       ),
                     ),
                     const SizedBox(height: 20),
-                    Text(
-                      'Chào mừng đến với LMS',
-                      style: styleLargeBold.copyWith(
-                        color: primary3,
-                        fontSize: 26,
+                    Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Text(
+                        'Chào mừng đến với Hệ thống hỗ trợ học tập trực tuyến',
+                        style: styleLargeBold.copyWith(
+                          color: primary3,
+                          fontSize: 26,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
                     ),
                     const SizedBox(height: 10),

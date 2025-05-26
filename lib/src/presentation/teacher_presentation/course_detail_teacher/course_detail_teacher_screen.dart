@@ -280,7 +280,7 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       Text(
-                        'Danh sách bài học',
+                        'Danh sách chương học',
                         style: styleMediumBold.copyWith(color: black),
                       ),
                       ElevatedButton.icon(
@@ -291,7 +291,7 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                           size: 16,
                         ),
                         label: Text(
-                          'Thêm bài học',
+                          'Thêm chương học',
                           style: styleSmall.copyWith(color: white),
                         ),
                         style: ElevatedButton.styleFrom(
@@ -413,7 +413,6 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
   }
 
   Widget _buildStatsSummary({CourseDetailModel? course}) {
-    // Tính toán số lượng chương học từ danh sách bài học
     int totalChapters = 0;
     if (course?.lesson != null) {
       for (var lesson in course!.lesson!) {
@@ -438,9 +437,9 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildStatItem(Icons.book_outlined, '${course?.lesson?.length ?? 0}', 'Bài học'),
+          _buildStatItem(Icons.book_outlined, '${course?.lesson?.length ?? 0}', 'Chương học'),
           _buildVerticalDivider(),
-          _buildStatItem(Icons.menu_book_outlined, '$totalChapters', 'Chương học'),
+          _buildStatItem(Icons.menu_book_outlined, '$totalChapters', 'Bài học'),
           if (course?.status?.isNotEmpty == true) ...[
             _buildVerticalDivider(),
             _buildStatItem(
@@ -572,7 +571,7 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Chương học',
+                        'Bài học',
                         style: styleSmallBold.copyWith(color: black),
                       ),
                     ),
@@ -670,7 +669,7 @@ class _CourseDetailTeacherScreenState extends State<CourseDetailTeacherScreen> {
                   children: [
                     Expanded(
                       child: Text(
-                        'Bài kiểm tra',
+                        'Bài kiểm tra cuối chương',
                         style: styleSmallBold.copyWith(color: black),
                       ),
                     ),

@@ -54,7 +54,7 @@ class _NavigationScreenState extends State<NavigationScreen> with TickerProvider
       ),
       PersistentBottomNavBarItem(
         icon: Image(image: AssetImage(AppImages.png('chat'))),
-        title: "box_chat",
+        title: "Nhắn tin",
         activeColorPrimary: primary3,
         activeColorSecondary: black,
       ),

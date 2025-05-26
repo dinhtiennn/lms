@@ -152,57 +152,57 @@ class _NotificationDetailTeacherScreenState extends State<NotificationDetailTeac
                                             ),
 
                                             // Hiển thị các nút hành động nếu có
-                                            if (actions.isNotEmpty)
-                                              Padding(
-                                                padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                                                child: Column(
-                                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                                  children: [
-                                                    Text(
-                                                      'Hành động',
-                                                      style: styleSmallBold.copyWith(color: black),
-                                                    ),
-                                                    SizedBox(height: 12),
-                                                    ...actions
-                                                        .map((action) => Padding(
-                                                              padding: EdgeInsets.only(bottom: 8),
-                                                              child: ElevatedButton(
-                                                                onPressed: action.onTap,
-                                                                style: ElevatedButton.styleFrom(
-                                                                  backgroundColor:
-                                                                      action.outlined ? white : action.color,
-                                                                  shape: RoundedRectangleBorder(
-                                                                    borderRadius: BorderRadius.circular(8),
-                                                                    side: action.outlined
-                                                                        ? BorderSide(color: action.color)
-                                                                        : BorderSide.none,
-                                                                  ),
-                                                                  padding: EdgeInsets.symmetric(
-                                                                      horizontal: 24, vertical: 12),
-                                                                ),
-                                                                child: Row(
-                                                                  mainAxisSize: MainAxisSize.min,
-                                                                  children: [
-                                                                    Icon(
-                                                                      action.icon,
-                                                                      color: action.outlined ? action.color : white,
-                                                                      size: 20,
-                                                                    ),
-                                                                    SizedBox(width: 8),
-                                                                    Text(
-                                                                      action.label,
-                                                                      style: styleSmall.copyWith(
-                                                                        color: action.outlined ? action.color : white,
-                                                                      ),
-                                                                    ),
-                                                                  ],
-                                                                ),
-                                                              ),
-                                                            ))
-                                                        .toList(),
-                                                  ],
-                                                ),
-                                              ),
+                                            // if (actions.isNotEmpty)
+                                            //   Padding(
+                                            //     padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
+                                            //     child: Column(
+                                            //       crossAxisAlignment: CrossAxisAlignment.start,
+                                            //       children: [
+                                            //         Text(
+                                            //           'Hành động',
+                                            //           style: styleSmallBold.copyWith(color: black),
+                                            //         ),
+                                            //         SizedBox(height: 12),
+                                            //         ...actions
+                                            //             .map((action) => Padding(
+                                            //                   padding: EdgeInsets.only(bottom: 8),
+                                            //                   child: ElevatedButton(
+                                            //                     onPressed: action.onTap,
+                                            //                     style: ElevatedButton.styleFrom(
+                                            //                       backgroundColor:
+                                            //                           action.outlined ? white : action.color,
+                                            //                       shape: RoundedRectangleBorder(
+                                            //                         borderRadius: BorderRadius.circular(8),
+                                            //                         side: action.outlined
+                                            //                             ? BorderSide(color: action.color)
+                                            //                             : BorderSide.none,
+                                            //                       ),
+                                            //                       padding: EdgeInsets.symmetric(
+                                            //                           horizontal: 24, vertical: 12),
+                                            //                     ),
+                                            //                     child: Row(
+                                            //                       mainAxisSize: MainAxisSize.min,
+                                            //                       children: [
+                                            //                         Icon(
+                                            //                           action.icon,
+                                            //                           color: action.outlined ? action.color : white,
+                                            //                           size: 20,
+                                            //                         ),
+                                            //                         SizedBox(width: 8),
+                                            //                         Text(
+                                            //                           action.label,
+                                            //                           style: styleSmall.copyWith(
+                                            //                             color: action.outlined ? action.color : white,
+                                            //                           ),
+                                            //                         ),
+                                            //                       ],
+                                            //                     ),
+                                            //                   ),
+                                            //                 ))
+                                            //             .toList(),
+                                            //       ],
+                                            //     ),
+                                            //   ),
                                           ],
                                         ),
                                       ),

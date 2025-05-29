@@ -63,47 +63,6 @@ class _DocumentScreenState extends State<DocumentScreen> {
           ),
         ),
 
-        // Phần chọn ngành học
-        Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
-          child: ValueListenableBuilder<List<MajorModel>?>(
-            valueListenable: _viewModel.majors,
-            builder: (context, majors, child) {
-              if (majors == null || majors.isEmpty) {
-                return const SizedBox.shrink();
-              }
-
-              return Container(
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(50),
-                  border: Border.all(color: grey5),
-                ),
-                child: ValueListenableBuilder(
-                  valueListenable: _viewModel.majorSelected,
-                  builder: (context, major, child) => WidgetInput(
-                    readOnly: true,
-                    controller: TextEditingController(
-                      text: major?.name ?? 'N/A',
-                    ),
-                    style: styleSmall.copyWith(color: grey2),
-                    onTap: () => _showMajorBottomSheet(context, majors),
-                    hintText: 'Chọn ngành học',
-                    hintStyle: styleSmall.copyWith(color: grey4),
-                    borderRadius: BorderRadius.circular(50),
-                    suffix: Icon(
-                      Icons.keyboard_arrow_down_rounded,
-                      color: grey3,
-                      size: 20,
-                    ),
-                    widthSuffix: 40,
-                    bgColor: white,
-                  ),
-                ),
-              );
-            },
-          ),
-        ),
-
         // Phần tiêu đề tài liệu mới
         Padding(
           padding: EdgeInsets.fromLTRB(16, 16, 16, 8),
@@ -184,62 +143,6 @@ class _DocumentScreenState extends State<DocumentScreen> {
           ),
         ),
       ],
-    );
-  }
-
-  void _showMajorBottomSheet(BuildContext context, List<MajorModel> majors) {
-    showModalBottomSheet(
-      context: context,
-      backgroundColor: white,
-      useSafeArea: true,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
-      ),
-      builder: (context) {
-        return Container(
-          padding: EdgeInsets.symmetric(vertical: 20)
-              .copyWith(bottom: MediaQuery.paddingOf(context).bottom),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 40,
-                height: 4,
-                margin: EdgeInsets.only(bottom: 20),
-                decoration: BoxDecoration(
-                  color: Colors.grey[300],
-                  borderRadius: BorderRadius.circular(2),
-                ),
-              ),
-              Text(
-                'Chọn ngành học',
-                style: styleLargeBold.copyWith(color: grey2),
-              ),
-              SizedBox(height: 20),
-              Flexible(
-                child: ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: majors.length, // +1 for "All" option
-                  itemBuilder: (context, index) {
-                    final major = majors[index];
-                    return ListTile(
-                      title: Text(
-                        major.name ?? '',
-                        style: styleMedium.copyWith(color: grey2),
-                      ),
-                      onTap: () {
-                        _viewModel.setMajor(major);
-                        _viewModel.refresh();
-                        Navigator.pop(context);
-                      },
-                    );
-                  },
-                ),
-              ),
-            ],
-          ),
-        );
-      },
     );
   }
 

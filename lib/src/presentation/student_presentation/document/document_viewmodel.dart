@@ -9,8 +9,6 @@ class DocumentViewModel extends BaseViewModel {
   TextEditingController keyword = TextEditingController();
   ValueNotifier<StudentModel?> student = ValueNotifier(null);
   ValueNotifier<List<DocumentModel>?> documents = ValueNotifier(null);
-  ValueNotifier<MajorModel?> majorSelected = ValueNotifier(null);
-  ValueNotifier<List<MajorModel>?> majors = ValueNotifier(null);
   ValueNotifier<bool> isLoading = ValueNotifier(false);
   ValueNotifier<bool> isLoadingMore = ValueNotifier(false);
   int pageSize = 10;
@@ -21,40 +19,11 @@ class DocumentViewModel extends BaseViewModel {
   init() async {
     student.value = AppPrefs.getUser<StudentModel>(StudentModel.fromJson);
     scrollController.addListener(_onScroll);
-    _loadMajor();
     await refresh();
   }
 
-  Future<void> _loadMajor() async {
-    setLoading(true);
-    NetworkState<List<MajorModel>> resultMajor =
-        await majorRepository.getAllMajor();
-    setLoading(false);
-    if (resultMajor.isSuccess && resultMajor.result != null) {
-      majors.value = resultMajor.result ?? [];
-      majors.value?.forEach(
-        (element) {
-          if (element.id == student.value?.major?.id) {
-            setMajor(element);
-          }
-        },
-      );
-      majors.notifyListeners();
-    } else {
-      showToast(
-          title: 'Không thể tải danh sách ngành học. Vui lòng thử lại!',
-          type: ToastificationType.error);
-    }
-  }
-
-  void setMajor(MajorModel? major) {
-    majorSelected.value = major;
-    majorSelected.notifyListeners();
-  }
-
   void _onScroll() {
-    if (scrollController.position.pixels >=
-        scrollController.position.maxScrollExtent - 200) {
+    if (scrollController.position.pixels >= scrollController.position.maxScrollExtent - 200) {
       loadMoreDocuments();
     }
   }
@@ -62,14 +31,7 @@ class DocumentViewModel extends BaseViewModel {
   Future<void> refresh() async {
     currentPage = 0;
     hasMoreDocuments = true;
-    if (keyword.text.isNotEmpty || majorSelected.value != null) {
-      search(
-          keyword: keyword.text,
-          majorId: majorSelected.value?.id ?? '',
-          isRefresh: true);
-    } else {
-      await _loadMyDocument(isRefresh: true);
-    }
+    await _loadMyDocument(isRefresh: true);
   }
 
   void loadMoreDocuments() {
@@ -79,8 +41,7 @@ class DocumentViewModel extends BaseViewModel {
     }
   }
 
-  Future<void> _loadMyDocument(
-      {bool isLoadMore = false, bool isRefresh = false}) async {
+  Future<void> _loadMyDocument({bool isLoadMore = false, bool isRefresh = false}) async {
     if (isRefresh) {
       documents.value = null;
       documents.notifyListeners();
@@ -93,8 +54,8 @@ class DocumentViewModel extends BaseViewModel {
       setLoading(true);
     }
 
-    NetworkState<List<DocumentModel>> resultDocuments = await documentRepository
-        .publicDocument(pageSize: pageSize, pageNumber: currentPage);
+    NetworkState<List<DocumentModel>> resultDocuments =
+        await documentRepository.publicDocument(pageSize: pageSize, pageNumber: currentPage);
 
     if (isLoadMore) {
       isLoadingMore.value = false;
@@ -134,10 +95,7 @@ class DocumentViewModel extends BaseViewModel {
   }
 
   Future<void> search(
-      {required String keyword,
-      bool isLoadMore = false,
-      bool isRefresh = false,
-      required String majorId}) async {
+      {required String keyword, bool isLoadMore = false, bool isRefresh = false, required String majorId}) async {
     if (isRefresh) {
       documents.value = null;
       documents.notifyListeners();
@@ -150,12 +108,8 @@ class DocumentViewModel extends BaseViewModel {
       setLoading(true);
     }
 
-    NetworkState<List<DocumentModel>> resultDocuments =
-        await documentRepository.search(
-            keyword: keyword,
-            majorId: majorId,
-            pageSize: pageSize,
-            pageNumber: currentPage);
+    NetworkState<List<DocumentModel>> resultDocuments = await documentRepository.search(
+        keyword: keyword, majorId: majorId, pageSize: pageSize, pageNumber: currentPage);
 
     if (isLoadMore) {
       isLoadingMore.value = false;

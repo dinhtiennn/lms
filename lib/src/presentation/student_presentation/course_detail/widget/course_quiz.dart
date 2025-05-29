@@ -319,7 +319,7 @@ class _CourseQuizState extends State<CourseQuiz> {
             ),
             const SizedBox(height: 24),
             Text(
-              score == 100 ? 'Chúc mừng bạn đã vượt qua bài quiz!' : 'Bạn chưa vượt qua bài quiz, hãy làm lại!',
+              score == 100 ? 'Chúc mừng bạn đã vượt qua bài tập!' : 'Bạn chưa vượt qua bài tập, vui lòng làm lại!',
               style: TextStyle(
                 fontSize: 18,
                 fontWeight: FontWeight.bold,

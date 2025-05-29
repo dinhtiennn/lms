@@ -93,7 +93,7 @@ class DocumentRepository {
       final response = await AppClients().get(
          queryParameters: {
            'title' : keyword,
-           'majorId' : majorId,
+           // 'majorId' : majorId,
            'pageSize': pageSize,
            'pageNumber' : pageNumber
          },
